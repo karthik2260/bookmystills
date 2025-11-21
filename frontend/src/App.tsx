@@ -1,14 +1,13 @@
-import Signup from "./pages/user/auth/Signup";
+// import Signup from "./pages/user/auth/Signup";
+import UserLogin from "./pages/user/auth/Login";
 
-
-
-function App (){
-
-  return (
-
-    <Signup/>
-  )
+const App = () => {
+    return (
+       <>
+       {/* <Signup/> */}
+       <UserLogin/>
+       </>
+    )
 }
-
 
 export default App
