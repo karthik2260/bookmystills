@@ -8,3 +8,12 @@ export interface UserFormValues {
     createdAt?:string;
     updatedAt?:string
 }
+
+
+export interface UserData {
+    _id:string;
+    email:string;
+    password?:string;
+    name:string;
+    contactinfo?:string;
+}

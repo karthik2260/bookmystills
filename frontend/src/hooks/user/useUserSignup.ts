@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import type { UserFormValues } from "../../types/userTypes"
+import { validate } from "../../validations/user/userVal"
 
 
 
@@ -26,6 +27,10 @@ const images = [
 export const useUserSignup = () => {
     const [imageIndex,setImageIndex] = useState(0)
     const[formValues,setFormValues] = useState(initialValues)
+    const [formErrors,setFormErrors] = useState<UserFormValues>(initialValues)
+    const[showPassword,setShowPassword] = useState(false);
+    const [showPassword1,setShowPassword1] = useState(false);
+    const[showPassword2,setShowPassword2] = useState(false);
 
 
     useEffect(() => {
@@ -40,13 +45,33 @@ export const useUserSignup = () => {
         const {name,value} = e.target;
         setFormValues({...formValues,[e.target.name]:e.target.value})
         
+    
+
+    const errors = validate({...formValues,[name]:value});
+    setFormErrors((prevErrors) => ({...prevErrors, ...errors}));
     }
 
+    const togglepasswordVisibility = () => {
+        setShowPassword(!showPassword)
+    }
+     const togglePasswordVisibility1 = () => {
+        setShowPassword1(!showPassword1);
+      };
+      const togglePasswordVisibility2 = () => {
+        setShowPassword2(!showPassword2);
+      };
 
     return {
         imageIndex,
         images,
         formValues,
-        handleChange
+        handleChange,
+        formErrors,
+        togglepasswordVisibility,
+        togglePasswordVisibility1,
+        togglePasswordVisibility2,
+        showPassword,
+        showPassword1,
+        showPassword2
     }
 }
