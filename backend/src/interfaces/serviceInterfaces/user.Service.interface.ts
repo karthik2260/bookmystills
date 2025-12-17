@@ -1,5 +1,5 @@
 import { UserDocument } from "../../models/userModel"
-import { User } from "../commonInterfaces"
+import { GoogleUserData, User } from "../commonInterfaces"
 import { BlockStatus } from "../../enums/commonEnums"
 import { ILoginResponse } from "../commonInterfaces"
 
@@ -12,8 +12,11 @@ export interface IUserService {
      handleForgotPassword(email: string): Promise<void>;
     newPasswordChange(token: string, password: string): Promise<void>;
     validateToken (token: string): Promise<boolean>;
-        passwordCheckUser(currentPassword: string, newPassword: string, userId: any): Promise<void>;
-
+    passwordCheckUser(currentPassword: string, newPassword: string, userId: any): Promise<void>;
+     googleSignup({ email, name, googleId }: GoogleUserData): Promise<object>;
+    authenticateGoogleLogin(userData: GoogleUserData): Promise<ILoginResponse>;
+  
+  
 
 
 }

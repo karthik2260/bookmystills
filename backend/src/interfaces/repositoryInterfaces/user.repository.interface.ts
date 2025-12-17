@@ -9,6 +9,8 @@ export interface IUserRepository {
     clearResetToken(userId:mongoose.Types.ObjectId) : Promise<void>;
     getById(id: string): Promise<UserDocument | null>;
     findByToken(resetPasswordToken:string) : Promise< UserDocument | null>;
+    update(id: string, data: Partial<UserDocument>): Promise<UserDocument | null>;
+
 
 
 

@@ -13,6 +13,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.946.0",
+    "@aws-sdk/s3-request-presigner": "^3.946.0",
     "bcrypt": "^6.0.0",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
@@ -21,8 +23,12 @@
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
+    "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
-    "typescript": "^5.9.3"
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -34,7 +40,9 @@
     "@types/express-session": "^1.18.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
+    "@types/multer": "^2.0.0",
     "@types/nodemailer": "^7.0.4",
+    "@types/uuid": "^10.0.0",
     "dotenv": "^17.2.3",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0"

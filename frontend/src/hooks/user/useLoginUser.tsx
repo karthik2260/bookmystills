@@ -93,7 +93,6 @@ export const useLoginUser = () => {
                 showToastMessage(errorMessage, "error");
             } else {
                 console.error('An unexpected error occurred:', error);
-                showToastMessage("An unexpected error occurred", "error");
             }
         } finally {
             setIsLoading(false); 
@@ -111,7 +110,7 @@ export const useLoginUser = () => {
         return () => clearInterval(interval)
     }, [])
 
-    const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
         axiosInstance
             .post('/google/login', { credential: credentialResponse.credential })
             .then((response) => {

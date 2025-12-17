@@ -10,6 +10,7 @@ import UnifiedPrivateRoute from "@/pages/PrivateRouteProps";
 import Home from "@/pages/user/home/Home";
 import VerifyEmail from "@/pages/common/verifyEmail";
 import ResetPassword from "@/pages/user/auth/ResetPassword";
+import UserProfile from "@/pages/user/profile/userProfile";
 const UserRoutes : React.FC = () => {
     return (
         <Routes>
@@ -24,6 +25,8 @@ const UserRoutes : React.FC = () => {
 
             <Route element={<UnifiedPrivateRoute routeType="user"/>}>
             <Route path={USER.HOME} element={<ErrorBoundary><Home/></ErrorBoundary>}/>
+            <Route path={`${USER.PROFILE}`} element={<ErrorBoundary><UserProfile/></ErrorBoundary>}/>
+
 
             </Route>
 

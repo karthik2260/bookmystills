@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 import Swal from "sweetalert2";
 import { CreateAxiosInstance } from "@/types/axiosTypes";
 const BASE_URL = import.meta.env.VITE_BASE_URL || '';
-
+import { toast } from "react-toastify";
 const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshTokenKey) => {
     const instance = axios.create({
         baseURL: baseUrl,
@@ -70,8 +70,8 @@ const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshToke
                 }
 
                 if(error.response.status === 404){
-                    window.location.href = '/*';
-                    return Promise.reject(error);
+                    toast.error("User does not exist",error)
+                    return 
                 }
             }
             return Promise.reject(error);

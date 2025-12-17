@@ -3,13 +3,16 @@ import { OTP_EXPIRY_TIME, RESEND_COOLDOWN } from "../enums/commonEnums";
 import Messages from "../enums/errorMessages";
 import HTTP_statusCode from "../enums/httpStatusCode";
 import { CustomError } from "../error/customError";
-import { IUserSession, } from "../interfaces/commonInterfaces";
+import { GoogleUserData, IDecodedData, IUserSession, } from "../interfaces/commonInterfaces";
 import { IUserService } from "../interfaces/serviceInterfaces/user.Service.interface";
 import generateOTP from "../util/generateOtp";
 import { handleError } from "../util/handleError";
 import jwt from 'jsonwebtoken'
 import { AuthenticatedRequest } from "../types/userType";
 import { IVendorService } from "../interfaces/serviceInterfaces/vendor.service.interface";
+import  Jwt  from "jsonwebtoken";
+
+
 
 declare module 'express-session' {
     interface Session {
@@ -271,6 +274,90 @@ class UserController {
         }
     }
 
+     googleSignUp = async (req: Request, res: Response): Promise<void> => {
+        try {
+
+            const token = req.body.credential
+            const decodedData = Jwt.decode(token) as IDecodedData;
+
+
+            if (!decodedData) {
+                throw new CustomError(Messages.INVALID_TOKEN, HTTP_statusCode.BadRequest);
+            }
+            const { name, email, sub: googleId }: IDecodedData = decodedData;
+
+            const user = await this.userService.googleSignup({ name, email, googleId });
+
+            if (user) {
+                res.status(HTTP_statusCode.OK).json({
+                    success: true,
+                    message: Messages.ACCOUNT_CREATED
+                }),
+                    user
+            }
+
+        } catch (error) {
+            handleError(res, error, 'googleSignUp')
+        }
+    }
+
+    googleAuth = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { credential } = req.body
+            const decodedToken = Jwt.decode(credential) as IDecodedData;
+
+            if (!decodedToken || !decodedToken.email) {
+                throw new CustomError('Invalid Google token', HTTP_statusCode.BadRequest)
+            }
+
+            const googleUserData: GoogleUserData = {
+                email: decodedToken.email,
+                name: decodedToken.name,
+                googleId: decodedToken.sub,
+                picture: decodedToken.picture
+            }
+
+            const { user, isNewUser, token, refreshToken } = await this.userService.authenticateGoogleLogin(googleUserData);
+            if (user.isActive) {
+
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true, secure: process.env.NODE_ENV === 'production',
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                })
+                res.status(HTTP_statusCode.OK).json({
+                    user,
+                    token,
+                    message: isNewUser
+                        ? 'Successfully signed up with Google'
+                        : 'Successfully logged in with Google'
+                });
+            } else {
+
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true, secure: process.env.NODE_ENV === 'production',
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                })
+                res.status(HTTP_statusCode.OK).json({
+                    user,
+                    token,
+                });
+            }
+
+
+        } catch (error) {
+            handleError(res, error, 'googleAuth')
+        }
+    }
+
+   
+
+
+
+    
+
+
+
+  
 
 
 

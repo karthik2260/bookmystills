@@ -97,3 +97,10 @@ export interface OTP {
     email: string;
     otpSetTimestamp: number | undefined
 }
+
+export interface GoogleUserData {
+    email : string;
+    name:string;
+    googleId:string;
+    picture?:string
+}

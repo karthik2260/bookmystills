@@ -13,12 +13,24 @@ import crypto from 'crypto'
 import { emailTemplates } from "../util/emailTemplates";
 import mongoose from "mongoose";
 import Messages from "../enums/errorMessages";
+import { GoogleUserData } from "../interfaces/commonInterfaces";
+import UserRepository from "../repositories/userRepository";
+import { UserDocument } from "../models/userModel";
+import { s3Service, S3Service } from "./s3Service";
+import { promises } from "dns";
+
+
+
+
 class UserService implements IUserService {
     private userRepository : IUserRepository;
 
     constructor (userRepository : IUserRepository){
         this.userRepository = userRepository
     }
+
+
+    
 
 
     signup = async (
@@ -313,7 +325,111 @@ class UserService implements IUserService {
             }
             throw new CustomError("Failed to changing password.", HTTP_statusCode.InternalServerError);
         }
+    } 
+
+     googleSignup = async ({ email, name, googleId }: GoogleUserData): Promise<object> => {
+        try {
+            const existingUser = await this.userRepository.findByEmail(email);
+
+            if (existingUser) {
+                if (existingUser.isGoogleUser) return { user: existingUser };
+                else {
+                    throw new CustomError('Email already registered with different method', HTTP_statusCode.InternalServerError);
+                }
+            }
+
+            const newUser = await this.userRepository.create({
+                email,
+                googleId,
+                name,
+                isActive: true,
+                isGoogleUser: true,
+            });
+            return { user: newUser }
+
+        } catch (error) {
+            console.error('Error in signup using google', error)
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError('Failed to SignIn using Google', HTTP_statusCode.InternalServerError)
+        }
     }
+
+
+    authenticateGoogleLogin = async (userData: GoogleUserData): Promise<ILoginResponse> => {
+        try {
+            const existingUser = await this.userRepository.findByEmail(userData.email);
+            let user: UserDocument;
+            let isNewUser = false;
+            if (existingUser?.isActive === false) {
+                throw new CustomError('Blocked by Admin', HTTP_statusCode.NoAccess)
+            }
+
+            if (existingUser) {
+                if (!existingUser.isGoogleUser) {
+                    existingUser.isGoogleUser = true;
+                    existingUser.googleId = userData.googleId;
+                    if (userData.picture) existingUser.imageUrl = userData.picture;
+                    user = await existingUser.save()
+                } else {
+                    user = existingUser;
+                }
+            } else {
+                user = await this.userRepository.create({
+                    email: userData.email,
+                    name: userData.name,
+                    googleId: userData.googleId,
+                    isGoogleUser: true,
+                    imageUrl: userData.picture,
+                    isActive: true
+                });
+                isNewUser = true;
+            }
+            let userWithSignedUrl = user.toObject();
+            if (user?.imageUrl) {
+                try {
+                    const signedImageUrl = await s3Service.getFile('captureCrew/photo/', user.imageUrl);
+                    userWithSignedUrl = {
+                        ...userWithSignedUrl,
+                        imageUrl: signedImageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL during Google login:', error);
+                }
+            }
+            const token = createAccessToken(user._id.toString())
+            const refreshToken = createRefreshToken(user._id.toString())
+
+            user.refreshToken = refreshToken;
+            await user.save();
+
+            return {
+                user: userWithSignedUrl,
+                isNewUser,
+                token,
+                refreshToken,
+                message: 'Google authenticate successfull'
+            };
+
+        } catch (error) {
+            console.error('Error in Google authentication:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError('Failed to authenticate with Google', HTTP_statusCode.InternalServerError);
+        }
+    }
+
+  
+
+
+
+
+
+
+
+
 
 
 

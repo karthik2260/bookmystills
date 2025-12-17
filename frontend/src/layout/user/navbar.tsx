@@ -137,7 +137,10 @@ export default function UserNavbar() {
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="User Actions">
-            
+            <DropdownItem key="profile" startContent={<User size={20} />} onClick={handleProfileClick}>
+              Profile
+            </DropdownItem>
+          
             <DropdownItem
   key="logout"
   className="text-danger"

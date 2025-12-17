@@ -7,6 +7,10 @@ import VendorService from '../services/vendorService';
 import VendorRepository from '../repositories/vendorRepository';
 import VendorController from '../controllers/vendorController';
 
+
+
+
+
 const userRepository = new UserRepository()
 const vendorRepository = new VendorRepository()
 const vendorService = new VendorService(vendorRepository)
@@ -32,5 +36,9 @@ router.post('/forgot-password',userController.forgotPassword.bind(userController
 router.post('/reset-password/:token',userController.changeForgotPassword.bind(userController))
 router.get('/validate-reset-token/:token',userController.validateResetToken.bind(userController))
 router.put('/change-password',authenticateToken,userController.changePassword.bind(userController))
+
+router.post('/google/register',userController.googleSignUp.bind(userController))
+router.post('/google/login',userController.googleAuth.bind(userController))
+
 
 export default router
