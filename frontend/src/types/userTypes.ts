@@ -11,7 +11,7 @@ export interface UserFormValues {
 
 
 export interface UserData {
-    _id: string;
+   _id: string;
   email: string;
   password?: string;
   name: string;
@@ -21,6 +21,7 @@ export interface UserData {
   isGoogleUser: boolean;
   image?: string | null | undefined;
   imageUrl?: string;
+  favourite: string[];
   refreshToken?: string;
   createdAt: string | undefined;
   updatedAt: string | undefined;

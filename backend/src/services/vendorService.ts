@@ -7,13 +7,16 @@ import bcrypt from 'bcrypt'
 import { emailTemplates } from "../util/emailTemplates";
 import { sendEmail } from "../util/sendEmail";
 import mongoose from "mongoose";
-import { OTP_EXPIRY_TIME,RESEND_COOLDOWN } from "../enums/commonEnums";
+import { AcceptanceStatus, OTP_EXPIRY_TIME,RESEND_COOLDOWN } from "../enums/commonEnums";
 import { VendorDocument } from "../models/vendorModel";
-import { IVendorLoginResponse,Vendor,VendorSession } from "../interfaces/commonInterfaces";
+import { FindAllVendorsResult, IVendorLoginResponse,Vendor,VendorSession } from "../interfaces/commonInterfaces";
 import { createAccessToken,createRefreshToken } from "../config/jwt.config";
 import generateOTP from "../util/generateOtp";
 import HTTP_statusCode from "../enums/httpStatusCode";
 import Messages from "../enums/errorMessages";
+import { s3Service } from "./s3Service";
+import { stat } from "fs";
+import { VendorRequest } from "../types/vendorTypes";
 
 
 
@@ -320,6 +323,238 @@ class VendorService implements IVendorService {
             throw new CustomError("Failed to changing password.", HTTP_statusCode.InternalServerError);
         }
     }
+
+
+
+    getVendors = async (page:number,limit:number,search:string,status?:string):Promise<FindAllVendorsResult> => {
+        try {
+            const result = await this.vendorRepository.findAllVendors(page,limit,search,status)
+            const updateVendors = await Promise.all(
+                result.vendors.map(async(vendor) => {
+                    if(!vendor){
+                        return undefined
+                    }
+
+                    try {
+                        if(vendor.imageUrl === ''){
+                            return {...vendor}
+                        }
+
+                        if(vendor.imageUrl) {
+                            const signedUrl = await s3Service.getFile(
+                                'bookmystills-karthik-gopakumar/vendor/photo/',
+                                vendor.imageUrl
+                            )
+
+                            return {
+                                ...vendor,
+                                imageUrl:signedUrl
+                            }
+                        }
+
+                    } catch (error) {
+                        console.error(`Error getting Signed URL for ${vendor.imageUrl}: `,error)
+                        return vendor
+                    }
+                })
+            )
+
+            return {
+                ...result,
+                vendors:updateVendors
+            }
+        } catch (error) {
+            console.error("Error in finding users",error)
+            if(error instanceof CustomError){
+                throw error
+            }
+            throw new CustomError("Failed to get Users",HTTP_statusCode.InternalServerError);
+
+        }
+    }
+
+
+    verifyVendor = async(vendorId:string,status:AcceptanceStatus):Promise<{success:boolean,message:string}> => {
+        try {
+            const vendor = await this.vendorRepository.getById(vendorId);
+            if(!vendor){
+                return {success : false,message:"Vendor not exist"}
+            }
+
+            vendor.isAccepted = status;
+            vendor.isActive = status === AcceptanceStatus.Accepted;
+
+            await vendor.save();
+
+            const emailSubject = status === AcceptanceStatus.Accepted
+            ? 'Your vendor account has been accepted'
+                : 'Your vendor account has been rejected';
+
+                const emailBody = status === AcceptanceStatus.Accepted
+                ?emailTemplates.vendorAccepted(vendor.name)
+                :emailTemplates.vendorRejected(vendor.name)
+
+                await sendEmail(vendor.email,emailSubject,emailBody)
+                return {
+                    success:true ,
+                    message:status === AcceptanceStatus.Accepted
+                       ? 'Vendor has been accepted and notified via email'
+                    : 'Vendor has been rejected and notified via email'
+                }
+
+        }  catch (error){
+            console.error("Error in verifying vendor",error)
+            if(error instanceof CustomError){
+                throw error
+            }
+            throw new CustomError("Failed to verify vendor ",HTTP_statusCode.InternalServerError)
+        }
+    }
+
+
+   getVendorProfileService = async (vendorId: string): Promise<VendorDocument> => {
+        try {
+            const vendor = await this.vendorRepository.getById(vendorId.toString());
+
+            if (!vendor) {
+                throw new CustomError('Vendor not found', HTTP_statusCode.InternalServerError)
+            }
+
+            if (vendor?.imageUrl) {
+                try {
+                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/vendor/photo/', vendor?.imageUrl);
+                    return {
+                        ...vendor.toObject(),
+                        imageUrl: imageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL:', error);
+                    return vendor;
+                }
+            }
+            return vendor
+
+        } catch (error) {
+            console.error('Error in getVendorProfileService:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError((error as Error).message || 'Failed to get profile details', HTTP_statusCode.InternalServerError);
+        }
+    }
+
+
+     updateProfileService = async (
+        name: string,
+        contactinfo: string,
+        companyName: string,
+        city: string,
+        about: string,
+        files: Express.Multer.File | null,
+        vendorId: any
+    ): Promise<VendorDocument | null> => {
+        try {
+
+            const vendor = await this.vendorRepository.getById(vendorId.toString())
+            if (!vendor) {
+                throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound)
+            }
+
+            const updateData: {
+                name?: string;
+                contactinfo?: string;
+                imageUrl?: string;
+                companyName?: string;
+                city?: string;
+                about?: string;
+            } = {};
+            if (name && name !== vendor.name) {
+                updateData.name = name;
+            }
+            if (contactinfo && contactinfo !== vendor.contactinfo) {
+                updateData.contactinfo = contactinfo;
+            }
+            if (companyName && companyName !== vendor.companyName) {
+                updateData.companyName = companyName;
+            }
+            if (city && city !== vendor.city) {
+                updateData.city = city;
+            }
+            if (about && about !== vendor.about) {
+                updateData.about = about;
+            }
+            if (files) {
+                try {
+                    const imageFileName = await s3Service.uploadToS3(
+                        'bookmystills-karthik-gopakumar/photo/',
+                        files
+                    );
+                    updateData.imageUrl = imageFileName;
+                } catch (error) {
+                    console.error('Error uploading to S3:', error);
+                    throw new CustomError('Failed to upload image to S3', HTTP_statusCode.InternalServerError);
+                }
+            }
+
+            if (Object.keys(updateData).length === 0) {
+                throw new CustomError('No changes to update', HTTP_statusCode.InternalServerError);
+            }
+
+            const updatedVendor = await this.vendorRepository.update(vendorId, updateData)
+            if (!updatedVendor) {
+                throw new CustomError('Failed to update user', HTTP_statusCode.InternalServerError);
+            }
+            await updatedVendor.save();
+
+            const freshVendor = await this.vendorRepository.getById(vendorId.toString());
+            if (freshVendor?.imageUrl) {
+                try {
+                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/', freshVendor.imageUrl);
+
+                    return {
+                        ...freshVendor.toObject(),
+                        imageUrl: imageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL:', error);
+                    return freshVendor;
+                }
+            }
+            return freshVendor;
+
+        } catch (error) {
+            console.error("Error in updateProfileService:", error)
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to update profile.", HTTP_statusCode.InternalServerError);
+        }
+    }
+
+
+
+
+
+    
+
+    
+
+
+   
+
+
+   
+
+
+
+
+
+
+  
+    
+
+
+
 
 
   

@@ -50,8 +50,8 @@ export default function UserNavbar() {
     }
   };
 
-  const handleProfileClick = async (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
+  // Changed from React.MouseEvent to PressEvent
+  const handleProfileClick = async (e: PressEvent) => {
     try {
       navigate(`${USER.PROFILE}`)
     } catch (error) {
@@ -137,19 +137,20 @@ export default function UserNavbar() {
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="User Actions">
-            <DropdownItem key="profile" startContent={<User size={20} />} onClick={handleProfileClick}>
+            <DropdownItem key="profile" startContent={<User size={20} />} 
+            onPress={handleProfileClick}>
               Profile
             </DropdownItem>
           
             <DropdownItem
-  key="logout"
-  className="text-danger"
-  color="danger"
-  startContent={<Slash size={20} />}
-  onPress={handleLogout}   // use onPress instead of onClick
->
-  {isLoading ? "Logging out..." : "Log Out"}
-</DropdownItem>
+              key="logout"
+              className="text-danger"
+              color="danger"
+              startContent={<Slash size={20} />}
+              onPress={handleLogout}
+            >
+              {isLoading ? "Logging out..." : "Log Out"}
+            </DropdownItem>
 
           </DropdownMenu>
         </Dropdown>

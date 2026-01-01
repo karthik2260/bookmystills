@@ -18,9 +18,9 @@ const initialValues: UserFormValues = {
   };
   
 const images = [
-    '/images/userSignup1.jpg',
-    '/images/userSignup2.jpg',
-    '/images/userSignup3.jpg',
+   '/images/userSignup1.jpg',
+    './images/userSinup2.jpg',
+    './images/userSignup3.jpg'
   ];
 
 

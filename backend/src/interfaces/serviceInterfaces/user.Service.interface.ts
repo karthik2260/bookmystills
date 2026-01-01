@@ -15,6 +15,9 @@ export interface IUserService {
     passwordCheckUser(currentPassword: string, newPassword: string, userId: any): Promise<void>;
      googleSignup({ email, name, googleId }: GoogleUserData): Promise<object>;
     authenticateGoogleLogin(userData: GoogleUserData): Promise<ILoginResponse>;
+    getUserProfileService(email:string): Promise<UserDocument>;
+    updateProfileService(name: string, contactinfo: string, userId: any, files: Express.Multer.File | null): Promise<UserDocument | null>;
+
   
   
 

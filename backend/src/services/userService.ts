@@ -18,6 +18,8 @@ import UserRepository from "../repositories/userRepository";
 import { UserDocument } from "../models/userModel";
 import { s3Service, S3Service } from "./s3Service";
 import { promises } from "dns";
+import { log } from "console";
+import { GetBucketPolicyStatusCommand } from "@aws-sdk/client-s3";
 
 
 
@@ -389,7 +391,7 @@ class UserService implements IUserService {
             let userWithSignedUrl = user.toObject();
             if (user?.imageUrl) {
                 try {
-                    const signedImageUrl = await s3Service.getFile('captureCrew/photo/', user.imageUrl);
+                    const signedImageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo', user.imageUrl);
                     userWithSignedUrl = {
                         ...userWithSignedUrl,
                         imageUrl: signedImageUrl
@@ -418,6 +420,114 @@ class UserService implements IUserService {
                 throw error;
             }
             throw new CustomError('Failed to authenticate with Google', HTTP_statusCode.InternalServerError);
+        }
+    }
+
+
+    getUserProfileService = async (userId:string):Promise<UserDocument> => {
+        try {
+            const user = await this.userRepository.getById(userId.toString());
+            if(!user){
+                throw new CustomError(Messages.USER_NOT_FOUND,HTTP_statusCode.InternalServerError)
+            }
+
+            if(user?.imageUrl){
+                try {
+                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/',user?.imageUrl)
+                    return {
+                        ...user.toObject(),
+                        imageUrl:imageUrl
+                    }
+                } catch (error){
+                    console.error("Error generating signedin url:",error)
+                    return user
+                }
+            }
+            return user
+
+            
+            
+
+        } catch (error){
+            console.error("Error in getUserProfileService:",error);
+            if(error instanceof CustomError){
+                throw error
+            }
+            throw new CustomError((error as Error ).message || 'Failed to get profile details',HTTP_statusCode.InternalServerError)
+        } 
+    }
+
+
+
+    updateProfileService = async (
+        name: string,
+        contactinfo: string,
+        userId: any,
+        files: Express.Multer.File | null
+    ): Promise<UserDocument | null> => {
+        try {
+            const user = await this.userRepository.getById(userId.toString())
+            if (!user) {
+                throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound)
+            }
+
+            const updateData: {
+                name?: string;
+                contactinfo?: string;
+                imageUrl?: string;
+            } = {};
+
+            if (name && name !== user.name) {
+                updateData.name = name;
+            }
+            if (contactinfo && contactinfo !== user.contactinfo) {
+                updateData.contactinfo = contactinfo;
+            }
+
+            if (files) {
+                try {
+                    const imageFileName = await s3Service.uploadToS3(
+                        'bookmystills-karthik-gopakumar/photo',
+                        files
+                    );
+                    updateData.imageUrl = imageFileName;
+                } catch (error) {
+                    console.error('Error uploading to S3:', error);
+                    throw new CustomError('Failed to upload image to S3', HTTP_statusCode.InternalServerError);
+                }
+            }
+
+            if (Object.keys(updateData).length === 0) {
+                throw new CustomError('No changes to update', HTTP_statusCode.InternalServerError);
+            }
+
+            const updatedUser = await this.userRepository.update(userId, updateData)
+            if (!updatedUser) {
+                throw new CustomError('Failed to update user', HTTP_statusCode.InternalServerError);
+            }
+            await updatedUser.save();
+            const freshUser = await this.userRepository.getById(userId.toString());
+            if (freshUser?.imageUrl) {
+                try {
+                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/', freshUser.imageUrl);
+                    return {
+                        ...freshUser.toObject(),
+                        imageUrl: imageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL:', error);
+                    return freshUser;
+                }
+            }
+
+            return freshUser;
+
+        } catch (error) {
+            console.error("Error in updateProfileService:", error)
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to update profile.", HTTP_statusCode.InternalServerError);
         }
     }
 

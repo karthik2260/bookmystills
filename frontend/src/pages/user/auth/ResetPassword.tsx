@@ -114,7 +114,7 @@ const ResetPassword: React.FC = () => {
     }
     return (
         <div className="flex justify-center items-center h-screen bg-cover bg-center"> 
-            <Card className="w-full max-w-md overflow-hidden bg-transparent shadow-lg " {...({} as any)}>
+            <Card className="w-full max-w-md overflow-hidden bg-transparent shadow-lg " >
 
 
                 <div className="w-full text-center my-4">
@@ -123,7 +123,7 @@ const ResetPassword: React.FC = () => {
                     </h2>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <CardBody className="flex flex-col gap-4 px-4" {...({} as any)}>
+                    <CardBody className="flex flex-col gap-4 px-4" >
 
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700">New Password</label>
@@ -138,7 +138,7 @@ const ResetPassword: React.FC = () => {
                                     name="password"
                                     size="md"
                                     crossOrigin={undefined}
-{...({} as any)}                                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                                 className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                                     autoComplete="new-password"
                                 />
                                 <button
@@ -171,7 +171,6 @@ const ResetPassword: React.FC = () => {
                                     name="confirmPassword"
                                     size="md"
                                     crossOrigin={undefined}
-                                    onPointerEnt{...({} as any)}erCapture={() => { }} onPointerLeaveCapture={() => { }}
                                     className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                                     autoComplete="new-password"
                                 />
@@ -196,7 +195,7 @@ const ResetPassword: React.FC = () => {
                         <Button
                             type="submit"
                             variant="gradient"
-{...({} as any)}                            className="bg-black mb-5 text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 flex items-center justify-center"
+                      className="bg-black mb-5 text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 flex items-center justify-center"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (

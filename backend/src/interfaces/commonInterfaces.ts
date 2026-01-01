@@ -1,6 +1,6 @@
 import mongoose,{Model,Types} from "mongoose";
 import { UserDocument } from "../models/userModel";
-
+import { AcceptanceStatus } from "../enums/commonEnums";
 
 export interface User {
     email: string;
@@ -58,6 +58,10 @@ export interface Vendor {
     refreshToken: string;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
+    isAccepted: AcceptanceStatus;
+    logo: string;
+    imageUrl: string;
+    isVerified: boolean;
 }
 
  export interface IVendorLoginResponse {
@@ -104,3 +108,15 @@ export interface GoogleUserData {
     googleId:string;
     picture?:string
 }
+
+
+  export interface FindAllVendorsResult {
+    vendors:( Vendor | undefined)[]
+    totalPages: number;
+    total: number;
+}
+
+
+
+
+

@@ -31,11 +31,10 @@ const initialValues: FormValues = {
 }
 
 const images = [
-    '/images/signuppageimage1.jpg',
-    '/images/signuppageimage2.jpg',
-    '/images/signuppageimage3.jpg',
-
-];
+    '/images/userSignup1.jpg',
+    './images/userSinup2.jpg',
+    './images/userSignup3.jpg'
+]
 
 
 export const useLoginUser = () => {

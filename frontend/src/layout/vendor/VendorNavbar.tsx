@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar, MobileNav, Typography, IconButton } from "@material-tailwind/react";
-import {  Slash, Camera } from 'lucide-react';
+import { MessageCircle, User, Slash, Camera } from 'lucide-react';
 import { VENDOR } from '../../config/constants/constants';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,13 +9,11 @@ import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@
 import { showToastMessage } from '../../validations/common/toast';
 import VendorRootState from '@/redux/rootstate/VendorState';
 import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-import {  PressEvents } from "@react-types/shared";
+
 
 export default function VendorNavbar() {
   const [openNav, setOpenNav] = useState(false);
-  const vendor = useSelector((state: VendorRootState) => state.vendor.vendorData);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const vendor = useSelector((state:VendorRootState)=>state.vendor.vendorData)
 
   useEffect(() => {
     window.addEventListener(
@@ -24,15 +22,30 @@ export default function VendorNavbar() {
     );
   }, []);
 
-  const handleLogout = (e: PressEvents) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleProfileClick = async () => {
+    
+    try {
+      navigate(`${VENDOR.PROFILE}`)
+    } catch (error) {
+      console.error('Profile Error', error);
+      showToastMessage('Error during loading profile', 'error');
+    }
+
+  }
+
+  const handleLogout = () => {
     
     axiosInstanceVendor
       .post("/logout")
       .then(() => {
-        localStorage.removeItem('vendorToken');
+        localStorage.removeItem('vendorToken')
         dispatch(logout());
-        navigate(VENDOR.LOGIN);
+        navigate(`${VENDOR.LOGIN}`);
         showToastMessage('Logged out successfully', 'success');
+
       })
       .catch((error) => {
         console.error('Logout Error', error);
@@ -42,46 +55,50 @@ export default function VendorNavbar() {
 
   return (
     <>
-      <Navbar 
-        className="bg-black w-full px-4 md:px-8 lg:px-16 rounded-none border border-none" 
-        placeholder={undefined}
-        {...({} as any)}
-      >
+      <Navbar  className="bg-black w-full px-4 md:px-8 lg:px-16 rounded-none border border-none" placeholder={undefined}
+        onPointerEnterCapture={undefined}
+        onPointerLeaveCapture={undefined}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Typography 
-              as="div" 
-              className="text-white text-2xl font-bold cursor-pointer" 
-              placeholder={undefined}
-              {...({} as any)}
-              onClick={() => navigate(VENDOR.DASHBOARD)}
-            >
+            <Typography  as="a" href="#" className="text-white text-2xl font-bold" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               <Camera className="h-6 w-6 text-red-500" />
             </Typography>
 
-            <Typography 
-              as="div" 
-              className="text-white text-xl md:text-xl lg:text-2xl font-bold cursor-pointer" 
-              placeholder={undefined}
-              {...({} as any)}
-              onClick={() => navigate(VENDOR.DASHBOARD)}
-            >
-              bookmystills
+            <Typography as="a" href="#" className="text-white text-xl md:text-xl lg:text-2xl font-bold" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
+              Bookmystills
             </Typography>
           </div>
 
-          <div className="hidden sm:flex gap-6 md:gap-8 lg:gap-10 items-center text-white">
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.DASHBOARD)}
-              className="cursor-pointer font-semibold text-md md:text-base lg:text-lg hover:text-gray-300 transition-all" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
-              Vendor page demo 
+          <div className="hidden sm:flex gap-6 md:gap-8 lg:gap-10 items-center text-white ">
+            <Typography  as="a" href={VENDOR.DASHBOARD} className="cursor-pointer font-semibold  text-md md:text-base lg:text-lg hover:text-gray-300 transition-all" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
+              HOME
             </Typography>
-            
-          
+            <Typography  as="a" href="#" className="cursor-pointer font-semibold text-sm md:text-base lg:text-lg hover:text-gray-300 transition-all" placeholder={undefined}
+              onPointerEnterCapture={undefined} onClick={handleProfileClick}
+              >
+              PROFILE
+            </Typography>
+            <Typography  as="a" href={VENDOR.VIEW_POSTS} className="cursor-pointer font-semibold text-sm md:text-base lg:text-lg hover:text-gray-300 transition-all" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
+              CONTENTS
+            </Typography>
+            <Typography  as="a"  href={VENDOR.REVIEW} className="cursor-pointer font-semibold text-sm md:text-base lg:text-lg hover:text-gray-300 transition-all" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
+              REVIEWS
+            </Typography>
+            <Typography  as="a" href={VENDOR.REQUEST_BOOKING} className="cursor-pointer font-semibold text-sm md:text-base lg:text-lg hover:text-gray-300 transition-all" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
+              BOOKING REQUEST
+            </Typography>
           </div>
 
           <div className="flex items-center gap-4">
@@ -91,30 +108,29 @@ export default function VendorNavbar() {
                   isBordered
                   as="button"
                   className="transition-transform"
-                  name={vendor?.name || "Vendor"}
+                  name={vendor?.name}
                   size="sm"
-                  src={vendor?.imageUrl || '/images/user1.jpg'}
+                  src={vendor?.imageUrl || 'images/user1.jpg'}
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label="User Actions">
-                <DropdownItem 
-                  key="logout" 
-                  className="text-danger" 
-                  color="danger" 
-                  startContent={<Slash size={20} />}
-                  onPress={handleLogout}
-                >
+                <DropdownItem key="profile" startContent={<User size={20} />} onClick={handleProfileClick}>
+                  Profile
+                </DropdownItem>
+                <DropdownItem key="logout" className="text-danger" color="danger" startContent={<Slash size={20} />}
+                  onPress={handleLogout}>
                   Log Out
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>
 
-            
+            <MessageCircle className="text-white w-6 h-6 cursor-pointer"  onClick={()=>navigate(`${VENDOR.CHAT}`)}/>
 
-            <IconButton
+            <IconButton 
               variant="text"
               placeholder={undefined}
-              {...({} as any)}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
               className="text-white sm:hidden"
               onClick={() => setOpenNav(!openNav)}
             >
@@ -133,58 +149,36 @@ export default function VendorNavbar() {
 
         <MobileNav open={openNav}>
           <div className="flex flex-col gap-4 items-center text-white">
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.DASHBOARD)}
-              className="cursor-pointer text-lg" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
+            <Typography  as="a" href={VENDOR.DASHBOARD} className="cursor-pointer text-lg" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               HOME
             </Typography>
-            
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.PROFILE)}
-              className="cursor-pointer text-lg" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
+            <Typography  as="a" href={VENDOR.PROFILE} className="cursor-pointer text-lg" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               PROFILE
             </Typography>
-            
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.VIEW_POSTS)}
-              className="cursor-pointer text-lg" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
+            <Typography  as="a" href={VENDOR.VIEW_POSTS} className="cursor-pointer text-lg" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               CONTENTS
             </Typography>
-            
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.REVIEW)}
-              className="cursor-pointer text-lg" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
+            <Typography  as="a" href={VENDOR.REVIEW} className="cursor-pointer text-lg" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               REVIEWS
             </Typography>
-            
-            <Typography 
-              as="div" 
-              onClick={() => navigate(VENDOR.REQUEST_BOOKING)}
-              className="cursor-pointer text-lg" 
-              placeholder={undefined}
-              {...({} as any)}
-            >
+            <Typography  as="a" href={VENDOR.REQUEST_BOOKING} className="cursor-pointer text-lg" placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}>
               BOOKING REQUEST 
             </Typography>
           </div>
         </MobileNav>
       </Navbar>
+
+
     </>
   );
 }

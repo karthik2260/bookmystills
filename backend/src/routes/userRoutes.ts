@@ -6,8 +6,10 @@ import { authenticateToken } from '../middlewares/authToken';
 import VendorService from '../services/vendorService';
 import VendorRepository from '../repositories/vendorRepository';
 import VendorController from '../controllers/vendorController';
+import multer from 'multer';
 
-
+const storage = multer.memoryStorage();
+const upload = multer({storage:storage})
 
 
 
@@ -39,6 +41,10 @@ router.put('/change-password',authenticateToken,userController.changePassword.bi
 
 router.post('/google/register',userController.googleSignUp.bind(userController))
 router.post('/google/login',userController.googleAuth.bind(userController))
+
+router.get('/profile',authenticateToken,userController.getUserProfile.bind(userController))
+router.put('/profile', upload.single("image"), authenticateToken, userController.updateProfile.bind(userController))
+
 
 
 export default router

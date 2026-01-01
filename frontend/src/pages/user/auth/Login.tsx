@@ -3,9 +3,8 @@ import {
     CardBody,
     Typography,
     Button,
-    Input as MaterialInput, InputProps,
+    Input,
     CardFooter,
-
 } from "@material-tailwind/react";
 import {
     Modal,
@@ -13,7 +12,6 @@ import {
     ModalHeader,
     ModalBody,
     ModalFooter,
-
 } from "@nextui-org/react";
 import { Link, useNavigate } from 'react-router-dom';
 import { USER, VENDOR } from '../../../config/constants/constants';
@@ -24,31 +22,28 @@ import { useLoginUser } from "../../../hooks/user/useLoginUser";
 import { showToastMessage } from "../../../validations/common/toast";
 import { useEffect } from "react";
 
-const client_id = import.meta.env.VITE_CLIENT_ID || ''
-
-export type CustomInputProps = Omit<InputProps, 'onPointerEnterCapture' | 'onPointerLeaveCapture' | 'crossOrigin'>;
-
-const Input: React.FC<CustomInputProps> = (props) => {
-    return (
-      <MaterialInput
-  {...props}
-  onPointerEnterCapture={() => {}}
-  onPointerLeaveCapture={() => {}}
-  onResize={() => {}}
-  onResizeCapture={() => {}}
-  crossOrigin={undefined}
-/>
-
-    );
-}
+const client_id = import.meta.env.VITE_CLIENT_ID || '';
 
 const UserLogin: React.FC = () => {
     const {
-
-        user, imageIndex, images, isLoading, formik, forgotPasswordEmail, emailError, isOpen, showPassword,
-        onOpen, onOpenChange, togglePasswordVisibility, handleEmailChange, handleForgotPassword, handleGoogleSuccess
-    } = useLoginUser()
-    const navigate = useNavigate()
+        user,
+        imageIndex,
+        images,
+        isLoading,
+        formik,
+        forgotPasswordEmail,
+        emailError,
+        isOpen,
+        showPassword,
+        onOpen,
+        onOpenChange,
+        togglePasswordVisibility,
+        handleEmailChange,
+        handleForgotPassword,
+        handleGoogleSuccess
+    } = useLoginUser();
+    
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (user) {
@@ -57,16 +52,14 @@ const UserLogin: React.FC = () => {
     }, [navigate, user]);
 
     if (isLoading) {
-        return <Loader />
+        return <Loader />;
     }
 
     return (
         <div className="w-full h-screen flex flex-col md:flex-row items-start">
-
-
             <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
                 <GoogleOAuthProvider clientId={client_id}>
-                    <Card className="w-full max-w-md overflow-hidden"{...({} as any)}>
+                    <Card className="w-full max-w-md overflow-hidden">
                         <div className="w-full text-center mt-6 mb-4">
                             <h2 className="text-3xl font-extrabold text-gray-900 mb-6" style={{ fontFamily: 'roboto, sans-serif' }}>
                                 LOGIN
@@ -74,9 +67,11 @@ const UserLogin: React.FC = () => {
                         </div>
 
                         <form onSubmit={formik.handleSubmit}>
-                            <CardBody className="flex flex-col gap-4 px-4 pb-0" {...({} as any)}>
+                            <CardBody className="flex flex-col gap-4 px-4 pb-0">
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                        Email
+                                    </label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -90,14 +85,16 @@ const UserLogin: React.FC = () => {
                                         className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                                     />
                                     {formik.touched.email && formik.errors.email && (
-                                        <p className="text-sm" style={{ color: 'red' }}>
+                                        <p className="text-sm text-red-500 mt-1">
                                             {formik.errors.email}
                                         </p>
                                     )}
-
                                 </div>
+
                                 <div className="relative">
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                        Password
+                                    </label>
                                     <div className="relative">
                                         <Input
                                             id="password"
@@ -121,54 +118,55 @@ const UserLogin: React.FC = () => {
                                     </div>
 
                                     {formik.touched.password && formik.errors.password && (
-                                        <p className="text-sm" style={{ color: 'red' }}>
+                                        <p className="text-sm text-red-500 mt-1">
                                             {formik.errors.password}
                                         </p>
                                     )}
-
-
                                 </div>
+
                                 <Typography
-                                    className="text-left cursor-pointer"
+                                    className="text-left cursor-pointer text-sm hover:underline"
                                     onClick={onOpen}
-                                   {...({} as any)}
-                                    placeholder={undefined}
                                 >
                                     Forgot password?
                                 </Typography>
 
-                                <div className="flex justify-center mt-2">
-                                    <Button
-                                        type="submit"
-{...({} as any)}                                        className="bg-black text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-                                    >
-                                        Sign In
-                                    </Button>
-                                </div>
+                              <div className="flex justify-center mt-6">
+  <Button
+    type="submit"
+    className="w-full max-w-md bg-blue-600 text-white font-medium py-2.5 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    Sign In
+  </Button>
+</div>
                             </CardBody>
                         </form>
 
-                        <div className="flex justify-center mt-4">
-                            <GoogleLogin
-                                type='standard'
-                                theme='filled_black'
-                                size='medium'
-                                text='signin_with'
-                                shape='rectangular'
-                                onSuccess={handleGoogleSuccess}
-                                onError={() => {
-                                    showToastMessage('Google login failed', 'error');
-                                }}
-                            />
-                        </div>
+                       <div className="mt-6 flex justify-center">
+  <div className="w-full max-w-sm">
+    <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md">
+      <GoogleLogin
+        type="standard"
+        theme="outline"
+        size="large"
+        text="signin_with"
+        shape="rectangular"
+        onSuccess={handleGoogleSuccess}
+        onError={() => {
+          showToastMessage("Google login failed", "error");
+        }}
+      />
+    </div>
+  </div>
+</div>
 
 
-                        <CardFooter className="pt-0" {...({} as any)}>
+                        <CardFooter className="pt-0">
                             <Typography
                                 variant="small"
                                 className="mt-2 mb-2 flex justify-center"
                                 color="black"
-                               {...({} as any)}    >
+                            >
                                 Don't have an account?
                                 <Link to={USER.SIGNUP}>
                                     <Typography
@@ -177,7 +175,7 @@ const UserLogin: React.FC = () => {
                                         variant="small"
                                         color="black"
                                         className="ml-1 font-bold"
-                                       {...({} as any)}        >
+                                    >
                                         Sign Up
                                     </Typography>
                                 </Link>
@@ -186,7 +184,7 @@ const UserLogin: React.FC = () => {
                                 variant="small"
                                 className="mt-2 flex justify-center pb-3"
                                 color="black"
-                              {...({} as any)}  >
+                            >
                                 Are you a vendor?
                                 <Link to={VENDOR.LOGIN}>
                                     <Typography
@@ -195,18 +193,16 @@ const UserLogin: React.FC = () => {
                                         variant="small"
                                         color="black"
                                         className="ml-1 font-bold"
-                                     {...({} as any)}           >
+                                    >
                                         SignIn here
                                     </Typography>
                                 </Link>
                             </Typography>
                         </CardFooter>
-
                     </Card>
                 </GoogleOAuthProvider>
-
-
             </div>
+
             <Modal
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
@@ -232,7 +228,7 @@ const UserLogin: React.FC = () => {
                                     </svg>
                                 </button>
                             </div>
-                            <ModalHeader className="flex flex-col  items-center justify-center text-xl font-semibold text-black">
+                            <ModalHeader className="flex flex-col items-center justify-center text-xl font-semibold text-black">
                                 Forgot Password
                             </ModalHeader>
                             <ModalBody>
@@ -247,17 +243,14 @@ const UserLogin: React.FC = () => {
                                             placeholder="Enter your email"
                                             value={forgotPasswordEmail}
                                             onChange={handleEmailChange}
-                                            className="w-full "
+                                            className="w-full"
                                             autoComplete="email"
                                         />
-                                        {emailError ? (
-                                            <p
-                                                className="text-sm"
-                                                style={{ color: "red", marginBottom: -15, marginTop: 5 }}
-                                            >
+                                        {emailError && (
+                                            <p className="text-sm text-red-500 mt-1">
                                                 {emailError}
                                             </p>
-                                        ) : null}
+                                        )}
                                     </div>
                                     <p className="text-sm text-gray-500">
                                         Enter your email address and we'll send you a link to reset your password.
@@ -267,7 +260,6 @@ const UserLogin: React.FC = () => {
                             <ModalFooter className="flex justify-between space-x-4">
                                 <Button
                                     className="flex-1 font-judson bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                  {...({} as any)}
                                     onClick={onClose}
                                     disabled={isLoading}
                                 >
@@ -276,7 +268,6 @@ const UserLogin: React.FC = () => {
                                 <Button
                                     className="flex font-judson bg-black text-white hover:bg-gray-900"
                                     onClick={handleForgotPassword}
-                                  {...({} as any)}
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
@@ -303,7 +294,6 @@ const UserLogin: React.FC = () => {
                     backgroundRepeat: 'no-repeat',
                 }}
             >
-                {/* Animated text */}
                 <h1 className="animate-fadeIn text-4xl md:text-4xl text-white font-bold mt-20 mx-4 md:block hidden">
                     Elevate Your Event Experience
                 </h1>
@@ -311,10 +301,8 @@ const UserLogin: React.FC = () => {
                     Find, Connect, and Collaborate with Top Event Planners
                 </p>
             </div>
-
         </div>
-    )
-}
-
+    );
+};
 
 export default UserLogin;

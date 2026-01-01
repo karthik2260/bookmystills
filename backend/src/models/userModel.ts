@@ -22,7 +22,8 @@ const UserSchema = new Schema<UserDocument,UserModel>({
     isActive:{type:Boolean,default:true},
      refreshToken: { type: String },
        isGoogleUser: { type: Boolean, default: false },
-
+ image: { type: String },
+  imageUrl: { type: String },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
 }, { timestamps: true });

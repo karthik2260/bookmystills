@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { VendorDocument } from "../../models/vendorModel";
+import { FindAllVendorsResult } from "../commonInterfaces";
 
 export interface IVendorRepository {
     getById(id: string): Promise<VendorDocument | null>; 
@@ -8,5 +9,6 @@ export interface IVendorRepository {
     update(id: string, data: Partial<VendorDocument>): Promise<VendorDocument | null>;
     findByToken(resetPasswordToken:string) : Promise< VendorDocument | null>;
     UpdatePassword(vendorId:mongoose.Types.ObjectId, hashedPassword:string) : Promise<boolean>;
-    
+    findAllVendors(page: number, limit: number, search: string, status?: string): Promise<FindAllVendorsResult>;
+
 }

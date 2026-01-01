@@ -169,7 +169,7 @@ const VerifyEmailVendor = () => {
       </div>
 
       <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
-        <Card className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden" {...({} as any)}>
+        <Card className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden" >
 
           <div className="w-full text-center mt-6 mb-4">
             <h2 className="text-3xl font-extrabold text-gray-900">
@@ -183,7 +183,7 @@ const VerifyEmailVendor = () => {
             onSubmit={handleVerify}
           >
             {({ isSubmitting }) => (
-              <CardBody className="flex flex-col gap-4 px-4"{...({} as any)}>
+              <CardBody className="flex flex-col gap-4 px-4">
 
                 <Form className="space-y-4">
                   <div>
@@ -199,7 +199,7 @@ const VerifyEmailVendor = () => {
 
                   {timeLeft !== null && (
                     <Typography className="text-center" color={timeLeft > 0 ? "blue-gray" : "red"}
-{...({} as any)}            >          {timeLeft > 0
+          >          {timeLeft > 0
                         ? `Time remaining: ${formatTime(timeLeft)}`
                         : "OTP has expired"}
                     </Typography>
@@ -210,7 +210,7 @@ const VerifyEmailVendor = () => {
                       type="button"
                       color="gray"
                       onClick={handleResend}
-{...({} as any)}                      disabled={isLoading || resendDisabled || isSubmitting}
+                     disabled={isLoading || resendDisabled || isSubmitting}
                       className="bg-black"
                       fullWidth
                     >
@@ -219,7 +219,7 @@ const VerifyEmailVendor = () => {
 
                     <Button
                       type="submit"
-                     {...({} as any)}
+                     
                       disabled={isLoading || !timeLeft || timeLeft === 0 || isSubmitting}
                       className="bg-black"
                       fullWidth

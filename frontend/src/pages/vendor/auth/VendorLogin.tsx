@@ -32,7 +32,7 @@ import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { IFormValues } from '@/utils/interface';
 import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-import { PressEvent, PressEvents } from "@react-types/shared";
+
 
 const initialValues: IFormValues = {
     email: '',
@@ -40,9 +40,9 @@ const initialValues: IFormValues = {
 }
 
 const images = [
-    '/images/userLogin1.jpg',
-    '/images/userLogin2.jpg',
-    '/images/userLogin3.jpg',
+    '/images/vendorimage1.jpg',
+  '/images/vendorimage2.jpg',
+  '/images/vendorimage3.jpg'
 
 ];
 
@@ -149,7 +149,7 @@ const VendorLogin = () => {
         <div className="w-full h-screen flex flex-col md:flex-row items-start">
             <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
 
-                <Card className="w-full max-w-md overflow-hidden" {...({} as any)}>
+                <Card className="w-full max-w-md overflow-hidden" >
                     <div className="w-full text-center mt-6 mb-4">
                         <h2 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
                             VENDOR LOGIN
@@ -157,7 +157,7 @@ const VendorLogin = () => {
                     </div>
 
                     <form onSubmit={formik.handleSubmit}>
-                        <CardBody className="flex flex-col gap-4 px-4"{...({} as any)}>
+                        <CardBody className="flex flex-col gap-4 px-4">
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                                 <Input
@@ -172,7 +172,7 @@ const VendorLogin = () => {
                                     crossOrigin={undefined}
                                     autoComplete="email"
                                     className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
-                                    {...({} as any)}
+                                   
                                 />
                                 {formik.touched.email && formik.errors.email && (
                                     <p className="text-sm" style={{ color: 'red' }}>
@@ -194,7 +194,7 @@ const VendorLogin = () => {
                                     name="password"
                                     size="md"
                                     crossOrigin={undefined}
-                                  {...({} as any)}
+                                 
                                     className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                                     autoComplete="new-password"
                                 />
@@ -215,31 +215,36 @@ const VendorLogin = () => {
                             <Typography
                                     className="text-left cursor-pointer"
                                     onClick={onOpen}
-                                  {...({} as any)}
+                                 
                                     placeholder={undefined}
                                 >
                                     Forgot password?
                                 </Typography>
 
-                            <div className="flex justify-center mt-4">
-                                <Button
-                                    type="submit"
-{...({} as any)}                                    className="bg-black text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-                                >
-                                    Sign In
-                                </Button>
-                            </div>
+                           <div className="flex justify-center mt-6">
+  <Button
+    type="submit"
+    className="w-full max-w-sm rounded-lg bg-blue-700 py-2.5 text-sm font-semibold text-white 
+               transition-all duration-200 
+               hover:bg-gray-900 
+               focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+               disabled:opacity-60 disabled:cursor-not-allowed"
+  >
+    Sign In
+  </Button>
+</div>
+
                         </CardBody>
                     </form>
 
 
 
-                    <CardFooter className="pt-0" {...({} as any)}>
+                    <CardFooter className="pt-0" >
                         <Typography
                             variant="small"
                             className="mt-2 mb-4 flex justify-center"
                             color="black"
-                          {...({} as any)}      >
+                                >
                             Don't have an account?
                             <Link to={VENDOR.SIGNUP}>
                                 <Typography
@@ -248,7 +253,7 @@ const VendorLogin = () => {
                                     variant="small"
                                     color="black"
                                     className="ml-1 font-bold"
-                                   {...({} as any)}     >
+                                    >
                                     Sign Up
                                 </Typography>
                             </Link>
@@ -257,7 +262,7 @@ const VendorLogin = () => {
                             variant="small"
                             className="mt-3 flex justify-center"
                             color="black"
-                        {...({} as any)}    >
+                     >
                             Are you a User?
                             <Link to={USER.LOGIN}>
                                 <Typography
@@ -266,7 +271,7 @@ const VendorLogin = () => {
                                     variant="small"
                                     color="black"
                                     className="ml-1 font-bold pb-3"
-                                  {...({} as any)}    >
+                                    >
                                     SignIn here
                                 </Typography>
                             </Link>
@@ -317,7 +322,7 @@ const VendorLogin = () => {
                                             placeholder="Enter your email"
                                             value={forgotPasswordEmail}
                                             crossOrigin={undefined}
-                                        {...({} as any)}
+                                       
                                             onChange={handleEmailChange}
                                             className="w-full"
                                             autoComplete='email'
@@ -341,14 +346,14 @@ const VendorLogin = () => {
                             <ModalFooter className="flex justify-between space-x-4">
                                 <Button
                                     className="flex-1 font-judson bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                 {...({} as any)}
+                               
                                     onClick={onClose} disabled={isLoading}
                                 >
                                     Cancel
                                 </Button>
                                 <Button
                                     className="flex font-judson bg-black text-white hover:bg-gray-900"
-                                  {...({} as any)}
+                            
                                     onClick={handleForgotPassword} disabled={isLoading}
                                 >
                                     {isLoading ? (

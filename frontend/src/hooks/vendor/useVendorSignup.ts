@@ -10,9 +10,9 @@ import VendorRootState from '@/redux/rootstate/VendorState';
 
 
 const images = [
-  '/images/login.webp',
-  '/images/event1.jpg',
-  '/images/event2.jpg'
+  '/images/vendorimage1.jpg',
+  '/images/vendorimage2.jpg',
+  '/images/vendorimage3.jpg'
 ];
 
 

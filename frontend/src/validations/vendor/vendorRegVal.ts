@@ -1,4 +1,15 @@
 interface ValidationErrors {
+   name: string;
+    email: string;
+    city: string;
+    contactinfo: string;
+    password: string;
+    confirmPassword: string;
+    companyName: string;
+    about: string,
+  }
+  
+  interface ValidationValues {
     name: string;
     email: string;
     city: string;
@@ -7,20 +18,9 @@ interface ValidationErrors {
     confirmPassword: string;
     companyName: string;
     about: string,
-}
-
-interface ValidationValues {
-    name: string;
-    email: string;
-    city: string;
-    contactinfo: string;
-    password: string;
-    confirmPassword: string;
-    companyName: string;
-    about: string,
-}
-
-export const validate = (values: ValidationValues): ValidationErrors => {
+  }
+  
+ export const validate = (values: ValidationValues): ValidationErrors => {
     const errors: ValidationErrors = {
         name: "",
         email: "",
@@ -31,87 +31,107 @@ export const validate = (values: ValidationValues): ValidationErrors => {
         companyName: "",
         about: "",
     };
-
+  
     // Regular Expressions for validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
-
+  
     // Name validation
     if (!values.name.trim()) {
-        errors.name = 'Name is required';
+      errors.name = 'Name is required';
     } else if (!/^[A-Za-z\s]+$/i.test(values.name)) {
-        errors.name = 'Should not contain numbers or special characters!';
+      errors.name = 'Should not contain numbers or special characters!';
     }
-
+  
     // Email validation
     if (!values.email.trim()) {
-        errors.email = 'Email is required';
+      errors.email = 'Email is required';
     } else if (!emailRegex.test(values.email)) {
-        errors.email = 'Invalid email address';
+      errors.email = 'Invalid email address';
     }
-
-    // City validation
-    if (!values.city.trim()) {
-        errors.city = 'City is required';
-    } else if (!/^[A-Za-z\s]+$/i.test(values.city)) {
-        errors.city = 'Should not contain numbers!';
-    }
-
+  
     // Phone validation
     if (!values.contactinfo.trim()) {
-        errors.contactinfo = 'Phone is required';
+      errors.contactinfo = 'Phone is required';
     } else if (!mobileRegex.test(values.contactinfo)) {
-        errors.contactinfo = 'Invalid mobile number';
+      errors.contactinfo = 'Invalid mobile number';
     }
-
+  
     // Password validation
     if (!values.password.trim()) {
-        errors.password = 'Password is required';
+      errors.password = 'Password is required';
     } else if (!passwordRegex.test(values.password)) {
-        errors.password = 'Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.';
+      errors.password = 'Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.';
     }
-
+  
     // Confirm Password validation
     if (!values.confirmPassword.trim()) {
-        errors.confirmPassword = 'Confirm Password is required';
+      errors.confirmPassword = 'Confirm Password is required';
     } else if (values.confirmPassword !== values.password) {
-        errors.confirmPassword = 'Passwords do not match!';
+      errors.confirmPassword = 'Passwords do not match!';
     }
-
-    // Company Name validation
-    if (!values.companyName.trim()) {
-        errors.companyName = 'Company name is required';
-    } else if (values.companyName.length < 2) {
-        errors.companyName = 'Company name must be at least 2 characters long';
-    } else if (values.companyName.length > 100) {
-        errors.companyName = 'Company name must not exceed 100 characters';
-    } else if (!/^[A-Za-z0-9\s&'-]+$/i.test(values.companyName)) {
-        errors.companyName = 'Company name can only contain letters, numbers, spaces, and the characters &, \', -';
-    }
-
-     // About field validation
-    if (!values.about.trim()) {
-        errors.about = 'About is required';
-    } else if (values.about.length < 10) {
-        errors.about = 'About must be at least 10 characters long';
-    } else if (values.about.length > 500) {
-        errors.about = 'About must not exceed 500 characters';
-    }
+  
     return errors;
-};
+  };
+  
 
 
-export const validateProfile = (values: Pick<ValidationValues,'name' | 'contactinfo' | 'companyName' | 'city' | 'about'>): Pick<ValidationErrors, 'name' | 'contactinfo' | 'companyName' | 'city' | 'about'> => {
-    const errors: Pick<ValidationErrors, 'name' | 'contactinfo' | 'companyName' | 'city' | 'about'>= {
+  export const validateEmail = (values: Pick<ValidationValues,'email'>): Pick<ValidationErrors, 'email'> => {
+    const errors: Pick<ValidationErrors, 'email'>= {
+      email: "",
+    };
+    
+    // Regular Expression for email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+    // Email validation
+    if (!values.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(values.email)) {
+      errors.email = 'Invalid email address';
+    }
+   
+    return errors;
+  };
+
+  
+  export const validatePassword = (values: Pick<ValidationValues,'password' | 'confirmPassword'>): Pick<ValidationErrors, 'password' | 'confirmPassword'> => {
+    const errors: Pick<ValidationErrors, 'password' | 'confirmPassword'>= {
+      password: "",
+      confirmPassword: "",
+    };
+    
+    // Regular Expression for email validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  
+     // Password validation
+     if (!values.password.trim()) {
+      errors.password = 'Password is required';
+    } else if (!passwordRegex.test(values.password)) {
+      errors.password = 'Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.';
+    }
+  
+    // Confirm Password validation
+    if (!values.confirmPassword.trim()) {
+      errors.confirmPassword = 'Confirm Password is required';
+    } else if (values.confirmPassword !== values.password) {
+      errors.confirmPassword = 'Passwords do not match!';
+    }
+  
+   
+    return errors;
+  };
+
+
+
+  
+  export const validateProfile = (values: Pick<ValidationValues,'name' | 'contactinfo'>): Pick<ValidationErrors, 'name' | 'contactinfo'> => {
+    const errors: Pick<ValidationErrors, 'name' | 'contactinfo'>= {
       name: "",
       contactinfo: "",
-      companyName: "",
-      city: "",
-      about: "",
     };
     const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
-    // Regular Expression for email validation
     if (!values.name.trim()) {
       errors.name = 'Name is required';
     } else if (!/^[A-Za-z\s]+$/i.test(values.name)) {
@@ -119,35 +139,12 @@ export const validateProfile = (values: Pick<ValidationValues,'name' | 'contacti
     }
   
     if (!values.contactinfo.trim()) {
-        errors.contactinfo = 'Phone is required';
-      } else if (!mobileRegex.test(values.contactinfo)) {
-        errors.contactinfo = 'Invalid mobile number';
-      }
-    
-
-    if (!values.companyName.trim()) {
-        errors.companyName = 'Company name is required';
-    } else if (values.companyName.length < 2) {
-        errors.companyName = 'Company name must be at least 2 characters long';
-    } else if (values.companyName.length > 100) {
-        errors.companyName = 'Company name must not exceed 100 characters';
-    } else if (!/^[A-Za-z0-9\s&'-]+$/i.test(values.companyName)) {
-        errors.companyName = 'Company name can only contain letters, numbers, spaces, and the characters &, \', -';
-    }
-
-    if (!values.city.trim()) {
-        errors.city = 'City is required';
-    } else if (!/^[A-Za-z\s]+$/i.test(values.city)) {
-        errors.city = 'Should not contain numbers!';
-    }
-
-    if (!values.about.trim()) {
-        errors.about = 'About is required';
-    } else if (values.about.length < 10) {
-        errors.about = 'About must be at least 10 characters long';
-    } else if (values.about.length > 500) {
-        errors.about = 'About must not exceed 500 characters';
+      errors.contactinfo = 'Phone is required';
+    } else if (!mobileRegex.test(values.contactinfo)) {
+      errors.contactinfo = 'Invalid mobile number';
     }
   
+  
+   
     return errors;
   };

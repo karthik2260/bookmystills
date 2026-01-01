@@ -213,6 +213,44 @@ class VendorController {
             handleError(res, error, 'changePassword')
         }
     }
+
+
+    getVendorProfile = async (req: VendorRequest, res: Response): Promise<void> => {
+        try {
+            const vendorId = req.vendor?._id;
+            if (!vendorId) {
+                res.status(HTTP_statusCode.BadRequest).json({ message: Messages.VENDOR_ID_MISSING });
+                return;
+            }
+
+            const result = await this.vendorService.getVendorProfileService(vendorId.toString())
+            res.status(HTTP_statusCode.OK).json(result);
+        } catch (error) {
+            handleError(res, error, 'getVendor');
+        }
+    }
+
+     updateProfile = async (req: VendorRequest, res: Response): Promise<void> => {
+        try {
+            const { name, contactinfo, companyName, city, about } = req.body
+            const vendorId = req.vendor?._id;
+
+            if (!vendorId) {
+                res.status(HTTP_statusCode.BadRequest).json({ message: Messages.VENDOR_ID_MISSING });
+                return;
+            }
+            if ((!name && !contactinfo && !companyName && !city && !about && !req.file) || (name === '' && contactinfo === '' && companyName === '' && city === '' && about === '' && !req.file)) {
+                res.status(HTTP_statusCode.BadRequest).json({ message: 'At least one field (name or contact info) is required' });
+                return;
+            }
+
+            const vendor = await this.vendorService.updateProfileService(name, contactinfo, companyName, city, about, req.file || null, vendorId)
+            res.status(201).json(vendor);
+        } catch (error) {
+            handleError(res, error, 'updateProfile')
+        }
+    }
+
    
 
 

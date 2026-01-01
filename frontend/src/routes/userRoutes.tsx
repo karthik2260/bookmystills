@@ -26,6 +26,7 @@ const UserRoutes : React.FC = () => {
             <Route element={<UnifiedPrivateRoute routeType="user"/>}>
             <Route path={USER.HOME} element={<ErrorBoundary><Home/></ErrorBoundary>}/>
             <Route path={`${USER.PROFILE}`} element={<ErrorBoundary><UserProfile/></ErrorBoundary>}/>
+            
 
 
             </Route>

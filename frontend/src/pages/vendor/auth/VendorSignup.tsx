@@ -42,7 +42,7 @@ const VendorSignUp = () => {
 
       <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
 
-        <Card className="w-full max-w-md overflow-hidden" {...({} as any)}>
+        <Card className="w-full max-w-md overflow-hidden" >
 
           <div className="w-full text-center mt-6 mb-4">
             <h2 className="text-3xl font-extrabold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -56,15 +56,15 @@ const VendorSignUp = () => {
             isLastStep={(value) => setIsLastStep(value)}
             isFirstStep={(value) => setIsFirstStep(value)}
             className='hidden'
-{...({} as any)}          >
-            <Step onClick={() => { }} className="h-4 w-4" {...({} as any)}>1</Step>
-            <Step onClick={() => { }} className="h-4 w-4"{...({} as any)}>2</Step>
+        >
+            <Step onClick={() => { }} className="h-4 w-4" >1</Step>
+            <Step onClick={() => { }} className="h-4 w-4">2</Step>
           </Stepper>
 
 
 
           <form onSubmit={submitHandler}>
-            <CardBody className="flex flex-col gap-4 px-4" {...({} as any)}>
+            <CardBody className="flex flex-col gap-4 px-4" >
               {activeStep === 0 && (
                 <>
                   <div>
@@ -78,7 +78,7 @@ const VendorSignUp = () => {
                       name="name"
                       size="md"
                       crossOrigin={undefined}
-                      {...({} as any)}
+                    
                       className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="name"
                     />
@@ -104,7 +104,7 @@ const VendorSignUp = () => {
                       name="email"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="email"
                     />
                     {formErrors.email ? (
@@ -130,7 +130,7 @@ const VendorSignUp = () => {
                       name="contactinfo"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+               className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="contactinfo"
                     />
                     {formErrors.contactinfo ? (
@@ -155,7 +155,7 @@ const VendorSignUp = () => {
                       name="password"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                   className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="new-password"
                     />
                     {formErrors.password ? (
@@ -180,7 +180,7 @@ const VendorSignUp = () => {
                       name="confirmPassword"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                 className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="new-password"
                     />
                     {formErrors.confirmPassword ? (
@@ -211,7 +211,7 @@ const VendorSignUp = () => {
                       name="companyName"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+             className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="companyName"
                     />
                     {formErrors.companyName ? (
@@ -236,7 +236,7 @@ const VendorSignUp = () => {
                       name="about"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="about"
                     />
                     {formErrors.about ? (
@@ -261,7 +261,7 @@ const VendorSignUp = () => {
                       name="city"
                       size="md"
                       crossOrigin={undefined}
-{...({} as any)}                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
+                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
                       autoComplete="city"
                     />
                     {formErrors.city ? (
@@ -283,7 +283,7 @@ const VendorSignUp = () => {
                     disabled={isFirstStep}
                     className="bg-black text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
                     placeholder={undefined}
-                  {...({} as any)}
+                
                   >
                     Prev
                   </Button>
@@ -296,7 +296,7 @@ const VendorSignUp = () => {
                     onClick={handleNext}
                     className="bg-black text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ml-2" // Add margin-left for spacing
                     placeholder={undefined}
-                  {...({} as any)}
+         
                   >
                     Next
                   </Button>
@@ -306,7 +306,7 @@ const VendorSignUp = () => {
                     variant="gradient"
                     placeholder={undefined}
                     className="bg-black text-white mt-2 rounded-md py-2 px-4 hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ml-2" // Add margin-left for spacing
-                  {...({} as any)}
+                 
                   >
                     Send OTP
                   </Button>
@@ -316,12 +316,12 @@ const VendorSignUp = () => {
             </CardBody>
           </form>
 
-          <CardFooter className="pt-5" {...({} as any)}>
+          <CardFooter className="pt-5" >
             <Typography
               variant="small"
               className="mt-2 mb-4 flex justify-center"
               color="black"
-             {...({} as any)}    >
+             >
               Already have an account?
               <Link to={VENDOR.LOGIN}>
                 <Typography
@@ -330,7 +330,7 @@ const VendorSignUp = () => {
                   variant="small"
                   color="black"
                   className="ml-1 font-bold"
-                {...({} as any)}        >
+                       >
                   Login
                 </Typography>
               </Link>
@@ -339,7 +339,7 @@ const VendorSignUp = () => {
               variant="small"
               className="mt-3 flex justify-center pb-3"
               color="black"
-          {...({} as any)}  >
+         >
               Would tou like to Register as a User?
               <Link to={USER.SIGNUP}>
                 <Typography
@@ -348,7 +348,7 @@ const VendorSignUp = () => {
                   variant="small"
                   color="black"
                   className="ml-1 font-bold"
-                 {...({} as any)} >
+                  >
                   Signup here
                 </Typography>
               </Link>

@@ -13,7 +13,6 @@ export const TABS = [
     },
 ];
 
-export const USER_TABLE_HEAD = ["UserName", "Mobile",  "Joined-At",'Google', "Status", "Actions"];
 
 export enum Role {
     Admin = 'admin',

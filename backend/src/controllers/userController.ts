@@ -349,6 +349,48 @@ class UserController {
         }
     }
 
+
+
+    getUserProfile = async (req:AuthenticatedRequest,res:Response):Promise <void> => {
+        try {
+            const userId = req.user?._id;
+
+            if(!userId){
+                res.status(HTTP_statusCode.BadRequest).json({message:Messages.USER_ID_MISSING})
+                return ;
+            }
+
+            const result = await this.userService.getUserProfileService(userId.toString())
+            res.status(HTTP_statusCode.OK).json(result);
+        } catch (error){
+            handleError(res,error,'getUser')
+        }
+    }
+
+
+    updateProfile = async (req:AuthenticatedRequest,res:Response):Promise<void> => {
+        try {
+            const {name,contactinfo} = req.body
+            const userId = req.user?._id;
+
+            if(!userId){
+                res.status(HTTP_statusCode.BadRequest).json({message:Messages.USER_ID_MISSING})
+                return
+            }
+
+            if((!name && !contactinfo && !req.file) || (name === '' && contactinfo === '' && !req.file)){
+                 res.status(HTTP_statusCode.BadRequest).json({
+                    message:'At least one field (name,contactinfo, or image) is required'
+                 })
+                 return
+            }
+            const user = await this.userService.updateProfileService(name,contactinfo,userId,req.file || null)
+            res.status(HTTP_statusCode.OK).json({user});
+        } catch (error){
+            handleError(res,error,'updateProfile')
+        }
+    }
+
    
 
 

@@ -28,6 +28,14 @@ export interface IVendorService {
     newPasswordChange(token: string, password: string): Promise<void>;
     validateToken (token: string): Promise<boolean>;
     passwordCheckVendor(currentPassword: string, newPassword: string, vendorId: any): Promise<void>;
-
-
+getVendorProfileService(email:string): Promise<VendorDocument>;
+updateProfileService(
+        name: string, 
+        contactinfo: string, 
+        companyName: string, 
+        city: string, 
+        about: string, 
+        files: Express.Multer.File | null, 
+        vendorId: any
+    ): Promise<VendorDocument | null>;
 }
