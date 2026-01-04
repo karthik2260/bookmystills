@@ -6,7 +6,7 @@ import { IAdminService } from "../interfaces/serviceInterfaces/admin.Service.int
 import { CustomError } from "../error/customError";
 import { IUserService } from "../interfaces/serviceInterfaces/user.Service.interface";
 import { IVendorService } from "../interfaces/serviceInterfaces/vendor.service.interface";
-import { BlockStatus } from "../enums/commonEnums";
+import { AcceptanceStatus, BlockStatus } from "../enums/commonEnums";
 import jwt from 'jsonwebtoken'
 import HTTP_statusCode from "../enums/httpStatusCode";
 import Messages from "../enums/errorMessages";
@@ -88,6 +88,58 @@ class AdminController {
         }
     }
 
+
+
+    getAllVendors = async (req:AuthRequest,res:Response) : Promise<void> => {
+        try {
+            const adminId = req.admin?._id
+            if(!adminId) {
+                res.status(HTTP_statusCode.BadRequest).json({message:Messages.ADMIN_ID_MISSING})
+                return
+            }
+
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 6;
+            const search = req.query.search as string || '';
+            const status = req.query.status as string;
+            const result = await this.vendorService.getVendors(page,limit,search,status)
+
+            res.status(HTTP_statusCode.OK).json({
+                vendors:result.vendors,
+                totalPages:result.totalPages,
+                currentPage : page,
+                totalVendors: result.total
+            })
+        } catch (error){
+            handleError(res,error,'getAllVendors')
+        }
+    }
+
+
+  verifyVendor = async(req:Request,res:Response) : Promise<void> => {
+    try {
+        const {vendorId} = req.params;
+        const {status} = req.body as {status:AcceptanceStatus}
+        if(!vendorId){
+            res.status(HTTP_statusCode.BadRequest).json({message:"Invalid vendorId"})
+            return 
+        }
+
+        const result = await this.vendorService.verifyVendor(vendorId,status)
+        if(result.success){
+            res.status(HTTP_statusCode.OK).json({message:result.message})
+        } else {
+            res.status(HTTP_statusCode.BadRequest).json({message:result.message})
+        }
+
+    } catch (error){
+        handleError(res,error,'verifyVendor')
+    }
+  }
+
+
+
+   
 
    
 }

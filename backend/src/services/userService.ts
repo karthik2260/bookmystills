@@ -391,7 +391,7 @@ class UserService implements IUserService {
             let userWithSignedUrl = user.toObject();
             if (user?.imageUrl) {
                 try {
-                    const signedImageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo', user.imageUrl);
+                    const signedImageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/', user.imageUrl);
                     userWithSignedUrl = {
                         ...userWithSignedUrl,
                         imageUrl: signedImageUrl
@@ -433,7 +433,7 @@ class UserService implements IUserService {
 
             if(user?.imageUrl){
                 try {
-                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/',user?.imageUrl)
+                    const imageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/',user?.imageUrl)
                     return {
                         ...user.toObject(),
                         imageUrl:imageUrl
@@ -487,7 +487,7 @@ class UserService implements IUserService {
             if (files) {
                 try {
                     const imageFileName = await s3Service.uploadToS3(
-                        'bookmystills-karthik-gopakumar/photo',
+                        'bookmystills-karthik-gopakumar/photo/',
                         files
                     );
                     updateData.imageUrl = imageFileName;

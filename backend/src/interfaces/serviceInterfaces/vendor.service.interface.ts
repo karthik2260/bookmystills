@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
 import { VendorDocument } from "../../models/vendorModel";
-import { IVendorLoginResponse,VendorSession } from "../commonInterfaces";
+import { FindAllVendorsResult, IVendorLoginResponse,VendorSession } from "../commonInterfaces";
+import { AcceptanceStatus } from "../../enums/commonEnums";
 
 
 export interface IVendorService {
         login(email: string,password: string): Promise<IVendorLoginResponse>;
         create_RefreshToken(refreshToken: string) : Promise<string>;
+            getVendors(page: number, limit: number, search: string, status?: string): Promise<FindAllVendorsResult>;
+
           registerVendor(data: {
         email: string;
         name: string;
@@ -38,4 +41,6 @@ updateProfileService(
         files: Express.Multer.File | null, 
         vendorId: any
     ): Promise<VendorDocument | null>;
+        verifyVendor (vendorId: string, status: AcceptanceStatus): Promise<{success: boolean, message: string}>;
+
 }

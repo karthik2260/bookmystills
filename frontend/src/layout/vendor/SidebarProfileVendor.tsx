@@ -1,15 +1,18 @@
 import { VENDOR } from "@/config/constants/constants"
-import { Bars3Icon, ChatBubbleLeftRightIcon, CloudArrowUpIcon, CubeIcon, XMarkIcon } from "@heroicons/react/24/solid"
-import { Card, IconButton, ListItem, ListItemPrefix, ListItemSuffix, Typography,List } from "@material-tailwind/react"
-import { CalendarIcon, PowerIcon, ShoppingBagIcon, StarIcon, UserCircleIcon, Wallet } from "lucide-react"
+import { Card, Typography, List, ListItem, ListItemPrefix, ListItemSuffix, Chip, IconButton, Tooltip } from "@material-tailwind/react";
+import {
+    UserCircleIcon, ShoppingBagIcon, CloudArrowUpIcon,
+    ChatBubbleLeftRightIcon, PowerIcon, CalendarIcon,
+    Bars3Icon, XMarkIcon, CubeIcon, StarIcon
+} from "@heroicons/react/24/solid";
 import { useState,useEffect,useMemo } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { FaChartBar } from 'react-icons/fa';
-import { Chip, Tooltip } from "@nextui-org/react"
 import { axiosInstanceVendor } from "@/config/api/axiosinstance"
 import { useDispatch } from "react-redux"
 import { logout } from "@/redux/slices/UserSlice"
 import { showToastMessage } from "@/validations/common/toast"
+import { Wallet } from 'lucide-react';
 
 
 const SidebarVendor = () => {
@@ -92,20 +95,20 @@ const handleMenuClick = async (item: MenuItem) => {
 
     return (
         <Card className={`min-h-screen ${isCollapsed ? 'w-20' : 'w-64'} p-4 shadow-xl shadow-blue-gray-900/5 transition-all duration-300`}
-            {...({} as any)}
+            
         >
             <div className="mb-2 flex items-center justify-between p-4">
                 {!isCollapsed && (
                     <Link to={`${VENDOR.DASHBOARD}`}>
                         <Typography variant="h5" color="blue-gray"
-                           {...({} as any)}
+                         
                         >
                             bookmystills
                         </Typography>
                     </Link>
                 )}
                 <IconButton variant="text" size="sm" onClick={toggleSidebar}
-                   {...({} as any)}
+                   
                 >
                     {isCollapsed ? <Bars3Icon className="h-5 w-5" /> : <XMarkIcon className="h-5 w-5" />}
                 </IconButton>
@@ -124,9 +127,9 @@ const handleMenuClick = async (item: MenuItem) => {
                             <ListItem
                                 className={`${activeItem === item.label ? 'bg-blue-50' : ''} justify-center hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
                                 onClick={() => handleMenuClick(item)}
-                               {...({} as any)}
+                              
                             >
-                                <ListItemPrefix  {...({} as any)}>
+                                <ListItemPrefix  >
                                     <item.icon className="h-5 w-5 mr-0" />
                                 </ListItemPrefix>
                             </ListItem>
@@ -136,15 +139,15 @@ const handleMenuClick = async (item: MenuItem) => {
                             key={item.label}
                             className={`${activeItem === item.label ? 'bg-blue-50' : ''} hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
                             onClick={() => handleMenuClick(item)}
-                            {...({} as any)}
+                           
                         >
-                            <ListItemPrefix  {...({} as any)}>
+                            <ListItemPrefix >
                                 <item.icon className={`h-5 w-5 ${isCollapsed ? 'mr-0' : 'mr-3'}`} />
                             </ListItemPrefix>
                             {item.label}
                             {item.badge && (
-                                <ListItemSuffix  {...({} as any)}>
-                                    <Chip value={item.badge} size="sm" className="rounded-full bg-black text-white"  {...({} as any)}/>
+                                <ListItemSuffix  >
+                                    <Chip value={item.badge} size="sm" className="rounded-full bg-black text-white" />
                                 </ListItemSuffix>
                             )}
                         </ListItem>

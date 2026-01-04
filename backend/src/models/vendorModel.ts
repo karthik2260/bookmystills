@@ -1,18 +1,30 @@
 import mongoose,{Schema,Document,Model,Types} from "mongoose";
 import { Vendor } from "../interfaces/commonInterfaces";
-
+import { AcceptanceStatus } from "../enums/commonEnums";
 
 export interface VendorDocument extends Vendor, Document {
-    _id: mongoose.Types.ObjectId;
+      _id: mongoose.Types.ObjectId;
     email: string;
     password?: string;
     name: string;
     companyName: string;
     city: string;
     about: string;
-    isActive: boolean;
     contactinfo: string;
+    isActive: boolean;
+    isVerified: boolean;
+    isAccepted: AcceptanceStatus;
+    logo: string;
+    imageUrl: string;
+    totalBooking: number;
+    bookedDates: string[];
+    postCount: number;
     refreshToken: string;
+    totalRating: number;
+    walletBalance: number;
+    posts?: Types.ObjectId[];
+    reportCount?:number;
+    blockReason: string;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
 }
@@ -29,12 +41,37 @@ const VendorSchema = new Schema<VendorDocument>({
     city: { type: String, required: true },
     about: { type: String },
     contactinfo: { type: String, required: true, unique: true },
+    isActive: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: true },
+    isAccepted: { type: String, enum: Object.values(AcceptanceStatus), default: AcceptanceStatus.Requested },
+    logo: { type: String, default: '' },
+    imageUrl: { type: String, default: '' },
+    totalBooking: { type: Number },
+    bookedDates: { type: [String] },
+    postCount: {
+        type: Number,
+        default: 0
+    },
+    posts: [{
+        type: Schema.Types.ObjectId,
+        ref: "Post"
+    }],
+    walletBalance: {
+        type: Number,
+        default: 0
+    },
+    
+    totalRating: { type: Number, default: 0 },
+    reportCount: {
+        type: Number,
+        default: 0
+    },
+    blockReason: {
+        type: String
+    },
     refreshToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
-        isActive: { type: Boolean, default: true },
-
-     
 }, {
     timestamps: true,
     toJSON: { virtuals: true },

@@ -105,22 +105,35 @@ class VendorService implements IVendorService {
         }
     }
 
-     login = async (email: string, password: string): Promise<IVendorLoginResponse> => {
+      login = async (email: string, password: string): Promise<IVendorLoginResponse> => {
         try {
             const existingVendor = await this.vendorRepository.findByEmail(email);
 
             if (!existingVendor) throw new CustomError('Vendor not Registered', HTTP_statusCode.Unauthorized);
 
             let vendorWithSignedUrl = existingVendor.toObject();
-           
+            if (existingVendor.imageUrl) {
+                try {
+                    const signedImageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/', existingVendor.imageUrl);
+                    vendorWithSignedUrl = {
+                        ...vendorWithSignedUrl,
+                        imageUrl: signedImageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL during login:', error);
+                }
+            }
 
             const passwordMatch = await bcrypt.compare(
                 password,
                 existingVendor.password || ''
             )
-          
-        
+            if (existingVendor.isVerified === false || existingVendor.isAccepted === AcceptanceStatus.Requested) {
+                throw new CustomError('Admin needs to verify Your Account', HTTP_statusCode.NoAccess);
+            }
+
             if (!passwordMatch) throw new CustomError('Incorrect Password ,Try again', HTTP_statusCode.Unauthorized)
+            if (existingVendor.isActive === false) throw new CustomError('Account is Blocked by Admin', HTTP_statusCode.NoAccess);
 
             const token = createAccessToken(existingVendor._id.toString())
 

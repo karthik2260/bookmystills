@@ -116,7 +116,11 @@ export interface GoogleUserData {
     total: number;
 }
 
-
+export interface FindAllVendorsResult {
+    vendors:( Vendor | undefined)[]
+    totalPages: number;
+    total: number;
+}
 
 
 
