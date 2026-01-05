@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 import Swal from "sweetalert2";
 import { CreateAxiosInstance } from "@/types/axiosTypes";
 const BASE_URL = import.meta.env.VITE_BASE_URL || '';
-import { toast } from "react-toastify";
+
 const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshTokenKey) => {
     const instance = axios.create({
         baseURL: baseUrl,
@@ -70,8 +70,9 @@ const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshToke
                 }
 
                 if(error.response.status === 404){
-                    toast.error("User does not exist",error)
-                    return 
+                    
+                    window.location.href = '/*';
+                    return Promise.reject(error);
                 }
             }
             return Promise.reject(error);
@@ -86,6 +87,7 @@ const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshToke
 export const axiosInstance = createAxiosInstance(`${BASE_URL}/api/user`, 'userToken', 'userRefresh');
 export const axiosInstanceAdmin = createAxiosInstance(`${BASE_URL}/api/admin`, 'adminToken', 'adminRefresh');
 export const axiosInstanceVendor = createAxiosInstance(`${BASE_URL}/api/vendor`, 'vendorToken', 'vendorRefresh');
+export const axiosInstanceChat = createAxiosInstance(`${BASE_URL}/api/conversations`, 'userToken', 'userRefresh');
 export const axiosInstanceMessage = createAxiosInstance(`${BASE_URL}/api/messages`, 'userToken', 'userRefresh');
 
 

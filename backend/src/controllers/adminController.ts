@@ -90,52 +90,61 @@ class AdminController {
 
 
 
-    getAllVendors = async (req:AuthRequest,res:Response) : Promise<void> => {
+    getAllVendors = async (req: AuthRequest, res: Response): Promise<void> => {
         try {
             const adminId = req.admin?._id
-            if(!adminId) {
-                res.status(HTTP_statusCode.BadRequest).json({message:Messages.ADMIN_ID_MISSING})
-                return
+            if (!adminId) {
+                res.status(HTTP_statusCode.BadRequest).json({ message: Messages.ADMIN_ID_MISSING});
+                return;
             }
 
             const page = parseInt(req.query.page as string) || 1
-            const limit = parseInt(req.query.limit as string) || 6;
+            const limit = parseInt(req.query.limit as string) || 6
             const search = req.query.search as string || '';
             const status = req.query.status as string;
-            const result = await this.vendorService.getVendors(page,limit,search,status)
+            const result = await this.vendorService.getVendors(page, limit, search, status)
 
             res.status(HTTP_statusCode.OK).json({
-                vendors:result.vendors,
-                totalPages:result.totalPages,
-                currentPage : page,
+                vendors: result.vendors,
+                totalPages: result.totalPages,
+                currentPage: page,
                 totalVendors: result.total
             })
-        } catch (error){
-            handleError(res,error,'getAllVendors')
+
+        } catch (error) {
+            handleError(res, error, 'getAllVendors')
         }
     }
 
+VerifyVendor = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log("🔥 verifyVendor controller HIT");
+    console.log("📦 req.params:", req.params);
+    console.log("📦 req.body:", req.body);
 
-  verifyVendor = async(req:Request,res:Response) : Promise<void> => {
-    try {
-        const {vendorId} = req.params;
-        const {status} = req.body as {status:AcceptanceStatus}
-        if(!vendorId){
-            res.status(HTTP_statusCode.BadRequest).json({message:"Invalid vendorId"})
-            return 
-        }
+    const { vendorId } = req.params;
+    const { status } = req.body as { status: AcceptanceStatus };
 
-        const result = await this.vendorService.verifyVendor(vendorId,status)
-        if(result.success){
-            res.status(HTTP_statusCode.OK).json({message:result.message})
-        } else {
-            res.status(HTTP_statusCode.BadRequest).json({message:result.message})
-        }
-
-    } catch (error){
-        handleError(res,error,'verifyVendor')
+    if (!vendorId) {
+      console.log("❌ vendorId missing");
+      res.status(400).json({ message: "Invalid vendorId" });
+      return;
     }
+
+    const result = await this.vendorService.verifyVendor(vendorId, status);
+    console.log("✅ service result:", result);
+
+    if (result.success) {
+      res.status(200).json({ message: result.message });
+    } else {
+      res.status(400).json({ message: result.message });
+    }
+  } catch (error) {
+    console.error("💥 verifyVendor ERROR:", error);
+    handleError(res, error, "verifyVendor");
   }
+};
+
 
 
 

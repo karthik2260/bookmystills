@@ -1,79 +1,81 @@
-import { axiosInstanceAdmin } from "@/config/api/axiosinstance";
-import { AcceptanceStatus, VendorData, VendorResponse } from "@/types/vendorTypes";
-import { Avatar, Button, Card, CardBody, CardFooter, CardHeader, Input, Switch, Tab, Tabs, TabsHeader, Typography } from "@material-tailwind/react";
-import { useCallback, useEffect, useState } from "react";
-import {debounce} from 'lodash'
-import { TABS } from "@/utils/enums";
-import Loader from "@/components/common/Loader";
-import Swal from "sweetalert2";
-import { showToastMessage } from "@/validations/common/toast";
-import { useDispatch } from "react-redux";
-import VendorDetailsModal from "./viewdetails";
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    Card,
+    CardHeader,
+    Input,
+    Typography,
+    Button,
+    CardBody,
+    CardFooter,
+    Tabs,
+    TabsHeader,
+    Tab,
+    Avatar,
+    Switch,
+} from "@material-tailwind/react";
+import { showToastMessage } from '../../../validations/common/toast';
+import { debounce } from 'lodash';
+import Swal from 'sweetalert2';
+import { AcceptanceStatus, VendorData, VendorResponse } from '../../../types/vendorTypes';
+import VendorDetailsModal from './viewdetails';
+import Loader from '../../common/Loader';
+import { TABS } from '@/utils/enums';
+import { axiosInstanceAdmin } from '@/config/api/axiosinstance';
 
 const TABLE_HEAD = ["VendorName", 'Company Name', "Mobile", "Joined-At", "Status", 'Reported', "Actions", 'View Details', 'Verify'];
 
+export function SortableTableVendor() {
+    const [vendors, setVendors] = useState<VendorData[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState("all");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedVendor, setSelectedVendor] = useState<VendorData | null>(null);
 
-export function SortableTableVendor () {
-    
-const [searchTerm,setSearchTerm] = useState('')
-const [currentPage,setCurrentPage] = useState(1)
-const [isLoading,setIsLoading] = useState(false)
-const [activeTab,setAciveTab] = useState('all')
-const [vendors,setVendors] = useState<VendorData[]>([])
-const [totalPages,setTotalPages] = useState(1)
-const [isModalOpen,setIsModaalOpen] = useState(false)
-const [selectedVendor,setSelectedVendor] = useState<VendorData | null>(null)
-
-const fetchData = useCallback(async(page?:number,search?:string) => {
-    setIsLoading(true);
-
-    try {
-        const response = await axiosInstanceAdmin.get<VendorResponse>('/vendors',{
-            params:{
-                page:page,
-                limit:5,
-                search:search,
-                status:activeTab !== 'all' ? activeTab : undefined
-            }
-        });
-
-        const transformedVendors : VendorData[] = response.data.vendors.map((vendor) => ({
-            ...vendor._doc,
-            imageUrl:vendor.imageUrl
-        }));
-        setVendors(transformedVendors);
-        setTotalPages(response.data.totalPages)
-    } catch (error) {
-        console.error('Error fetching details:',error)
-    } finally {
-        setIsLoading(false)
-    }
-},[activeTab])
-
-
-
- const handleCloseModal = () => {
-        setIsModaalOpen(false);
+    const handleViewDetails = (vendor: VendorData) => {
+        setSelectedVendor(vendor);
+        setIsModalOpen(true);
+    };
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
         setSelectedVendor(null);
     };
 
+    const fetchData = useCallback(async (page?: number, search?: string) => {
+        setIsLoading(true);
+        try {
+            const response = await axiosInstanceAdmin.get<VendorResponse>('/vendors', {
+                params: {
+                    page: page,
+                    limit: 5,
+                    search: search,
+                    status: activeTab !== 'all' ? activeTab : undefined
+                }
+            });
 
+            const transformedVendors: VendorData[]  = response.data.vendors.map((vendor) => ({
+                ...vendor._doc,
+                imageUrl: vendor.imageUrl 
+            }));
 
+            setVendors(transformedVendors);
+            setTotalPages(response.data.totalPages);
+        } catch (error) {
+            console.error('Error fetching details:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeTab]);
 
-
-
-
-
-
-
-const debouncedFetchData = useCallback(
-    debounce(fetchData,500),
+   
+  const debouncedFetchData = useCallback(
+    debounce(fetchData, 500),
     [fetchData]
-)
+  );
 
-
-
- useEffect(() => {
+  useEffect(() => {
     if (searchTerm.trim().length >= 3) {
       debouncedFetchData(currentPage, searchTerm);
     } else if (searchTerm.trim() === '') {
@@ -85,16 +87,19 @@ const debouncedFetchData = useCallback(
   }, [currentPage, searchTerm, debouncedFetchData]);
 
 
- const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
         setCurrentPage(1);
     };
- const handleTabChange = (value: string) => {
-        setAciveTab(value);
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
         setCurrentPage(1);
     };
+    
 
- const handleVerifyVendor = useCallback(async (vendorId: string) => {
+   
+    const handleVerifyVendor = useCallback(async (vendorId: string) => {
         setIsLoading(true)
         const result = await Swal.fire({
             title: 'Verify Vendor',
@@ -135,114 +140,98 @@ const debouncedFetchData = useCallback(
     }, [])
 
 
-
-
-
-
-
-
-
-
     return (
 
         <div className="max-w-7xl mt-5 mx-auto px-4 sm:px-6 lg:px-8">
-            <CardHeader floated={false} shadow={false} className="rounded-none p-4 -mt-7 mb-4">
+            <CardHeader floated={false} shadow={false} className="rounded-none p-4 -mt-7 mb-4" placeholder={undefined}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}>
                 <div className="flex flex-col items-center gap-4 lg:flex-row lg:justify-between">
-                    <Typography variant="h5"
+                    <Typography
+                        variant="h5"
                         color="blue-gray"
                         className="text-center text-2xl lg:text-3xl md:text-2xl sm:text-xl"
-                        placeholder={undefined}>
-
-                            VENDOR MANAGEMENT
-
+                        placeholder={undefined}
+                        onPointerEnterCapture={undefined}
+                        onPointerLeaveCapture={undefined}>
+                        VENDOR MANAGEMENT
                     </Typography>
 
                     <div className="w-full lg:w-1/3 md:w-1/2 sm:w-full">
-                    <Input
-                    label="Search"
-                    value={searchTerm}
-                    onChange={handleSearch}
-               
-                    placeholder="Search vendors..."
-                    className="!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10 rounded-xl"
-                    labelProps={{
-                        ClassNames:'hidden',
-                    }}
-                    containerProps={{
-                        ClassName:"min-w-[100px] relative"
-                    }}
-                    
-                    />
-
+                        <Input
+                            label="Search"
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            crossOrigin={undefined}
+                            placeholder="Search vendors..."
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}
+                            className="!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10 rounded-xl"
+                            labelProps={{
+                                className: "hidden",
+                            }}
+                            containerProps={{
+                                className: "min-w-[100px] relative"
+                            }}
+                        />
                     </div>
                 </div>
 
                 <div className="mt-6">
-                    <Tabs 
-                    value={activeTab} className="w-full"
-                    >
+                    <Tabs value={activeTab} className="w-full">
                         <TabsHeader
-                        className="w-full lg:w-max md:w-3/4 sm:w-full mx-auto"
-                        placeholder={undefined}
-                        
-                        >
-
-                            {TABS.map(({label,value}) => (
+                            className="w-full  lg:w-max  md:w-3/4 sm:w-full mx-auto"
+                            placeholder={undefined}
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}>
+                            {TABS.map(({ label, value }) => (
                                 <Tab
-                                key={value}
-                                value={value}
-                                placeholder={undefined}
-                                onClick={() => handleTabChange(value)}
-                                  className={`
+                                    key={value}
+                                    value={value}
+                                    placeholder={undefined}
+                                    onPointerEnterCapture={undefined}
+                                    onPointerLeaveCapture={undefined}
+                                    onClick={() => handleTabChange(value)}
+                                    className={`
               ${activeTab === value ? "text-gray-900" : ""}
               text-sm lg:text-base px-8 md:text-sm sm:text-xs 
             `}
-                                
                                 >
                                     {label}
-
-
                                 </Tab>
                             ))}
-
-
                         </TabsHeader>
-
                     </Tabs>
-
                 </div>
-
             </CardHeader>
 
-            <Card className="w-full" placeholder={undefined}>
-                 
+            <Card className="w-full" placeholder={undefined}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}>
 
-                 <CardBody className="overflow-x-auto px-0" placeholder={undefined}>
-                          <table className="w-full min-w-max table-auto text-left">
-
-                            <thead>
-
-                                <tr>
-                                      {TABLE_HEAD.map((head) => (
+                <CardBody className="overflow-x-auto px-0" placeholder={undefined}
+                    onPointerEnterCapture={undefined}
+                    onPointerLeaveCapture={undefined}>
+                    <table className="w-full min-w-max table-auto text-left">
+                        <thead>
+                            <tr>
+                                {TABLE_HEAD.map((head) => (
                                     <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
                                         <Typography
                                             variant="small"
                                             color="blue-gray"
                                             placeholder={undefined}
-                                           
+                                            onPointerEnterCapture={undefined}
+                                            onPointerLeaveCapture={undefined}
                                             className="font-normal leading-none opacity-70"
                                         >
                                             {head}
                                         </Typography>
                                     </th>
                                 ))}
-                                </tr>
-
-
-                            </thead>
-
-                            <tbody>
-
+                            </tr>
+                        </thead>
+                        <tbody>
                             {isLoading ? (
                                 <tr><td colSpan={6} className="text-center p-4"><Loader /></td></tr>
                             ) : vendors.length === 0 ? (
@@ -303,7 +292,14 @@ const debouncedFetchData = useCallback(
                                         </td>
                                         <td className="p-4">
                                             <div
-                                               
+                                                className={`w-max rounded-full ${vendor.reportCount! > 10
+                                                        ? "bg-red-200" 
+                                                        : vendor.reportCount! > 1
+                                                            ? "bg-yellow-200"
+                                                            : vendor.reportCount! >= 0
+                                                                ? "bg-green-200" 
+                                                                : "bg-blue-gray-200" 
+                                                    } px-2 py-1`}
                                             >
                                                 <Typography
                                                     variant="small"
@@ -312,7 +308,7 @@ const debouncedFetchData = useCallback(
                                                     onPointerLeaveCapture={undefined}
                                                     className={`font-normal rounded-md text-black`} 
                                                 >
-                                                    { "0"}
+                                                    {vendor.reportCount || "0"}
                                                 </Typography>
                                             </div>
                                         </td>
@@ -348,7 +344,7 @@ const debouncedFetchData = useCallback(
                                                         ripple={false}
                                                         color={vendor.isActive ? "green" : "red"}
                                                         checked={vendor.isActive}
-                                                       
+                                                      
 
                                                         crossOrigin={undefined}
                                                         placeholder={undefined}
@@ -376,7 +372,7 @@ const debouncedFetchData = useCallback(
                                                 className="flex items-center gap-2" placeholder={undefined}
                                                 onPointerEnterCapture={undefined}
                                                 onPointerLeaveCapture={undefined}
-                                              
+                                                onClick={() => handleViewDetails(vendor)}
                                             >
                                                 View Details
                                             </Button>
@@ -424,18 +420,12 @@ const debouncedFetchData = useCallback(
                                 ))
                             )}
                         </tbody>
-
-                            
-
-
-                          </table>
-                 </CardBody>
-                  <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4" placeholder={undefined}
-                    onPointerEnterCapture={undefined}
-                    onPointerLeaveCapture={undefined}>
+                    </table>
+                </CardBody>
+                <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4" placeholder={undefined}
+                   >
                     <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                        onPointerEnterCapture={undefined}
-                        onPointerLeaveCapture={undefined}>
+                        >
                         Page {currentPage} of {totalPages}
                     </Typography>
                     <div className="flex gap-2">
@@ -443,8 +433,7 @@ const debouncedFetchData = useCallback(
                             variant="outlined"
                             size="sm"
                             placeholder={undefined}
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}
+                           
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                         >
@@ -454,8 +443,7 @@ const debouncedFetchData = useCallback(
                             variant="outlined"
                             size="sm"
                             placeholder={undefined}
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}
+                          
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                         >
@@ -465,21 +453,17 @@ const debouncedFetchData = useCallback(
                 </CardFooter>
             </Card>
 
-        <VendorDetailsModal
+            <VendorDetailsModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 vendor={selectedVendor}
             />
-          
- </div>
-                        )
-            
-
-        
 
 
+        </div>
 
-                        
 
-    
+    );
 }
+
+
