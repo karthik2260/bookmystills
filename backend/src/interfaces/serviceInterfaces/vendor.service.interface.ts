@@ -8,6 +8,7 @@ export interface IVendorService {
         login(email: string,password: string): Promise<IVendorLoginResponse>;
         create_RefreshToken(refreshToken: string) : Promise<string>;
             getVendors(page: number, limit: number, search: string, status?: string): Promise<FindAllVendorsResult>;
+    create_RefreshToken(refreshToken: string) : Promise<string>;
 
           registerVendor(data: {
         email: string;
@@ -41,6 +42,6 @@ updateProfileService(
         files: Express.Multer.File | null, 
         vendorId: any
     ): Promise<VendorDocument | null>;
-        verifyVendor (vendorId: string, status: AcceptanceStatus): Promise<{success: boolean, message: string}>;
+    verifyVendor (vendorId: string, status: AcceptanceStatus): Promise<{success: boolean, message: string}>;
 
 }

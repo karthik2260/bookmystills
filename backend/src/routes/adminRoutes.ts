@@ -28,6 +28,10 @@ const adminController = new AdminController(adminService, userService, vendorSer
 router.post('/login', adminController.adminLogin.bind(adminController));
 router.get('/logout', adminController.adminLogout.bind(adminController));
 router.get('/vendors',authTokenAdmin,adminController.getAllVendors.bind(adminController))
-router.put('/vendors/vendorId/status',authTokenAdmin,adminController.verifyVendor.bind(adminController))
+router.put('/vendors/:vendorId/status', authTokenAdmin, adminController.VerifyVendor.bind(adminController));
+
+router.post('/refresh-token',adminController.createRefreshToken.bind(adminController))
+
+
 
 export default router;

@@ -13,6 +13,13 @@ class AdminRepository extends BaseRepository<AdminDocument> implements IAdminRep
     return await Admin.findOne({ email });
 
 }
+ async getTotalVendors(): Promise<number> {
+    return await Vendor.countDocuments({
+      isActive: true,
+      isVerified: true,
+      isAccepted: 'accepted'
+    });
+  }
 
 }
 

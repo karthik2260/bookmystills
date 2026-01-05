@@ -91,6 +91,9 @@ class VendorService implements IVendorService {
                 city: toTitleCase(city),
                 companyName,
                 about,
+                 isActive: false,
+                isVerified: false,
+                isAccepted: AcceptanceStatus.Requested,
                
                 
             })
@@ -114,7 +117,7 @@ class VendorService implements IVendorService {
             let vendorWithSignedUrl = existingVendor.toObject();
             if (existingVendor.imageUrl) {
                 try {
-                    const signedImageUrl = await s3Service.getFile('bookmystills-karthik-gopakumar/photo/', existingVendor.imageUrl);
+                    const signedImageUrl = await s3Service.getFile('captureCrew/vendor/photo/', existingVendor.imageUrl);
                     vendorWithSignedUrl = {
                         ...vendorWithSignedUrl,
                         imageUrl: signedImageUrl
@@ -387,40 +390,41 @@ class VendorService implements IVendorService {
     }
 
 
-    verifyVendor = async(vendorId:string,status:AcceptanceStatus):Promise<{success:boolean,message:string}> => {
+   verifyVendor = async (vendorId: string, status: AcceptanceStatus): Promise<{ success: boolean, message: string }> => {
         try {
             const vendor = await this.vendorRepository.getById(vendorId);
-            if(!vendor){
-                return {success : false,message:"Vendor not exist"}
+            if (!vendor) {
+                return { success: false, message: 'Vendor not found' };
             }
 
             vendor.isAccepted = status;
             vendor.isActive = status === AcceptanceStatus.Accepted;
+            vendor.isVerified = status === AcceptanceStatus.Accepted;
 
-            await vendor.save();
+            await vendor.save()
 
             const emailSubject = status === AcceptanceStatus.Accepted
-            ? 'Your vendor account has been accepted'
+                ? 'Your vendor account has been accepted'
                 : 'Your vendor account has been rejected';
 
-                const emailBody = status === AcceptanceStatus.Accepted
-                ?emailTemplates.vendorAccepted(vendor.name)
-                :emailTemplates.vendorRejected(vendor.name)
+            const emailBody = status === AcceptanceStatus.Accepted
+                ? emailTemplates.vendorAccepted(vendor.name)
+                : emailTemplates.vendorRejected(vendor.name);
 
-                await sendEmail(vendor.email,emailSubject,emailBody)
-                return {
-                    success:true ,
-                    message:status === AcceptanceStatus.Accepted
-                       ? 'Vendor has been accepted and notified via email'
+            await sendEmail(vendor.email, emailSubject, emailBody)
+            return {
+                success: true,
+                message: status === AcceptanceStatus.Accepted
+                    ? 'Vendor has been accepted and notified via email'
                     : 'Vendor has been rejected and notified via email'
-                }
+            };
 
-        }  catch (error){
-            console.error("Error in verifying vendor",error)
-            if(error instanceof CustomError){
-                throw error
+        } catch (error) {
+            console.error('Error in verifyinf vendor', error);
+            if (error instanceof CustomError) {
+                throw error;
             }
-            throw new CustomError("Failed to verify vendor ",HTTP_statusCode.InternalServerError)
+            throw new CustomError('Failed to Verify vendor', HTTP_statusCode.InternalServerError);
         }
     }
 

@@ -4,8 +4,8 @@ import { Types } from 'mongoose';
  import dotenv from 'dotenv'
 import { AuthRequest } from '../types/adminTypes';
 import HTTP_statusCode from '../enums/httpStatusCode';
-import Messages from '../enums/errorMessages';
  dotenv.config()
+ import Messages from '../enums/errorMessages';
 interface UserJwtPayload extends JwtPayload {
   _id: string;
   // role: 'user' | 'vendor' | 'admin';
