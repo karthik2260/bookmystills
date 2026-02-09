@@ -10,11 +10,12 @@ import Swal from 'sweetalert2';
 import { useDisclosure } from '@nextui-org/react';
 import { validateEmail } from '../../validations/user/userVal';
 import { showToastMessage } from '../../validations/common/toast';
-import { axiosInstance } from '@/config/api/axiosinstance';
 import { USER } from '../../config/constants/constants';
 import { loginValidationSchema } from '../../validations/common/loginValidate';
 import { setUserInfo } from '../../redux/slices/UserSlice';
 import UserRootState from '@/redux/rootstate/UserState';
+import { loginUser,forgotPassword,googleLogin } from '@/services/userAuthService';
+
 
 interface FormValues {
     email: string;
@@ -70,11 +71,9 @@ export const useLoginUser = () => {
                 return
             }
             setIsLoading(true);
-            const response = await axiosInstance.post('/forgot-password', {
-                email: forgotPasswordEmail
-            })
-            showToastMessage(response.data.message, "success");
-            onOpenChange();
+             const response = await forgotPassword(forgotPasswordEmail);
+    showToastMessage(response.data.message, "success");
+    onOpenChange();
             Swal.fire({
                 title: 'Reset Link Sent!',
                 text: 'A password reset link has been sent to your email. It will be active for the next 30 minutes.',
@@ -110,8 +109,8 @@ export const useLoginUser = () => {
     }, [])
 
    const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
-        axiosInstance
-            .post('/google/login', { credential: credentialResponse.credential })
+        
+  googleLogin(credentialResponse.credential!)
             .then((response) => {
                 localStorage.setItem('userToken', response.data.token);                
                 dispatch(setUserInfo(response.data.user));
@@ -127,26 +126,21 @@ export const useLoginUser = () => {
     const formik = useFormik({
         initialValues,
         validationSchema: loginValidationSchema,
-        onSubmit: (values) => {
-            if (Object.keys(formik.errors).length === 0) {
-                axiosInstance
-                    .post('/login', values)
-                    .then((response) => {
-                        localStorage.setItem('userToken', response.data.token);
-                        dispatch(setUserInfo(response.data.user));
-                        showToastMessage(response.data.message, 'success')
-                        navigate(`${USER.HOME}`);
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        showToastMessage(error.response.data.message, 'error')
-                    });
-            } else {
+       onSubmit: (values) => {
+  if (Object.keys(formik.errors).length === 0) {
+    loginUser(values)
+      .then((response) => {
+        localStorage.setItem('userToken', response.data.token);
+        dispatch(setUserInfo(response.data.user));
+        showToastMessage(response.data.message, 'success');
+        navigate(USER.HOME);
+      })
+      .catch((error) => {
+        showToastMessage(error.response?.data?.message, 'error');
+      });
+  }
+}
 
-                showToastMessage('Please correct the validation errors before submitting', 'error')
-            }
-
-        }
     })
 
     return {

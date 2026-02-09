@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VENDOR } from '../../config/constants/constants';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
 import { showToastMessage } from '../../validations/common/toast';
 import { validate } from '@/validations/vendor/vendorRegVal';
 import { VendorFormValues } from '@/types/vendorTypes';
 import { useSelector } from 'react-redux';
 import VendorRootState from '@/redux/rootstate/VendorState';
+import { vendorSignup } from '@/services/vendorAuthService';
+ import axios from 'axios';
 
 
 const images = [
@@ -76,39 +77,52 @@ export const useVendorSignup = () => {
 
 
 
-  const submitHandler = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    const errors = validate(formValues);
 
-    setFormErrors(errors)
-    if (Object.values(errors).every((error) => error === "")) {
-      
-      axiosInstanceVendor
-        .post("/signup", formValues, { withCredentials: true })
-        .then((response) => {
-          if (response.data.email) {
-            showToastMessage('Otp send succesfully', 'success')
-            localStorage.setItem('otpData', JSON.stringify({
-              otpExpiry: response.data.otpExpiry,
-              resendAvailableAt: response.data.resendAvailableAt,
-              email: response.data.email
-            }));
-            navigate(`${VENDOR.VERIFY}`);
-          }
-        })
-        .catch((error)=> {
-          if(error.response?.status === 409) {
-            showToastMessage('Email already Registered','error');
-            setFormErrors(prev => ({
-              ...prev,
-              email :'Email already Registered'
-            }))
-          } else {
-            showToastMessage(error.response?.data?.message || 'An error occured', 'success')
-          }
-        });
+const submitHandler = async (e: { preventDefault: () => void }) => {
+  e.preventDefault();
+  const errors = validate(formValues);
+  setFormErrors(errors);
+
+  if (Object.values(errors).every((error) => error === "")) {
+    try {
+      const response = await vendorSignup(formValues);
+
+      if (response.data.email) {
+        showToastMessage('Otp sent successfully', 'success');
+
+        localStorage.setItem(
+          'otpData',
+          JSON.stringify({
+            otpExpiry: response.data.otpExpiry,
+            resendAvailableAt: response.data.resendAvailableAt,
+            email: response.data.email,
+          })
+        );
+
+        navigate(VENDOR.VERIFY);
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 409) {
+          showToastMessage('Email already registered', 'error');
+          setFormErrors((prev) => ({
+            ...prev,
+            email: 'Email already registered',
+          }));
+        } else {
+          showToastMessage(
+            error.response?.data?.message || 'An error occurred',
+            'error'
+          );
+        }
+      } else {
+        showToastMessage('Unexpected error occurred', 'error');
+      }
     }
-  };
+  }
+};
+
+
 
   return {
     formValues,

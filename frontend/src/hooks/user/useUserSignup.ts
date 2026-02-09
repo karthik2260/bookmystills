@@ -7,7 +7,7 @@ import { USER } from '../../config/constants/constants';
 import { validate } from '../../validations/user/userVal';
 import { CredentialResponse } from '@react-oauth/google';
 import { showToastMessage } from '../../validations/common/toast';
-import { axiosInstance } from '@/config/api/axiosinstance';
+import { googleRegister, signupUser } from '@/services/userAuthService';
 
 const initialValues: UserFormValues = {
     email: "",
@@ -16,6 +16,8 @@ const initialValues: UserFormValues = {
     contactinfo: "",
     confirmPassword: "",
   };
+  
+
   
 const images = [
    '/images/userSignup1.jpg',
@@ -70,8 +72,7 @@ const images = [
       };
   
     const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
-      axiosInstance
-        .post('./google/register', { credential: credentialResponse.credential })
+  googleRegister(credentialResponse.credential!)
         .then((res) => {
           if (res.data.message) {
             showToastMessage(res.data.message, 'success')
@@ -91,9 +92,8 @@ const images = [
       if (Object.values(errors).every((error) => error === "")) {
         setIsLoading(true);
         try {
-          const response = await axiosInstance.post("/signup", formValues, {
-            withCredentials: true
-          });
+                const response = await signupUser(formValues);
+
           if (response.data.email) {
             showToastMessage('OTP sent successfully', 'success');
             localStorage.setItem('otpData', JSON.stringify({

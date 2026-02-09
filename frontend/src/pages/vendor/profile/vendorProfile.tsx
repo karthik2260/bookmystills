@@ -12,13 +12,13 @@ import { VENDOR } from "../../../config/constants/constants";
 import { VendorData } from "../../../types/vendorTypes";
 import Loader from "../../../components/common/Loader";
 import SidebarVendor from "../../../layout/vendor/SidebarProfileVendor";
-import { axiosInstanceVendor } from "@/config/api/axiosinstance";
 import EditProfileModalVendor from "./editProfileVendor";
+import ChangePasswordModal, { PasswordFormData } from "@/pages/common/changePassword";
+import { changeVendorPassword, getVendorProfile, updateVendorProfile } from "@/services/vendorAuthService";
 function VendorProfile() {
     const [vendor, setVendor] = useState<VendorData | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    const [bookingCount, setBookingCount] = useState(0);
 
     const navigate = useNavigate();
 
@@ -32,11 +32,7 @@ function VendorProfile() {
                 return;
             }
 
-            const response = await axiosInstanceVendor.get('/profile', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })           
+           const response = await getVendorProfile()        
             setVendor(response.data);
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -63,9 +59,7 @@ function VendorProfile() {
                 return;
             }
 
-            const response = await axiosInstanceVendor.put('/profile', updates,{
-                headers : {"Content-Type" : 'multipart/form-data'}
-            });
+           const response = await updateVendorProfile(updates)
             setVendor(response.data);
             showToastMessage('Profile updated successfully', 'success');
         } catch (error) {
@@ -86,6 +80,25 @@ function VendorProfile() {
     if (!vendor) {
         return <div><Loader /></div>;
     }
+
+
+    const handlePasswordChange = async(passwordData:PasswordFormData) => {
+        try {
+            await changeVendorPassword(passwordData)
+           
+
+            showToastMessage("Password changed successfully ",'success')
+        } catch (error){
+            console.error("Error changing password :",error)
+            throw error
+        }
+    }
+
+
+    
+
+
+
 
     return (
         <div className="flex ">
@@ -187,17 +200,13 @@ function VendorProfile() {
                                 </Typography>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="text-center p-4 bg-white rounded-lg">
-                                        <Typography className="text-2xl font-bold text-black" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  >
-                                            {() => {}}
-                                        </Typography>
+                                        
                                         <Typography className="text-sm text-gray-600" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  >
                                             Ratings
                                         </Typography>
                                     </div>
                                     <div className="text-center p-4 bg-white rounded-lg">
-                                        <Typography className="text-2xl font-bold text-black" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  >
-                                            {bookingCount}
-                                        </Typography>
+                                        
                                         <Typography className="text-sm text-gray-600" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  >
                                             Bookings
                                         </Typography>
@@ -238,6 +247,16 @@ function VendorProfile() {
                 />
 
             )}
+
+            {vendor && (
+                <ChangePasswordModal
+                    isOpen={isPasswordModalOpen}
+                    onClose={() => setIsPasswordModalOpen(false)}
+                    onSave={handlePasswordChange}
+                />
+            )}
+
+           
           
         </div>
 

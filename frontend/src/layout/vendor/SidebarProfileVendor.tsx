@@ -7,12 +7,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { useState,useEffect,useMemo } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { FaChartBar } from 'react-icons/fa';
-import { axiosInstanceVendor } from "@/config/api/axiosinstance"
 import { useDispatch } from "react-redux"
 import { logout } from "@/redux/slices/UserSlice"
 import { showToastMessage } from "@/validations/common/toast"
-import { Wallet } from 'lucide-react';
+import { FileBarChart, Wallet } from 'lucide-react';
+import { vendorLogout } from "@/services/vendorAuthService";
 
 
 const SidebarVendor = () => {
@@ -26,11 +25,13 @@ const location = useLocation()
 
 
 interface MenuItem {
-    icon: React.ElementType;
-    label: string;
-    path: string | null;
-    badge: string | null;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  path: string | null;
+  badge: string | null;
 }
+
+
 
 
     useEffect(() => {
@@ -53,7 +54,7 @@ interface MenuItem {
         { icon: CalendarIcon, label: 'Slot Update', path: VENDOR.DATE_AVAILABILTY, badge: null },
         { icon: CubeIcon, label: 'Packages', path: VENDOR.VIEW_PACKAGES, badge: null },
         { icon: StarIcon, label: 'Reviews', path: VENDOR.REVIEW, badge: null },
-        { icon: FaChartBar, label: 'Stats', path: VENDOR.STATS, badge: null },
+        { icon: FileBarChart, label: 'Stats', path: VENDOR.STATS, badge: null },
         { icon: PowerIcon, label: 'Log Out', path: null, badge: null }
     ], []);
 
@@ -69,7 +70,7 @@ const toggleSidebar = () => {
 const handleMenuClick = async (item: MenuItem) => {
         if (item.label === 'Log Out') {
             try {
-                await axiosInstanceVendor.post('/logout');
+               await vendorLogout()
                 localStorage.removeItem('vendorToken');
                 localStorage.removeItem('vendorRefresh');
                 dispatch(logout());
@@ -82,15 +83,20 @@ const handleMenuClick = async (item: MenuItem) => {
             return;
         }
 
-        setActiveItem(item.label);
+        setActiveItem('');
         navigate(item.path!);
         if (isMobile) setIsCollapsed(true);
     };
-    useEffect(() => {
-        const currentPath = location.pathname; 
-        const active = menuItems.find((item) => currentPath.includes(item.path || ''))?.label || 'Profile';
-        setActiveItem(active);
-    }, [location.pathname,menuItems])
+   useEffect(() => {
+  const currentPath = location.pathname;
+
+  const active = menuItems.find(
+    (item) => item.path && currentPath.startsWith(item.path)
+  )?.label || 'Profile';
+
+  setActiveItem(active);
+}, [location.pathname, menuItems]);
+
 
 
     return (

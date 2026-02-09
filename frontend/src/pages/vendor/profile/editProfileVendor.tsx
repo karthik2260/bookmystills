@@ -13,7 +13,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { showToastMessage } from '../../../validations/common/toast';
 import { validateProfile } from '../../../validations/vendor/vendorRegVal';
-import { ProfileFormData, ValidationErrors, VendorDetails } from '@/utils/interfaces';
+import { ProfileFormData, ValidationErrors,VendorDetails} from '@/utils/interface';
 import imageCompression from 'browser-image-compression';
 import { Loader2 } from 'lucide-react';
 

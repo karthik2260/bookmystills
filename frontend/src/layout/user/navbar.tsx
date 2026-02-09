@@ -5,8 +5,7 @@ import {
   NavbarContent,
   NavbarItem,
   NavbarMenuToggle,
-  NavbarMenu,
-  NavbarMenuItem,
+
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -14,15 +13,14 @@ import {
   Avatar,
   
 } from "@nextui-org/react";
-import { ChevronDown, Scale, Activity, Slash, Server, User, Search, MessageCircle, Camera } from 'lucide-react';
+import {    Slash,  User,   Camera } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slices/UserSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { USER } from '../../config/constants/constants';
 import { showToastMessage } from '../../validations/common/toast';
 import UserRootState from '@/redux/rootstate/UserState';
-import { axiosInstance } from '@/config/api/axiosinstance';
-import { PressEvent } from "@react-types/shared";
+import { logoutUser } from '@/services/userAuthService';
 
 export default function UserNavbar() {
   const user= useSelector((state:UserRootState)=>state.user.userData);
@@ -33,11 +31,11 @@ export default function UserNavbar() {
   const navigate = useNavigate();
 
 
-  const handleLogout = async (e: PressEvent) => {
+  const handleLogout = async () => {
     
     setIsLoading(true);
     try {
-      await axiosInstance.post('/logout');
+      await logoutUser()
       localStorage.removeItem('userToken')
       dispatch(logout());
       navigate(`${USER.LOGIN}`);
@@ -51,7 +49,7 @@ export default function UserNavbar() {
   };
 
   // Changed from React.MouseEvent to PressEvent
-  const handleProfileClick = async (e: PressEvent) => {
+  const handleProfileClick = async () => {
     try {
       navigate(`${USER.PROFILE}`)
     } catch (error) {
@@ -59,25 +57,9 @@ export default function UserNavbar() {
       showToastMessage('Error during loading profile', 'error');
     }
   }
-  
-  const icons = {
-    chevron: <ChevronDown size={16} />,
-    scale: <Scale className="text-warning" size={30} />,
-    activity: <Activity className="text-secondary" size={30} />,
-    slash: <Slash className="text-primary" size={30} />,
-    server: <Server className="text-success" size={30} />,
-    user: <User className="text-red-800" size={30} />,
-    search: <Search size={18} />,
-    message: <MessageCircle className="text-warning" size={24} />
-  };
 
-  const menuItems = [
-    { label: "HOME",  },
-    { label: "POST" },
-    { label: "VENDORS" },
-    { label: "BOOKINGS" },
-    { label: "ABOUT US" }
-  ];
+
+ 
   return (
     <Navbar
       onMenuOpenChange={setIsMenuOpen}
