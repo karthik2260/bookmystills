@@ -1,29 +1,33 @@
-import mongoose, {Document,Schema,model} from "mongoose";
+import mongoose, { Document, Schema, model } from 'mongoose';
 
+export interface AdminDocument extends Document {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  password: string;
+  refreshToken?: string;
 
-export interface AdminDocument extends Document{
-    _id: mongoose.Types.ObjectId;
-    email:string;
-    password:string;
-    wallet:number;
-    refreshToken:string;
+  // 👇 ADD THESE
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const adminSchema=new Schema<AdminDocument>({
-    email:{
-        type:String,
-        required:true
+const adminSchema = new Schema<AdminDocument>(
+  {
+    email: {
+      type: String,
+      required: true,
     },
-    password:{
-        type:String,
-        required:true
+    password: {
+      type: String,
+      required: true,
     },
-    
-    refreshToken:{
-        type:String
+    refreshToken: {
+      type: String,
     },
-},{timestamps:true})
+  },
+  {
+    timestamps: true, // 👈 runtime timestamps
+  }
+);
 
-
-export default model<AdminDocument>('Admin',adminSchema)
-
+export default model<AdminDocument>('Admin', adminSchema);

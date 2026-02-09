@@ -1,9 +1,10 @@
 import { Request } from 'express';
 import { Types } from 'mongoose';
+import { AuthRole } from '../enums/commonEnums';
 
-export interface VendorRequest extends Request {
-    vendor?: {
-        _id: Types.ObjectId;
-        // role?: 'user' | 'vendor' | 'admin';
-    };
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    _id: string | Types.ObjectId;
+    role: AuthRole;
+  };
 }

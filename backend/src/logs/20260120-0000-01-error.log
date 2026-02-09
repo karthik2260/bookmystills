@@ -1,0 +1,6 @@
+::1 - - [19/Jan/2026:04:51:10 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [19/Jan/2026:05:19:33 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [19/Jan/2026:06:54:29 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [19/Jan/2026:14:11:35 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [19/Jan/2026:16:17:18 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [19/Jan/2026:17:54:26 +0000] "GET /api/vendor/profile HTTP/1.1" 403 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
