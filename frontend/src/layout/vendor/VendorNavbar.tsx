@@ -14,6 +14,8 @@ import axios from 'axios';
 export default function VendorNavbar() {
   const [openNav, setOpenNav] = useState(false);
   const vendor = useSelector((state:VendorRootState)=>state.vendor.vendorData)
+  console.log('Vendor data:', vendor);
+
 
   useEffect(() => {
     window.addEventListener(
@@ -116,19 +118,16 @@ export default function VendorNavbar() {
           <div className="flex items-center gap-4">
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
-                <Avatar
-                  isBordered
-                  as="button"
-                  className="transition-transform"
-                  name={vendor?.name}
-                  size="sm"
-src={
-    vendor?.imageUrl
-      ? `${vendor.imageUrl}&refresh=${Date.now()}`
-      : "/images/user.png"
-  }
+               <Avatar
+                             isBordered
+                             as="button"
+                             className="transition-transform"
+                             size="sm"
+                             src={ vendor?.imageUrl || "/images/user.png"}
+                             
+                           />
 
-                />
+              
               </DropdownTrigger>
               <DropdownMenu aria-label="User Actions">
                 <DropdownItem key="profile" startContent={<User size={20} />} onClick={handleProfileClick}>
