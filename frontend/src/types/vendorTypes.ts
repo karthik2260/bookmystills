@@ -15,13 +15,14 @@ export interface VendorData{
     totalBooking?:number;
     bookedDates:Array<string>;
     walletBalance: number;
-  
+  rejectionReason?: string;
     refreshToken:string;
     totalRating?:number; 
     postCount?:number;
     reportCount?: number;
     createdAt: string;  
     updatedAt: string;  
+    
 }
 
 export interface VendorFormValues {

@@ -31,7 +31,7 @@ import { validateEmail } from '../../../validations/user/userVal';
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { IFormValues } from '@/utils/interface';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
+import { vendorForgotPassword, vendorLogin } from '@/services/vendorAuthService';
 
 
 const initialValues: IFormValues = {
@@ -89,9 +89,7 @@ const VendorLogin = () => {
                 return
             }
             setIsLoading(true);
-            const response = await axiosInstanceVendor.post('/forgot-password', {
-                email: forgotPasswordEmail
-            })
+           const response = await vendorForgotPassword(forgotPasswordEmail)
             showToastMessage(response.data.message, "success");
             onOpenChange();
             Swal.fire({
@@ -123,26 +121,33 @@ const VendorLogin = () => {
     const formik = useFormik({
         initialValues,
         validationSchema: loginValidationSchema,
-        onSubmit: (values) => {
-            if (Object.keys(formik.errors).length === 0) {
-                axiosInstanceVendor
-                    .post('/login', values)
-                    .then((response) => {
-                        localStorage.setItem('vendorToken', response.data.token);                        
-                        dispatch(setVendorInfo(response.data.vendor));
-                        showToastMessage(response.data.message, 'success')
-                        navigate(`${VENDOR.DASHBOARD}`);
-                    })
-                    .catch((error) => {
-                        console.error(error,'error in login vendor ');
-                        const errorMessage = error.response?.data?.message || 'An error occurred during login';
-                        showToastMessage(errorMessage, 'error')
-                    });
-            } else {
-                showToastMessage('Please correct the validation errors before submitting', 'error')
-            }
+       onSubmit: async (values) => {
+  if (Object.keys(formik.errors).length !== 0) {
+    showToastMessage("Please fix validation errors", "error");
+    return;
+  }
 
-        }
+  try {
+    const response = await vendorLogin(values);
+
+    localStorage.setItem("vendorToken", response.data.token);
+    dispatch(setVendorInfo(response.data.vendor));
+
+    showToastMessage(response.data.message, "success");
+    navigate(VENDOR.DASHBOARD);
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      showToastMessage(
+        error.response?.data?.message || "Login failed",
+        "error"
+      );
+    } else {
+      showToastMessage("Unexpected error occurred", "error");
+    }
+  }
+}
+
     })
 
     return (

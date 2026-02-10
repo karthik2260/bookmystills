@@ -1,0 +1,6 @@
+::1 - - [23/Jan/2026:09:04:54 +0000] "POST /api/user/forgot-password HTTP/1.1" 404 29 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [23/Jan/2026:09:35:05 +0000] "POST /api/user/forgot-password HTTP/1.1" 404 29 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [23/Jan/2026:09:43:13 +0000] "POST /api/user/forgot-password HTTP/1.1" 400 34 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [23/Jan/2026:09:43:16 +0000] "POST /api/user/forgot-password HTTP/1.1" 400 34 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [23/Jan/2026:09:43:17 +0000] "POST /api/user/forgot-password HTTP/1.1" 400 34 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [30/Jan/2026:05:50:42 +0000] "POST /api/user/login HTTP/1.1" 401 32 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"

@@ -22,7 +22,8 @@ import Loader from '../../common/Loader';
 import { TABS } from '@/utils/enums';
 import { axiosInstanceAdmin } from '@/config/api/axiosinstance';
 
-const TABLE_HEAD = ["VendorName", 'Company Name', "Mobile", "Joined-At", "Status", 'Reported', "Actions", 'View Details', 'Verify'];
+
+const TABLE_HEAD = ["Vendor", "Mobile", "Joined", "Status", 'Reports', "Actions", 'Details', 'Verify'];
 
 export function SortableTableVendor() {
     const [vendors, setVendors] = useState<VendorData[]>([]);
@@ -99,45 +100,80 @@ export function SortableTableVendor() {
     
 
    
-    const handleVerifyVendor = useCallback(async (vendorId: string) => {
-        setIsLoading(true)
-        const result = await Swal.fire({
-            title: 'Verify Vendor',
-            text: 'Do you want to accept or reject this vendor?',
-            icon: 'question',
+   const handleVerifyVendor = useCallback(async (vendorId: string) => {
+    setIsLoading(true);
+
+    let status: AcceptanceStatus;
+    let rejectionReason: string | undefined;
+
+    const result = await Swal.fire({
+        title: 'Verify Vendor',
+        text: 'Do you want to accept or reject this vendor?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Accept',
+        cancelButtonText: 'Reject'
+    });
+
+    if (result.isConfirmed) {
+        status = AcceptanceStatus.Accepted;
+    } 
+    else if (result.dismiss === Swal.DismissReason.cancel) {
+        status = AcceptanceStatus.Rejected;
+
+        // 🔹 Ask rejection reason
+        const reasonResult = await Swal.fire({
+            title: 'Enter Rejection Reason',
+            input: 'text',
+            inputPlaceholder: 'Enter reason (optional)',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Accept',
-            cancelButtonText: 'Reject'
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Cancel'
         });
 
-        let status: AcceptanceStatus;
-        if (result.isConfirmed) {
-            status = AcceptanceStatus.Accepted;
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            status = AcceptanceStatus.Rejected;
+        if (reasonResult.isConfirmed) {
+            rejectionReason = reasonResult.value || "No reason provided";
         } else {
+            setIsLoading(false);
             return;
         }
+    } 
+    else {
+        setIsLoading(false);
+        return;
+    }
 
-        try {
-            const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, { status });
-            showToastMessage(response.data.message, 'success');
-            setVendors(prevVendors =>
-                prevVendors.map(vendor =>
-                    vendor._id === vendorId
-                        ? { ...vendor, isAccepted: status, isActive: status === AcceptanceStatus.Accepted }
-                        : vendor
-                )
-            );
-        } catch (error) {
-            console.error('Error verifying vendor:', error);
-            showToastMessage('Failed to verify vendor', 'error');
-        } finally {
-            setIsLoading(false)
-        }
-    }, [])
+    try {
+        const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, {
+            status,
+            rejectionReason
+        });
+
+        showToastMessage(response.data.message, 'success');
+
+        // Update vendors list
+        setVendors(prevVendors =>
+            prevVendors.map(vendor =>
+                vendor._id === vendorId
+                    ? {
+                        ...vendor,
+                        isAccepted: status,
+                        isActive: status === AcceptanceStatus.Accepted,
+                        rejectionReason: rejectionReason
+                    }
+                    : vendor
+            )
+        );
+
+    } catch (error) {
+        console.error('Error verifying vendor:', error);
+        showToastMessage('Failed to verify vendor', 'error');
+    } finally {
+        setIsLoading(false);
+    }
+}, []);
 
 
     return (
@@ -209,223 +245,241 @@ export function SortableTableVendor() {
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}>
 
-                <CardBody className="overflow-x-auto px-0" placeholder={undefined}
+                <CardBody className="px-0" placeholder={undefined}
                     onPointerEnterCapture={undefined}
                     onPointerLeaveCapture={undefined}>
-                    <table className="w-full min-w-max table-auto text-left">
-                        <thead>
-                            <tr>
-                                {TABLE_HEAD.map((head) => (
-                                    <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                                        <Typography
-                                            variant="small"
-                                            color="blue-gray"
-                                            placeholder={undefined}
-                                            onPointerEnterCapture={undefined}
-                                            onPointerLeaveCapture={undefined}
-                                            className="font-normal leading-none opacity-70"
-                                        >
-                                            {head}
-                                        </Typography>
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {isLoading ? (
-                                <tr><td colSpan={6} className="text-center p-4"><Loader /></td></tr>
-                            ) : vendors.length === 0 ? (
-                                <tr><td colSpan={6} className="text-center p-4">No vendors found</td></tr>
-                            ) : (
-                                vendors.map((vendor, index) => (
-                                    <tr key={index} className="even:bg-blue-gray-50/50">
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar src={vendor?.imageUrl || "/images/user.png"} alt={vendor.name} size="sm" placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined} />
-                                                <div className="flex flex-col">
-                                                    <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}>
-                                                        {vendor.name}
-                                                    </Typography>
-                                                    <Typography variant="small" color="blue-gray" className="font-normal opacity-70" placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}>
-                                                        {vendor.email}
-                                                    </Typography>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                                                onPointerEnterCapture={undefined}
-                                                onPointerLeaveCapture={undefined}>
-                                                {vendor.companyName || "Not Added"}
-                                            </Typography>
-                                        </td>
-                                        <td className="p-4">
-                                            <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                                                onPointerEnterCapture={undefined}
-                                                onPointerLeaveCapture={undefined}>
-                                                {vendor.contactinfo || "Not Added"}
-                                            </Typography>
-                                        </td>
-                                        <td className="p-4">
-                                            <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                                                onPointerEnterCapture={undefined}
-                                                onPointerLeaveCapture={undefined}>
-                                                {new Date(vendor.createdAt).toLocaleDateString()}
-                                            </Typography>
-                                        </td>
-
-
-                                        <td className="p-4">
-                                            <div className={`w-max rounded-full ${vendor.isActive ? 'bg-green-100' : 'bg-red-100'} px-2 py-1`}>
-                                                <Typography variant="small" className={vendor.isActive ? 'text-green-700' : 'text-red-700'} placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined}>
-                                                    {vendor.isActive ? "Active" : "Inactive"}
-                                                </Typography>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div
-                                                className={`w-max rounded-full ${vendor.reportCount! > 10
-                                                        ? "bg-red-200" 
-                                                        : vendor.reportCount! > 1
-                                                            ? "bg-yellow-200"
-                                                            : vendor.reportCount! >= 0
-                                                                ? "bg-green-200" 
-                                                                : "bg-blue-gray-200" 
-                                                    } px-2 py-1`}
-                                            >
-                                                <Typography
-                                                    variant="small"
-                                                    color="blue-gray" placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined}
-                                                    className={`font-normal rounded-md text-black`} 
-                                                >
-                                                    {vendor.reportCount || "0"}
-                                                </Typography>
-                                            </div>
-                                        </td>
-
-
-                                        <td className="p-4">
-                                            <div className="w-max flex justify-center items-center">
-                                                {(vendor.isAccepted === AcceptanceStatus.Requested || vendor.isAccepted === AcceptanceStatus.Rejected) ? (
-                                                    <Switch
-                                                        id={`custom-switch-component-${vendor._id}`}
-                                                        ripple={false}
-                                                        color={vendor.isActive ? "green" : "red"}
-                                                        checked={vendor.isActive}
-                                                       
-
-                                                        crossOrigin={undefined}
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                        className={`h-6 w-12 ${vendor.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-                                                        containerProps={{
-                                                            className: "relative inline-block w-12 h-6",
-                                                        }}
-                                                        disabled={true}
-                                                        circleProps={{
-                                                            className: `absolute left-0.5  w-5 h-5 bg-white rounded-full transition-transform duration-300 ease-in-out ${vendor.isActive ? 'translate-x-6' : ''
-                                                                }`
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <Switch
-                                                        id={`custom-switch-component-${vendor._id}`}
-                                                        ripple={false}
-                                                        color={vendor.isActive ? "green" : "red"}
-                                                        checked={vendor.isActive}
-                                                      
-
-                                                        crossOrigin={undefined}
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                        className={`h-6 w-12 ${vendor.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-                                                        containerProps={{
-                                                            className: "relative inline-block w-12 h-6",
-                                                        }}
-                                                        circleProps={{
-                                                            className: `absolute left-0.5  w-5 h-5 bg-white rounded-full transition-transform duration-300 ease-in-out ${vendor.isActive ? 'translate-x-6' : ''
-                                                                }`
-                                                        }}
-                                                    />
-                                                )}
-
-                                            </div>
-                                        </td>
-
-                                        <td className="p-4">
-
-                                            <Button
-                                                size="sm"
-                                                variant="outlined"
-                                                className="flex items-center gap-2" placeholder={undefined}
+                    <div className="overflow-x-auto">
+                        <table className="w-full table-auto text-left">
+                            <thead>
+                                <tr>
+                                    {TABLE_HEAD.map((head) => (
+                                        <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-3">
+                                            <Typography
+                                                variant="small"
+                                                color="blue-gray"
+                                                placeholder={undefined}
                                                 onPointerEnterCapture={undefined}
                                                 onPointerLeaveCapture={undefined}
-                                                onClick={() => handleViewDetails(vendor)}
+                                                className="font-semibold text-xs leading-none"
                                             >
-                                                View Details
-                                            </Button>
+                                                {head}
+                                            </Typography>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {isLoading ? (
+                                    <tr><td colSpan={8} className="text-center p-4"><Loader /></td></tr>
+                                ) : vendors.length === 0 ? (
+                                    <tr><td colSpan={8} className="text-center p-4">No vendors found</td></tr>
+                                ) : (
+                                    vendors.map((vendor, index) => (
+                                        <tr key={index} className="even:bg-blue-gray-50/50 border-b border-blue-gray-50">
+                                            {/* Vendor Info */}
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar 
+                                                        src={vendor?.imageUrl || "/images/user.png"} 
+                                                        alt={vendor.name} 
+                                                        size="sm" 
+                                                        placeholder={undefined}
+                                                        onPointerEnterCapture={undefined}
+                                                        onPointerLeaveCapture={undefined} 
+                                                    />
+                                                    <div className="flex flex-col min-w-0">
+                                                        <Typography 
+                                                            variant="small" 
+                                                            color="blue-gray" 
+                                                            className="font-medium text-xs truncate" 
+                                                            placeholder={undefined}
+                                                            onPointerEnterCapture={undefined}
+                                                            onPointerLeaveCapture={undefined}
+                                                        >
+                                                            {vendor.name}
+                                                        </Typography>
+                                                        <Typography 
+                                                            variant="small" 
+                                                            color="blue-gray" 
+                                                            className="font-normal opacity-70 text-xs truncate" 
+                                                            placeholder={undefined}
+                                                            onPointerEnterCapture={undefined}
+                                                            onPointerLeaveCapture={undefined}
+                                                        >
+                                                            {vendor.companyName || "N/A"}
+                                                        </Typography>
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                                        </td>
+                                            {/* Mobile */}
+                                            <td className="p-3">
+                                                <Typography 
+                                                    variant="small" 
+                                                    color="blue-gray" 
+                                                    className="font-normal text-xs" 
+                                                    placeholder={undefined}
+                                                    onPointerEnterCapture={undefined}
+                                                    onPointerLeaveCapture={undefined}
+                                                >
+                                                    {vendor.contactinfo || "N/A"}
+                                                </Typography>
+                                            </td>
 
-                                        <td className="p-4">
-                                            <div className="w-max flex justify-center items-center">
-                                                {vendor.isAccepted === AcceptanceStatus.Requested ? (
+                                            {/* Joined Date */}
+                                            <td className="p-3">
+                                                <Typography 
+                                                    variant="small" 
+                                                    color="blue-gray" 
+                                                    className="font-normal text-xs whitespace-nowrap" 
+                                                    placeholder={undefined}
+                                                    onPointerEnterCapture={undefined}
+                                                    onPointerLeaveCapture={undefined}
+                                                >
+                                                    {new Date(vendor.createdAt).toLocaleDateString('en-US', { 
+                                                        month: 'short', 
+                                                        day: 'numeric',
+                                                        year: '2-digit'
+                                                    })}
+                                                </Typography>
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="p-3">
+                                                <div className={`w-max rounded-full ${vendor.isActive ? 'bg-green-100' : 'bg-red-100'} px-2 py-1`}>
+                                                    <Typography 
+                                                        variant="small" 
+                                                        className={`${vendor.isActive ? 'text-green-700' : 'text-red-700'} text-xs font-medium`} 
+                                                        placeholder={undefined}
+                                                        onPointerEnterCapture={undefined}
+                                                        onPointerLeaveCapture={undefined}
+                                                    >
+                                                        {vendor.isActive ? "Active" : "Inactive"}
+                                                    </Typography>
+                                                </div>
+                                            </td>
+
+                                            {/* Report Count */}
+                                            <td className="p-3">
+                                                <div
+                                                    className={`w-max rounded-full ${
+                                                        vendor.reportCount! > 10
+                                                            ? "bg-red-200" 
+                                                            : vendor.reportCount! > 1
+                                                                ? "bg-yellow-200"
+                                                                : "bg-green-200" 
+                                                    } px-2 py-1`}
+                                                >
+                                                    <Typography
+                                                        variant="small"
+                                                        color="blue-gray" 
+                                                        placeholder={undefined}
+                                                        onPointerEnterCapture={undefined}
+                                                        onPointerLeaveCapture={undefined}
+                                                        className="font-medium text-xs text-black" 
+                                                    >
+                                                        {vendor.reportCount || "0"}
+                                                    </Typography>
+                                                </div>
+                                            </td>
+
+                                            {/* Actions (Toggle) */}
+                                            <td className="p-3">
+                                                <div className="flex justify-center">
                                                     <Switch
-                                                        id={`verify-switch-${vendor._id}`}
+                                                        id={`custom-switch-component-${vendor._id}`}
                                                         ripple={false}
                                                         color={vendor.isActive ? "green" : "red"}
                                                         checked={vendor.isActive}
-                                                        onChange={() => handleVerifyVendor(vendor._id)}
-
+                                                        disabled={vendor.isAccepted === AcceptanceStatus.Requested || vendor.isAccepted === AcceptanceStatus.Rejected}
                                                         crossOrigin={undefined}
                                                         placeholder={undefined}
                                                         onPointerEnterCapture={undefined}
                                                         onPointerLeaveCapture={undefined}
-                                                        className={`h-6 w-12 ${vendor.isActive ? 'bg-green-500' : 'bg-red-500'}`}
+                                                        className={`h-5 w-10 ${vendor.isActive ? 'bg-green-500' : 'bg-red-500'}`}
                                                         containerProps={{
-                                                            className: "relative inline-block w-12 h-6",
+                                                            className: "relative inline-block w-10 h-5",
                                                         }}
                                                         circleProps={{
-                                                            className: `absolute left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 ease-in-out ${vendor.isActive ? 'translate-x-6' : ''
-                                                                }`
+                                                            className: `absolute left-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-300 ease-in-out ${
+                                                                vendor.isActive ? 'translate-x-5' : ''
+                                                            }`
                                                         }}
                                                     />
-                                                ) : (
-                                                    <Typography
-                                                        variant="small"
+                                                </div>
+                                            </td>
+
+                                            {/* View Details */}
+                                            <td className="p-3">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outlined"
+                                                    className="px-3 py-1.5 text-xs normal-case" 
+                                                    placeholder={undefined}
+                                                    onPointerEnterCapture={undefined}
+                                                    onPointerLeaveCapture={undefined}
+                                                    onClick={() => handleViewDetails(vendor)}
+                                                >
+                                                    View
+                                                </Button>
+                                            </td>
+
+                                            {/* Verify/Status Column */}
+                                            <td className="p-3">
+                                                {vendor.isAccepted === AcceptanceStatus.Requested ? (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outlined"
+                                                        color="blue"
+                                                        className="px-3 py-1.5 text-xs normal-case whitespace-nowrap"
                                                         placeholder={undefined}
                                                         onPointerEnterCapture={undefined}
                                                         onPointerLeaveCapture={undefined}
-                                                        color={vendor.isAccepted === AcceptanceStatus.Accepted ? "green" : "red"}
+                                                        onClick={() => handleVerifyVendor(vendor._id)}
                                                     >
-                                                        {vendor.isAccepted === AcceptanceStatus.Accepted ? "Accepted" : "Rejected"}
-                                                    </Typography>
+                                                        Verify
+                                                    </Button>
+                                                ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                        <Typography
+                                                            variant="small"
+                                                            color={vendor.isAccepted === AcceptanceStatus.Accepted ? "green" : "red"}
+                                                            className="font-medium text-xs whitespace-nowrap"
+                                                            placeholder={undefined}
+                                                            onPointerEnterCapture={undefined}
+                                                            onPointerLeaveCapture={undefined}
+                                                        >
+                                                            {vendor.isAccepted === AcceptanceStatus.Accepted ? "✓ Accepted" : "✗ Rejected"}
+                                                        </Typography>
+                                                        {vendor.isAccepted === AcceptanceStatus.Rejected && vendor.rejectionReason && (
+                                                            <Typography
+                                                                variant="small"
+                                                                color="red"
+                                                                className="text-xs opacity-70 max-w-[150px] break-words"
+                                                                placeholder={undefined}
+                                                                onPointerEnterCapture={undefined}
+                                                                onPointerLeaveCapture={undefined}
+                                                            >
+                                                                {vendor.rejectionReason}
+                                                            </Typography>
+                                                        )}
+                                                    </div>
                                                 )}
-
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </CardBody>
+                
                 <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4" placeholder={undefined}
-                   >
+                    onPointerEnterCapture={undefined}
+                    onPointerLeaveCapture={undefined}>
                     <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                        >
+                        onPointerEnterCapture={undefined}
+                        onPointerLeaveCapture={undefined}>
                         Page {currentPage} of {totalPages}
                     </Typography>
                     <div className="flex gap-2">
@@ -433,7 +487,8 @@ export function SortableTableVendor() {
                             variant="outlined"
                             size="sm"
                             placeholder={undefined}
-                           
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                         >
@@ -443,7 +498,8 @@ export function SortableTableVendor() {
                             variant="outlined"
                             size="sm"
                             placeholder={undefined}
-                          
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                         >
@@ -458,12 +514,6 @@ export function SortableTableVendor() {
                 onClose={handleCloseModal}
                 vendor={selectedVendor}
             />
-
-
         </div>
-
-
     );
 }
-
-

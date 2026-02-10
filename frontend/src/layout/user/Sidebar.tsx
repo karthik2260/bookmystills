@@ -1,6 +1,6 @@
-import { axiosInstance } from "@/config/api/axiosinstance";
 import { USER } from "@/config/constants/constants";
 import { logout } from "@/redux/slices/UserSlice";
+import { logoutUser } from "@/services/userAuthService";
 import { showToastMessage } from "@/validations/common/toast";
 import { Bars3Icon, ChatBubbleBottomCenterIcon, UserGroupIcon, XMarkIcon } from "@heroicons/react/24/solid"
 import { Card, Chip, IconButton, List, ListItem, ListItemPrefix, ListItemSuffix, Tooltip, Typography } from "@material-tailwind/react"
@@ -45,7 +45,7 @@ const Sidebar = () => {
   const handleMenuClick = async (item: MenuItem) => {
     if (item.label === 'Log Out') {
       try {
-        await axiosInstance.post('/logout');
+       await logoutUser()
         localStorage.removeItem('userToken');
         dispatch(logout());
         navigate(USER.LOGIN);
@@ -71,7 +71,7 @@ const Sidebar = () => {
   return (
     <Card
       className={`min-h-screen ${isCollapsed ? 'w-20' : 'w-64'} p-4 shadow-xl shadow-blue-gray-900/5 transition-all duration-300`}
-      {...({} as any)}
+      
       onPointerEnterCapture={undefined}
       onPointerLeaveCapture={undefined}
       placeholder={undefined}
@@ -82,7 +82,7 @@ const Sidebar = () => {
             <Typography
               variant="h5"
               color="blue-gray"
-              {...({} as any)}
+             
               onPointerEnterCapture={undefined}
               onPointerLeaveCapture={undefined}
               placeholder={undefined}
@@ -95,7 +95,7 @@ const Sidebar = () => {
           variant="text"
           size="sm"
           onClick={toggleSidebar}
-          {...({} as any)}
+       
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
           placeholder={undefined}
@@ -104,7 +104,7 @@ const Sidebar = () => {
         </IconButton>
       </div>
       <List
-        {...({} as any)}
+        
         onPointerEnterCapture={undefined}
         onPointerLeaveCapture={undefined}
         placeholder={undefined}
@@ -118,7 +118,7 @@ const Sidebar = () => {
               className="bg-white px-4 py-3 text-black shadow-xl shadow-black/10"
             >
               <ListItem
-                {...({} as any)}
+                
                 className={`${activeItem === item.label ? 'bg-blue-50' : ''} justify-center hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
                 onClick={() => handleMenuClick(item)}
                 onPointerEnterCapture={undefined}
@@ -126,7 +126,7 @@ const Sidebar = () => {
                 placeholder={undefined}
               >
                 <ListItemPrefix
-                  {...({} as any)}
+              
                   onPointerEnterCapture={undefined}
                   onPointerLeaveCapture={undefined}
                   placeholder={undefined}
@@ -137,7 +137,7 @@ const Sidebar = () => {
             </Tooltip>
           ) : (
             <ListItem
-              {...({} as any)}
+              
               key={item.label}
               className={`${activeItem === item.label ? 'bg-blue-50' : ''} hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
               onClick={() => handleMenuClick(item)}
@@ -146,7 +146,7 @@ const Sidebar = () => {
               placeholder={undefined}
             >
               <ListItemPrefix
-                {...({} as any)}
+             
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}
                 placeholder={undefined}
@@ -156,7 +156,7 @@ const Sidebar = () => {
               {item.label}
               {item.badge && (
                 <ListItemSuffix
-                  {...({} as any)}
+                  
                   onPointerEnterCapture={undefined}
                   onPointerLeaveCapture={undefined}
                   placeholder={undefined}

@@ -2,7 +2,6 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
@@ -10,8 +9,8 @@ const transporter = nodemailer.createTransport({
   requireTLS: true,
   auth: {
     user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASSWORD
-  }
+    pass: process.env.USER_PASSWORD,
+  },
 });
 
 export async function sendEmail(to: string | string[], subject: string, htmlBody: string) {
@@ -20,9 +19,8 @@ export async function sendEmail(to: string | string[], subject: string, htmlBody
       from: process.env.USER_EMAIL,
       to: Array.isArray(to) ? to.join(', ') : to,
       subject,
-      html: htmlBody
+      html: htmlBody,
     };
-    
 
     const info = await transporter.sendMail(mailOptions);
     return true;
@@ -31,4 +29,3 @@ export async function sendEmail(to: string | string[], subject: string, htmlBody
     return false;
   }
 }
-

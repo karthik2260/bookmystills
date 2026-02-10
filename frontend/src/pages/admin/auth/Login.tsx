@@ -10,13 +10,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN } from '../../../config/constants/constants';
 import { useFormik } from "formik";
-import { axiosInstanceAdmin } from '@/config/api/axiosinstance';
 import { loginValidationSchema } from '../../../validations/common/loginValidate';
 import { showToastMessage } from '../../../validations/common/toast';
 import AdminRootState from '@/redux/rootstate/AdminState';
 import { Eye, EyeOff } from 'lucide-react';
 import { setAdminInfo } from '@/redux/slices/AdminSlice';
-
+import { adminLoginService } from '@/services/adminAuthService';
+import axios from 'axios';
 
 interface FormValues {
     email: string;
@@ -62,26 +62,29 @@ const Login = () => {
     const formik = useFormik({
         initialValues,
         validationSchema: loginValidationSchema,
-        onSubmit: (values) => {
-            if (Object.keys(formik.errors).length === 0) {                
-                axiosInstanceAdmin
-                    .post('/login', values)
-                    .then((response) => {
-                        localStorage.setItem('adminToken', response.data.token);                        
-                        dispatch(setAdminInfo(response.data.adminData));
-                        showToastMessage(response.data.message, 'success')
-                        navigate(`/admin${ADMIN.DASHBOARD}`);
-                    })
-                    .catch((error) => {
-                        console.error(error,'error in login vendor ');
-                        const errorMessage = error.response?.data?.message || 'An error occurred during login';
-                        showToastMessage(errorMessage, 'error')
-                    });
-            } else {
-                showToastMessage('Please correct the validation errors before submitting', 'error')
-            }
+        onSubmit: async (values) => {
+  try {
+    const data = await adminLoginService(values);
 
-        }
+    localStorage.setItem('adminToken', data.token);
+    dispatch(setAdminInfo(data.adminData));
+
+    showToastMessage(data.message, 'success');
+    navigate(`/admin${ADMIN.DASHBOARD}`);
+  } catch (error) {
+  console.error('Admin login error', error);
+
+  let errorMessage = 'An error occurred during login';
+
+  if (axios.isAxiosError(error)) {
+    errorMessage =
+      error.response?.data?.message || errorMessage;
+  }
+
+  showToastMessage(errorMessage, 'error');
+}
+}
+
     })
 
     return (

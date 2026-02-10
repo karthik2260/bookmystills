@@ -7,13 +7,13 @@ import {
     Button,
 } from "@material-tailwind/react";
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { axiosInstanceVendor,axiosInstance } from '@/config/api/axiosinstance';
 import { showToastMessage } from '../../../validations/common/toast';
 import { validatePassword } from '../../../validations/user/userVal';
 import { USER, VENDOR } from '../../../config/constants/constants';
 import Swal from 'sweetalert2'
 import Loader from '../../../components/common/Loader';
 import { ResetFormValues } from '@/utils/interface';
+import { resetPassword, validateResetToken } from '@/services/userAuthService';
 
 
 const initialValues: ResetFormValues = {
@@ -34,7 +34,6 @@ const ResetPassword: React.FC = () => {
     const location = useLocation();
 
     const isVendor = location.pathname.includes('vendor');
-    const axiosClient = isVendor ? axiosInstanceVendor : axiosInstance;
     const redirectPath = isVendor ? VENDOR.LOGIN : USER.LOGIN;
 
 
@@ -42,7 +41,8 @@ const ResetPassword: React.FC = () => {
     const validateToken = async () => {
         try {
 
-            const response = await axiosClient.get(`/validate-reset-token/${token}`);
+            const response = await validateResetToken(token!,isVendor)
+
 
             setIsTokenValid(response.data.isValid);
         } catch (error) {
@@ -89,7 +89,7 @@ const ResetPassword: React.FC = () => {
                     navigate(redirectPath);
                     return;
                 }
-                await axiosClient.post(`/reset-password/${token}`, formValues, { withCredentials: true });
+await resetPassword(token!, formValues, isVendor);
                 showToastMessage('Password successfully reset', 'success');
                 navigate(redirectPath); // Redirect to login page
             } catch (error) {

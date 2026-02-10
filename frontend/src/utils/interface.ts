@@ -37,12 +37,18 @@ export interface IUserDetails {
 
 }
 
-export interface IProfileFormData {
+export interface ProfileFormData {
   name: string;
   email: string;
   contactinfo: string;
-  image?: File | string;
-  isGoogleUser?: boolean;
+  companyName: string;
+  city: string;
+  about: string;
+  isVerified: boolean;
+  logo: string;
+  imageUrl?: File | string;
+  bookedDates: Array<string>;
+  totalRating: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -55,4 +61,12 @@ export interface IValidationErrors {
 
 export interface RevenueChartProps {
   role:Role
+}
+
+export interface VendorDetails {
+  isOpen: boolean;
+  onClose: () => void;
+  vendor: VendorData | null;
+  onSave: (data: FormData) => Promise<void>
+
 }

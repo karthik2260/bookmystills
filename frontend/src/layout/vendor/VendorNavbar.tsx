@@ -8,12 +8,14 @@ import { logout } from "../../redux/slices/VendorSlice";
 import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
 import { showToastMessage } from '../../validations/common/toast';
 import VendorRootState from '@/redux/rootstate/VendorState';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-
+import { vendorLogout } from '@/services/vendorAuthService';
+import axios from 'axios';
 
 export default function VendorNavbar() {
   const [openNav, setOpenNav] = useState(false);
   const vendor = useSelector((state:VendorRootState)=>state.vendor.vendorData)
+  console.log('Vendor data:', vendor);
+
 
   useEffect(() => {
     window.addEventListener(
@@ -21,6 +23,7 @@ export default function VendorNavbar() {
       () => window.innerWidth >= 768 && setOpenNav(false),
     );
   }, []);
+
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -36,22 +39,33 @@ export default function VendorNavbar() {
 
   }
 
-  const handleLogout = () => {
-    
-    axiosInstanceVendor
-      .post("/logout")
-      .then(() => {
-        localStorage.removeItem('vendorToken')
-        dispatch(logout());
-        navigate(`${VENDOR.LOGIN}`);
-        showToastMessage('Logged out successfully', 'success');
 
-      })
-      .catch((error) => {
-        console.error('Logout Error', error);
-        showToastMessage('Error during logout', 'error');
-      });
-  };
+  
+
+ const handleLogout = async () => {
+  try {
+    await vendorLogout();
+
+    localStorage.removeItem("vendorToken");
+    dispatch(logout());
+    navigate(VENDOR.LOGIN);
+
+    showToastMessage("Logged out successfully", "success");
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      showToastMessage(
+        error.response?.data?.message || "Logout failed",
+        "error"
+      );
+    } else {
+      showToastMessage("Unexpected error during logout", "error");
+    }
+  }
+};
+
+
+
 
   return (
     <>
@@ -104,14 +118,16 @@ export default function VendorNavbar() {
           <div className="flex items-center gap-4">
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
-                <Avatar
-                  isBordered
-                  as="button"
-                  className="transition-transform"
-                  name={vendor?.name}
-                  size="sm"
-                  src={vendor?.imageUrl || 'images/user1.jpg'}
-                />
+               <Avatar
+                             isBordered
+                             as="button"
+                             className="transition-transform"
+                             size="sm"
+                             src={ vendor?.imageUrl || "/images/user.png"}
+                             
+                           />
+
+              
               </DropdownTrigger>
               <DropdownMenu aria-label="User Actions">
                 <DropdownItem key="profile" startContent={<User size={20} />} onClick={handleProfileClick}>

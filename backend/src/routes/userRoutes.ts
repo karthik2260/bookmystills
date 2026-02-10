@@ -1,50 +1,61 @@
 import express from 'express';
-import UserController from '../controllers/userController';
 import UserRepository from '../repositories/userRepository';
-import UserService from '../services/userService';
-import { authenticateToken } from '../middlewares/authToken';
-import VendorService from '../services/vendorService';
+import UserService from '../services/UserService/userService';
+import VendorService from '../services/VendorService/VendorService';
 import VendorRepository from '../repositories/vendorRepository';
-import VendorController from '../controllers/vendorController';
+import VendorAuthController from '../controllers/VendorController/VendorAuthController';
 import multer from 'multer';
+import { AuthRole } from '../enums/commonEnums';
+import { authenticateToken } from '../middlewares/authenticate';
+import { authorizeRole } from '../middlewares/authorizeRole';
+import UserAuthController from '../controllers/UserControllers/UserAuthController';
+import UserProfileController from '../controllers/UserControllers/UserProfileController';
 
 const storage = multer.memoryStorage();
-const upload = multer({storage:storage})
+const upload = multer({ storage: storage });
 
+const userRepository = new UserRepository();
+const vendorRepository = new VendorRepository();
+const vendorService = new VendorService(vendorRepository);
+const userService = new UserService(userRepository);
+const userAuthController = new UserAuthController(userService);
+const userProfileController = new UserProfileController(userService,vendorService)
+const UserControllerr = new VendorAuthController(vendorService)
+const vendorController = new VendorAuthController(vendorService);
 
+const router = express.Router();
 
-const userRepository = new UserRepository()
-const vendorRepository = new VendorRepository()
-const vendorService = new VendorService(vendorRepository)
-const userService = new UserService(userRepository)
-const userController = new UserController(userService,vendorService)
+router.post('/login', userAuthController.Login.bind(userAuthController));
+router.post('/logout', userAuthController.UserLogout.bind(userAuthController));
+router.post('/signup', userAuthController.UserSignup.bind(userAuthController));
+router.post('/verify', userAuthController.VerifyOTP.bind(userAuthController));
+router.get('/resendOtp', userAuthController.ResendOtp.bind(userAuthController));
 
-const vendorController =  new VendorController(vendorService)
+router.post('/refresh-token', userAuthController.create_RefreshToken.bind(userAuthController));
 
+router.post('/forgot-password', userAuthController.forgotPassword.bind(userAuthController));
+router.post('/reset-password/:token', userAuthController.changeForgotPassword.bind(userAuthController));
+router.get('/validate-reset-token/:token', userAuthController.validateResetToken.bind(userAuthController));
+router.put(
+  '/change-password',
+  authenticateToken,
+  userAuthController.changePassword.bind(userAuthController),
+);
 
+router.post('/google/register', userAuthController.googleSignUp.bind(userAuthController));
+router.post('/google/login', userAuthController.googleAuth.bind(userAuthController));
 
+router.get(
+  '/profile',
+  authenticateToken,
+  authorizeRole(AuthRole.USER), 
+  userProfileController.getUserProfile.bind(userProfileController)
+);
+router.put(
+  '/profile',
+  upload.single('image'),
+  authenticateToken,authorizeRole(AuthRole.USER),
+  userProfileController.updateProfile.bind(userProfileController),
+);
 
-const router = express.Router()
-
-router.post('/login',userController.Login.bind(userController));
-router.post('/logout',userController.UserLogout.bind(userController))
-router.post('/signup',userController.UserSignup.bind(userController))
-router.post('/verify',userController.VerifyOTP.bind(userController))
-router.get('/resendOtp',userController.ResendOtp.bind(userController))
-
-router.post('/refresh-token',userController.create_RefreshToken.bind(userController))
-
-router.post('/forgot-password',userController.forgotPassword.bind(userController))
-router.post('/reset-password/:token',userController.changeForgotPassword.bind(userController))
-router.get('/validate-reset-token/:token',userController.validateResetToken.bind(userController))
-router.put('/change-password',authenticateToken,userController.changePassword.bind(userController))
-
-router.post('/google/register',userController.googleSignUp.bind(userController))
-router.post('/google/login',userController.googleAuth.bind(userController))
-
-router.get('/profile',authenticateToken,userController.getUserProfile.bind(userController))
-router.put('/profile', upload.single("image"), authenticateToken, userController.updateProfile.bind(userController))
-
-
-
-export default router
+export default router;
