@@ -1,7 +1,7 @@
-D:\bookmystills\backend\src\logs\20260120-0000-01-error.log
 D:\bookmystills\backend\src\logs\20260121-0000-01-error.log
 D:\bookmystills\backend\src\logs\20260123-0005-01-error.log
 D:\bookmystills\backend\src\logs\20260131-0000-01-error.log
 D:\bookmystills\backend\src\logs\20260201-0000-01-error.log
 D:\bookmystills\backend\src\logs\20260204-0008-01-error.log
 D:\bookmystills\backend\src\logs\20260209-0002-01-error.log
+D:\bookmystills\backend\src\logs\20260210-0817-01-error.log

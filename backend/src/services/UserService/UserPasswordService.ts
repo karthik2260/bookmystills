@@ -49,39 +49,29 @@ export class UserPasswordService {
 
   newPasswordChange = async (token: string, password: string): Promise<void> => {
     try {
-      console.log('🔍 Starting newPasswordChange');
-      console.log('🔍 Received token:', token);
-      console.log('🔍 Token length:', token.length);
-      console.log('🔍 Current time:', new Date());
+     
 
       const user = await this.userRepository.findByToken(token);
 
       console.log('👤 User found:', user ? 'YES' : 'NO');
       if (user) {
-        console.log('👤 User email:', user.email);
-        console.log('👤 Token in DB:', user.resetPasswordToken);
-        console.log('👤 Token expiry:', user.resetPasswordExpires);
-        console.log('👤 Tokens match:', user.resetPasswordToken === token);
+       
       }
 
       if (!user) {
-        console.log('❌ No user found with this token');
         throw new CustomError('Invalid token', HTTP_statusCode.BadRequest); // Change to 400
       }
 
       if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
-        console.log('❌ Token expired');
-        console.log('⏰ Token expired at:', user.resetPasswordExpires);
-        console.log('⏰ Current time:', new Date());
+       
         throw new CustomError('Passwo rd reset token has expired', HTTP_statusCode.BadRequest); // Change to 400
       }
 
-      console.log('✅ Token is valid, hashing password...');
+     
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      console.log('💾 Updating password in database...');
 
       let updateSuccess = await this.userRepository.UpdatePasswordAndClearToken(
         user._id,
@@ -89,12 +79,10 @@ export class UserPasswordService {
       );
 
       if (!updateSuccess) {
-        console.log('❌ Failed to update password');
         throw new CustomError('Failed to Update password', HTTP_statusCode.InternalServerError);
       }
 
-      console.log('✅ Password updated successfully');
-      console.log('📧 Sending confirmation email...');
+     
 
       await sendEmail(
         user.email,
@@ -102,9 +90,7 @@ export class UserPasswordService {
         emailTemplates.ResetPasswordSuccess(user.name),
       );
 
-      console.log('✅ Password reset complete!');
     } catch (error) {
-      console.error('❌ Error in newPasswordChange:', error);
       if (error instanceof CustomError) {
         throw error;
       }
