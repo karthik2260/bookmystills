@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { UserFormValues } from "../../types/userTypes";
 import { useSelector } from 'react-redux';
 import UserRootState from '../../redux/rootstate/UserState';
@@ -37,13 +37,17 @@ const images = [
     const [imageIndex, setImageIndex] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate()
-  
-    useEffect(() => {
-      if (user) {
-        navigate(USER.HOME)
-      }
-    }, [navigate, user])
-  
+  const location = useLocation();
+
+   useEffect(() => {
+  if (
+    user &&
+    (location.pathname === USER.LOGIN ||
+     location.pathname === USER.SIGNUP)
+  ) {
+    navigate(USER.HOME);
+  }
+}, [navigate, user, location.pathname]);
     useEffect(() => {
       const interval = setInterval(() => {
         setImageIndex((prevIndex) => (prevIndex + 1) % images.length);

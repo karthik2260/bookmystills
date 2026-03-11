@@ -1,13 +1,16 @@
 import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.Repository.interface';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
-import { AcceptanceStatus } from '../../enums/commonEnums';
+import { AcceptanceStatus, BlockStatus, ServiceProvided } from '../../enums/commonEnums';
 import jwt from 'jsonwebtoken';
-import { FindAllVendorsResult,IVendorLoginResponse,VendorSession } from '../../interfaces/commonInterfaces';
+import { CustomizationOption, FindAllVendorsResult,IVendorLoginResponse,VendorDetailsWithAll,VendorSession } from '../../interfaces/commonInterfaces';
 import { VendorLoginRequestDTO,VendorProfileResponseDTO,VendorSignUpRequestDTO,VendorSignupResponseDTO,VendorUpdateProfileResponseDTO } from '../../dto/vendorDTO';
 import { VendorAuthService } from './VendorAuthService';
 import { VendorPasswordService } from './VendorPasswordService';
 import { VendorProfileService } from './VendorProfileService';
 import { VendorManagementService } from './VendorManagementService';
+import mongoose from 'mongoose';
+import { VendorAvailabilityService } from './VendorAvailabilityService';
+import { VendorDocument } from '../../models/vendorModel';
 
 class VendorService implements IVendorService {
   private vendorRepository: IVendorRepository;
@@ -15,6 +18,7 @@ class VendorService implements IVendorService {
   private passwordService: VendorPasswordService;
   private profileService: VendorProfileService;
   private managementService: VendorManagementService;
+  private availabilityService: VendorAvailabilityService;
 
   constructor(vendorRepository: IVendorRepository) {
     this.vendorRepository = vendorRepository;
@@ -22,9 +26,11 @@ class VendorService implements IVendorService {
     this.passwordService = new VendorPasswordService(vendorRepository);
     this.profileService = new VendorProfileService(vendorRepository);
     this.managementService = new VendorManagementService(vendorRepository);
+    this.availabilityService = new VendorAvailabilityService(vendorRepository);
+
+
   }
 
-  // Delegate to VendorAuthService
   registerVendor = async (data: 
    VendorSignUpRequestDTO
   ): Promise<VendorSession> => {
@@ -45,7 +51,6 @@ class VendorService implements IVendorService {
     return this.authService.create_RefreshToken(refreshToken);
   };
 
-  // Delegate to VendorPasswordService
   handleForgotPassword = async (email: string): Promise<void> => {
     return this.passwordService.handleForgotPassword(email);
   };
@@ -66,7 +71,7 @@ class VendorService implements IVendorService {
     return this.passwordService.passwordCheckVendor(currentPassword, newPassword, vendorId);
   };
 
-  // Delegate to VendorProfileService
+
   getVendorProfileService = async (
     vendorId: string
   ): Promise<VendorProfileResponseDTO> => {
@@ -85,7 +90,6 @@ class VendorService implements IVendorService {
     return this.profileService.updateProfileService(name, contactinfo, companyName, city, about, files, vendorId);
   };
 
-  // Delegate to VendorManagementService
   getVendors = async (
     page: number,
     limit: number,
@@ -102,7 +106,50 @@ class VendorService implements IVendorService {
   ): Promise<{ success: boolean; message: string }> => {
     return this.managementService.verifyVendor(vendorId, status, reason);
   };
+
+  getAllDetails = async (vendorId: string): Promise<VendorDetailsWithAll> => {
+  return this.managementService.getAllDetails(vendorId);
+};
+  SVendorBlockUnblock = async (vendorId: string): Promise<BlockStatus> => {
+  return this.managementService.SVendorBlockUnblock(vendorId);
+};
+
+addDates = async (dates: string[], vendorId: string): Promise<{
+  success: boolean;
+  message: string;
+  addedDates: string[];
+  alreadyBookedDates: string[];
+}> => {
+  return this.availabilityService.addDates(dates, vendorId);
+};
+
+showDates = async (vendorId: string): Promise<VendorDocument | null> => {
+  return this.availabilityService.showDates(vendorId);
+};
+
+removeDates = async (dates: string[], vendorId: string): Promise<{
+  success: boolean;
+  removedDates: string[];
+}> => {
+  return this.availabilityService.removeDates(dates, vendorId);
+};
+
+reapplyVendor = async (
+  vendorId: string,
+  files?: {
+    portfolioImages?: Express.Multer.File[];
+    aadharFront?: Express.Multer.File[];
+    aadharBack?: Express.Multer.File[];
+  }
+) => {
+  return this.authService.reapplyVendor(vendorId, files);
 }
+
+
+
+
+}
+
 
 function toTitleCase(city: string): string {
   return city
@@ -113,6 +160,8 @@ function toTitleCase(city: string): string {
     })
     .join(' ');
 }
+
+
 
 function isTokenExpiringSoon(token: string): boolean {
   try {

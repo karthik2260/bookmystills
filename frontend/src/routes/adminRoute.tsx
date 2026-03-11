@@ -7,6 +7,7 @@ import UnifiedPrivateRoute from "@/pages/PrivateRouteProps";
 import Dashboard from "@/pages/admin/profile/Dashboard";
 import Layout from "@/layout/admin/layout";
 import VendorList from "@/pages/admin/profile/vendorList";
+import UserList from "@/pages/admin/profile/userList";
 
 
 const AdminRoutes : React.FC = () => {
@@ -19,6 +20,7 @@ const AdminRoutes : React.FC = () => {
                     <Route element={<Layout/>}>
                   <Route path={ADMIN.DASHBOARD} element={<Dashboard />} />
                   <Route path={ADMIN.VENDORS} element={<VendorList/>} />
+                  <Route path={ADMIN.USERS} element={<UserList/>} />
                   
                     </Route>
                     

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { VendorDocument } from '../../models/vendorModel';
-import { FindAllVendorsResult } from '../commonInterfaces';
+import { FindAllVendorsResult, VendorDetailsWithAll } from '../commonInterfaces';
 
 export interface IVendorRepository {
   getById(id: string): Promise<VendorDocument | null>;
@@ -15,4 +15,15 @@ export interface IVendorRepository {
     search: string,
     status?: string,
   ): Promise<FindAllVendorsResult>;
+      getAllPopulate(vendorId: string):Promise<VendorDetailsWithAll>;
+addDates(dates:string[],vendorId:string): Promise<{
+        previousDates: string[];
+        newDates: string[];
+        alreadyBooked: string[];
+        updatedVendor: VendorDocument;
+    }>;
+    removeDates(dates: string[], vendorId: string): Promise<{
+        removedDates: string[];
+        updatedVendor: VendorDocument;
+        }>;
 }

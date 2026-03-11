@@ -1,4 +1,4 @@
-export const formatDate = (dateInput?: string | Date): string => {
+export const formatDate = (dateInput?: string | Date ): string => {
     if (!dateInput) {
       return 'Invalid date'; // Or any placeholder text you'd like
     }
@@ -10,4 +10,3 @@ export const formatDate = (dateInput?: string | Date): string => {
   
     return date.toLocaleDateString('en-GB');
   };
-  

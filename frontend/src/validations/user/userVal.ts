@@ -24,9 +24,9 @@ export const validate = (values: ValidationValues): ValidationErrors => {
   };
 
   // Regular expressions
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const passwordRegex =
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
 
   // Name validation
@@ -37,11 +37,11 @@ export const validate = (values: ValidationValues): ValidationErrors => {
   }
 
   // Email validation
-  if (!values.email?.trim()) {
-    errors.email = 'Email is required';
-  } else if (!emailRegex.test(values.email)) {
-    errors.email = 'Invalid email address';
-  }
+ if (!values.email?.trim()) {
+  errors.email = 'Email is required';
+} else if (!emailRegex.test(values.email)) {
+  errors.email = 'wrong email : Email should contain atleast 4 letters';
+}
 
   // Phone validation
   if (!values.contactinfo?.trim()) {
@@ -89,7 +89,8 @@ export const validateEmail = (
 export const validatePassword = (
   values: Pick<ValidationValues, 'password' | 'confirmPassword'>
 ): Pick<ValidationErrors, 'password' | 'confirmPassword'> => {
-  const errors: Pick<ValidationErrors, 'password' | 'confirmPassword'> = {
+
+  const errors = {
     password: '',
     confirmPassword: '',
   };

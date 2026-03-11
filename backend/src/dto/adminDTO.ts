@@ -19,3 +19,23 @@ export interface VerifyVendorRequestDTO {
   status: AcceptanceStatus;
   rejectionReason?: string;
 }
+
+
+export interface AdminUserListDTO {
+  id: string;
+  name: string;
+  email: string;
+  contactinfo?: string;
+  imageUrl?: string;
+  isGoogleUser: boolean;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+
+export interface AdminUserListRequestDTO {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}

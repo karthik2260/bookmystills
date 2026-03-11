@@ -23,4 +23,7 @@ export interface IUserService {
     userId: any,
     files: Express.Multer.File | null,
   ): Promise<UserDocument | null>;
+  getUsers(page: number, limit: number, search: string, status?: string): Promise<{users: UserDocument[], total: number, totalPages: number}>;
+    SUserBlockUnblock(userId: string): Promise<BlockStatus>;
+
 }

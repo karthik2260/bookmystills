@@ -23,7 +23,6 @@ export class GoogleAuthService {
 
       if (existingUser) {
         if (existingUser.isGoogleUser) {
-          // ✅ map to DTO before returning
           return UserMapper.toDTO(existingUser);
         } else {
           throw new CustomError(
@@ -81,23 +80,19 @@ export class GoogleAuthService {
         });
         isNewUser = true;
       }
-      // ✅ FIXED: Check URL type before processing
       let userWithSignedUrl = user.toObject();
 
       if (user?.imageUrl) {
         try {
-          // ✅ Check if it's already a complete URL (Google) or just a filename (S3)
           const isExternalUrl =
             user.imageUrl.startsWith('http://') || user.imageUrl.startsWith('https://');
 
           if (isExternalUrl) {
-            // ✅ It's a Google URL - use it directly!
             userWithSignedUrl = {
               ...userWithSignedUrl,
-              imageUrl: user.imageUrl, // Keep Google URL as-is
+              imageUrl: user.imageUrl, 
             };
           } else {
-            // ✅ It's an S3 filename - generate signed URL
             const signedImageUrl = await s3Service.getFile('photo/', user.imageUrl);
             userWithSignedUrl = {
               ...userWithSignedUrl,
@@ -106,7 +101,6 @@ export class GoogleAuthService {
           }
         } catch (error) {
           console.error('Error processing image URL during Google login:', error);
-          // Keep original URL as fallback
         }
       }
 

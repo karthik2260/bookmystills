@@ -89,45 +89,57 @@ const EditProfileModal: React.FC<IUserDetails> = ({ user, isOpen, onClose, onSav
     }, [user]);
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+ const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+const normalizedName = formData.name.trim().replace(/\s+/g, ' ');
+    const validationErrors = validateProfile({
+        name: normalizedName,
+        contactinfo: formData.contactinfo
+    });
 
-        const validationErrors = validateProfile({
-            name: formData.name,
-            contactinfo: formData.contactinfo
-        });
-        setErrors(validationErrors);
+    setErrors(validationErrors);
 
-        if (!validationErrors.name && !validationErrors.contactinfo) {
-            try {
-                const token = localStorage.getItem('userToken');
-                if (!token) {
-                    showToastMessage('Authentication required', 'error');
-                    return;
-                }
+    // 🚨 Stop if validation fails
+    if (validationErrors.name || validationErrors.contactinfo) {
+        return;
+    }
 
-                const formDataToSend = new FormData();
-                if (formData.name !== user?.name) formDataToSend.append('name', formData.name);
-                if (formData.contactinfo !== user?.contactinfo) formDataToSend.append('contactinfo', formData.contactinfo);
-                if (formData.image) formDataToSend.append('image', formData.image);
-                if (formDataToSend.has('name') || formDataToSend.has('contactinfo') || formDataToSend.has('image')) {
-                    await onSave(formDataToSend);
-                    onClose();
-                } else {
-                    showToastMessage('No changes to save', 'error');
-                    onClose();
-                }
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showToastMessage('Error updating profile', 'error');
-            }
-            finally {
-                setIsLoading(false);
-            }
+    // ✅ Start loader ONLY if valid
+    setIsLoading(true);
+
+    try {
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            showToastMessage('Authentication required', 'error');
+            return;
         }
-    };
 
+        const formDataToSend = new FormData();
+        if (formData.name !== user?.name)
+            formDataToSend.append('name', formData.name);
+        if (formData.contactinfo !== user?.contactinfo)
+            formDataToSend.append('contactinfo', formData.contactinfo);
+        if (formData.image)
+            formDataToSend.append('image', formData.image);
+
+        if (
+            formDataToSend.has('name') ||
+            formDataToSend.has('contactinfo') ||
+            formDataToSend.has('image')
+        ) {
+            await onSave(formDataToSend);
+            onClose();
+        } else {
+            showToastMessage('No changes to save', 'error');
+            onClose();
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showToastMessage('Error updating profile', 'error');
+    } finally {
+        setIsLoading(false); // ✅ Always stop loader
+    }
+};
  useEffect(() => {
   if (user?.imageUrl) {
     setPreviewUrl(user.imageUrl);

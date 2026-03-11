@@ -1,5 +1,6 @@
-import {   AdminLoginResponseDTO } from "../dto/adminDTO";
+import {   AdminLoginResponseDTO, AdminUserListDTO } from "../dto/adminDTO";
 import { AdminDocument } from "../models/adminModel";
+import { UserDocument } from "../models/userModel";
 
 export const AdminMapper = {
     toAdminLoginResponse(admin:AdminDocument):AdminLoginResponseDTO{
@@ -12,5 +13,29 @@ export const AdminMapper = {
 
 
     }
-    }
+    },
+
+      toAdminUserList(user: UserDocument): AdminUserListDTO {
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      contactinfo: user.contactinfo,
+      imageUrl: user.imageUrl,
+      isGoogleUser: !!user.googleId,
+      isActive: user.isActive,
+      createdAt: user.createdAt
+    };
+  }
+
+
+
+    
 }
+
+
+
+
+
+
+

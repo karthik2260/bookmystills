@@ -1,29 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-    Card,
-    CardHeader,
-    Input,
-    Typography,
-    Button,
-    CardBody,
-    CardFooter,
-    Tabs,
-    TabsHeader,
-    Tab,
-    Avatar,
-    Switch,
-} from "@material-tailwind/react";
+import { useDispatch } from 'react-redux';
 import { showToastMessage } from '../../../validations/common/toast';
 import { debounce } from 'lodash';
 import Swal from 'sweetalert2';
 import { AcceptanceStatus, VendorData, VendorResponse } from '../../../types/vendorTypes';
 import VendorDetailsModal from './viewdetails';
 import Loader from '../../common/Loader';
-import { TABS } from '@/utils/enums';
 import { axiosInstanceAdmin } from '@/config/api/axiosinstance';
-
-
-const TABLE_HEAD = ["Vendor", "Mobile", "Joined", "Status", 'Reports', "Actions", 'Details', 'Verify'];
+import { logout } from '../../../redux/slices/VendorSlice';
+import { blockUnblockVendorService } from '@/services/adminAuthService';
 
 export function SortableTableVendor() {
     const [vendors, setVendors] = useState<VendorData[]>([]);
@@ -35,10 +20,13 @@ export function SortableTableVendor() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedVendor, setSelectedVendor] = useState<VendorData | null>(null);
 
+    const dispatch = useDispatch();
+
     const handleViewDetails = (vendor: VendorData) => {
         setSelectedVendor(vendor);
         setIsModalOpen(true);
     };
+
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedVendor(null);
@@ -49,17 +37,22 @@ export function SortableTableVendor() {
         try {
             const response = await axiosInstanceAdmin.get<VendorResponse>('/vendors', {
                 params: {
-                    page: page,
+                    page,
                     limit: 5,
-                    search: search,
+                    search,
                     status: activeTab !== 'all' ? activeTab : undefined
                 }
             });
 
-            const transformedVendors: VendorData[]  = response.data.vendors.map((vendor) => ({
-                ...vendor._doc,
-                imageUrl: vendor.imageUrl 
-            }));
+// ✅ After
+const transformedVendors: VendorData[] = response.data.vendors.map((vendor: VendorData & { _doc?: VendorData }) => {
+    const base = vendor._doc ? vendor._doc : vendor;               
+                return {
+                    ...base,
+                    imageUrl: vendor.imageUrl ?? base.imageUrl,
+                    portfolioImages: vendor.portfolioImages ?? base.portfolioImages ?? [],
+                };
+            });
 
             setVendors(transformedVendors);
             setTotalPages(response.data.totalPages);
@@ -70,26 +63,19 @@ export function SortableTableVendor() {
         }
     }, [activeTab]);
 
-   
-  const debouncedFetchData = useCallback(
-    debounce(fetchData, 500),
-    [fetchData]
-  );
+    const debouncedFetchData = useCallback(debounce(fetchData, 500), [fetchData]);
 
-  useEffect(() => {
-    if (searchTerm.trim().length >= 3) {
-      debouncedFetchData(currentPage, searchTerm);
-    } else if (searchTerm.trim() === '') {
-      debouncedFetchData(currentPage, '');
-    }
-    return () => {
-      debouncedFetchData.cancel();
-    };
-  }, [currentPage, searchTerm, debouncedFetchData]);
+    useEffect(() => {
+        if (searchTerm.trim().length >= 3) {
+            debouncedFetchData(currentPage, searchTerm);
+        } else if (searchTerm.trim() === '') {
+            debouncedFetchData(currentPage, '');
+        }
+        return () => { debouncedFetchData.cancel(); };
+    }, [currentPage, searchTerm, debouncedFetchData]);
 
-
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
         setCurrentPage(1);
     };
 
@@ -97,374 +83,367 @@ export function SortableTableVendor() {
         setActiveTab(value);
         setCurrentPage(1);
     };
-    
 
-   
-   const handleVerifyVendor = useCallback(async (vendorId: string) => {
-    setIsLoading(true);
-
-    let status: AcceptanceStatus;
-    let rejectionReason: string | undefined;
-
-    const result = await Swal.fire({
-        title: 'Verify Vendor',
-        text: 'Do you want to accept or reject this vendor?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Accept',
-        cancelButtonText: 'Reject'
-    });
-
-    if (result.isConfirmed) {
-        status = AcceptanceStatus.Accepted;
-    } 
-    else if (result.dismiss === Swal.DismissReason.cancel) {
-        status = AcceptanceStatus.Rejected;
-
-        // 🔹 Ask rejection reason
-        const reasonResult = await Swal.fire({
-            title: 'Enter Rejection Reason',
-            input: 'text',
-            inputPlaceholder: 'Enter reason (optional)',
+    const handleBlockUnblock = async (vendorId: string, currentStatus: boolean) => {
+        const action = currentStatus ? 'block' : 'unblock';
+        const result = await Swal.fire({
+            title: `Are you sure?`,
+            text: `Do you want to ${action} this vendor?`,
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Submit',
-            cancelButtonText: 'Cancel'
+            confirmButtonColor: currentStatus ? '#d33' : '#3085d6',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Yes, ${action} vendor!`
         });
 
-        if (reasonResult.isConfirmed) {
-            rejectionReason = reasonResult.value || "No reason provided";
+        if (result.isConfirmed) {
+            try {
+                const response = await blockUnblockVendorService(vendorId);
+                showToastMessage(response.message, 'success');
+                Swal.fire('Success!', response.message, 'success');
+                setVendors((prev) =>
+                    prev.map((vendor) =>
+                        vendor._id === vendorId
+                            ? { ...vendor, isActive: !currentStatus }
+                            : vendor
+                    )
+                );
+                if (response.processHandle === 'block') {
+                    dispatch(logout());
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Failed to update vendor status', 'error');
+                console.error('Error while blocking/unblocking vendor', error);
+            }
+        }
+    };
+
+    // ✅ Shared verify/review handler — used for both Pending and Reapplied vendors
+    const handleVerifyVendor = useCallback(async (vendorId: string, isReapplied = false) => {
+        setIsLoading(true);
+        let status: AcceptanceStatus;
+        let rejectionReason: string | undefined;
+
+        const result = await Swal.fire({
+            title: isReapplied ? 'Review Reapplication' : 'Verify Vendor',
+            text: isReapplied
+                ? 'This vendor has reapplied. Do you want to accept or reject?'
+                : 'Do you want to accept or reject this vendor?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1a1a2e',
+            cancelButtonColor: '#e53e3e',
+            confirmButtonText: 'Accept',
+            cancelButtonText: 'Reject'
+        });
+
+        if (result.isConfirmed) {
+            status = AcceptanceStatus.Accepted;
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            status = AcceptanceStatus.Rejected;
+            const reasonResult = await Swal.fire({
+                title: 'Enter Rejection Reason',
+                input: 'text',
+                inputPlaceholder: 'Enter reason (optional)',
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Cancel'
+            });
+            if (reasonResult.isConfirmed) {
+                rejectionReason = reasonResult.value || 'No reason provided';
+            } else {
+                setIsLoading(false);
+                return;
+            }
         } else {
             setIsLoading(false);
             return;
         }
-    } 
-    else {
-        setIsLoading(false);
-        return;
-    }
 
-    try {
-        const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, {
-            status,
-            rejectionReason
-        });
+        try {
+            const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, { status, rejectionReason });
+            showToastMessage(response.data.message, 'success');
+            setVendors(prev => prev.map(v =>
+                v._id === vendorId
+                    ? { ...v, isAccepted: status, isActive: status === AcceptanceStatus.Accepted, rejectionReason }
+                    : v
+            ));
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'Failed to update vendor status', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-        showToastMessage(response.data.message, 'success');
-
-        // Update vendors list
-        setVendors(prevVendors =>
-            prevVendors.map(vendor =>
-                vendor._id === vendorId
-                    ? {
-                        ...vendor,
-                        isAccepted: status,
-                        isActive: status === AcceptanceStatus.Accepted,
-                        rejectionReason: rejectionReason
-                    }
-                    : vendor
-            )
+    // ✅ 4 status badges — Accepted, Rejected, Reapplied, Pending
+    const getStatusBadge = (vendor: VendorData) => {
+        if (vendor.isAccepted === AcceptanceStatus.Accepted) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Active
+                </span>
+            );
+        }
+        if (vendor.isAccepted === AcceptanceStatus.Rejected) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                    Rejected
+                </span>
+            );
+        }
+        // ✅ NEW — Reapplied badge
+        if (vendor.isAccepted === AcceptanceStatus.Reapplied) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block animate-pulse" />
+                    Reapplied
+                </span>
+            );
+        }
+        // Pending / Requested
+        return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse" />
+                Pending
+            </span>
         );
+    };
 
-    } catch (error) {
-        console.error('Error verifying vendor:', error);
-        showToastMessage('Failed to verify vendor', 'error');
-    } finally {
-        setIsLoading(false);
-    }
-}, []);
+    // ✅ VERIFY column — 4 cases
+    const getVerifyColumn = (vendor: VendorData) => {
+        // Pending — show Verify button
+        if (!vendor.isAccepted || vendor.isAccepted === AcceptanceStatus.Pending) {
+            return (
+                <button
+                    onClick={() => handleVerifyVendor(vendor._id, false)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all duration-150 shadow-sm"
+                    style={{ background: 'linear-gradient(135deg, #1a1a2e, #0f3460)' }}
+                >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Verify
+                </button>
+            );
+        }
 
+        // ✅ Reapplied — show Review button (blue)
+        if (vendor.isAccepted === AcceptanceStatus.Reapplied) {
+            return (
+                <button
+                    onClick={() => handleVerifyVendor(vendor._id, true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-150 shadow-sm"
+                >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Review
+                </button>
+            );
+        }
+
+        // Accepted / Rejected — show result text
+        return (
+            <div className="flex flex-col gap-1">
+                <span className={`text-xs font-semibold ${
+                    vendor.isAccepted === AcceptanceStatus.Accepted
+                        ? 'text-emerald-600'
+                        : 'text-red-500'
+                }`}>
+                    {vendor.isAccepted === AcceptanceStatus.Accepted ? '✓ Accepted' : '✗ Rejected'}
+                </span>
+                {vendor.isAccepted === AcceptanceStatus.Rejected && vendor.rejectionReason && (
+                    <span className="text-xs text-gray-400 max-w-[130px] truncate" title={vendor.rejectionReason}>
+                        {vendor.rejectionReason}
+                    </span>
+                )}
+            </div>
+        );
+    };
+
+    // ✅ 5 tabs — added Reapplied
+    const tabConfig = [
+        { label: 'All',        value: 'all'        },
+        { label: 'Accepted',   value: 'accepted'   },
+        { label: 'Pending',    value: 'requested'  },
+        { label: 'Rejected',   value: 'rejected'   },
+        { label: 'Reapplied',  value: 'reapplied'  }, // ✅ NEW
+    ];
 
     return (
+        <div className="min-h-screen bg-gray-50/50 p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
 
-        <div className="max-w-7xl mt-5 mx-auto px-4 sm:px-6 lg:px-8">
-            <CardHeader floated={false} shadow={false} className="rounded-none p-4 -mt-7 mb-4" placeholder={undefined}
-                onPointerEnterCapture={undefined}
-                onPointerLeaveCapture={undefined}>
-                <div className="flex flex-col items-center gap-4 lg:flex-row lg:justify-between">
-                    <Typography
-                        variant="h5"
-                        color="blue-gray"
-                        className="text-center text-2xl lg:text-3xl md:text-2xl sm:text-xl"
-                        placeholder={undefined}
-                        onPointerEnterCapture={undefined}
-                        onPointerLeaveCapture={undefined}>
-                        VENDOR MANAGEMENT
-                    </Typography>
-
-                    <div className="w-full lg:w-1/3 md:w-1/2 sm:w-full">
-                        <Input
-                            label="Search"
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Vendor Management</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">Review and manage vendor applications</p>
+                    </div>
+                    <div className="relative">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                            type="text"
                             value={searchTerm}
                             onChange={handleSearch}
-                            crossOrigin={undefined}
                             placeholder="Search vendors..."
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}
-                            className="!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10 rounded-xl"
-                            labelProps={{
-                                className: "hidden",
-                            }}
-                            containerProps={{
-                                className: "min-w-[100px] relative"
-                            }}
+                            className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 w-64 placeholder:text-gray-400"
                         />
                     </div>
                 </div>
 
-                <div className="mt-6">
-                    <Tabs value={activeTab} className="w-full">
-                        <TabsHeader
-                            className="w-full  lg:w-max  md:w-3/4 sm:w-full mx-auto"
-                            placeholder={undefined}
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}>
-                            {TABS.map(({ label, value }) => (
-                                <Tab
-                                    key={value}
-                                    value={value}
-                                    placeholder={undefined}
-                                    onPointerEnterCapture={undefined}
-                                    onPointerLeaveCapture={undefined}
-                                    onClick={() => handleTabChange(value)}
-                                    className={`
-              ${activeTab === value ? "text-gray-900" : ""}
-              text-sm lg:text-base px-8 md:text-sm sm:text-xs 
-            `}
-                                >
-                                    {label}
-                                </Tab>
-                            ))}
-                        </TabsHeader>
-                    </Tabs>
+                {/* Tabs */}
+                <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit shadow-sm">
+                    {tabConfig.map(({ label, value }) => (
+                        <button
+                            key={value}
+                            onClick={() => handleTabChange(value)}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                activeTab === value
+                                    ? value === 'reapplied'
+                                        ? 'bg-blue-600 text-white shadow-sm'   // ✅ blue for reapplied tab
+                                        : 'bg-gray-900 text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
                 </div>
-            </CardHeader>
 
-            <Card className="w-full" placeholder={undefined}
-                onPointerEnterCapture={undefined}
-                onPointerLeaveCapture={undefined}>
-
-                <CardBody className="px-0" placeholder={undefined}
-                    onPointerEnterCapture={undefined}
-                    onPointerLeaveCapture={undefined}>
+                {/* Table Card */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full table-auto text-left">
+                        <table className="w-full">
                             <thead>
-                                <tr>
-                                    {TABLE_HEAD.map((head) => (
-                                        <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-3">
-                                            <Typography
-                                                variant="small"
-                                                color="blue-gray"
-                                                placeholder={undefined}
-                                                onPointerEnterCapture={undefined}
-                                                onPointerLeaveCapture={undefined}
-                                                className="font-semibold text-xs leading-none"
-                                            >
-                                                {head}
-                                            </Typography>
-                                        </th>
-                                    ))}
+                                <tr className="border-b border-gray-100 bg-gray-50/80">
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reports</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Block</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
+                                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Verify</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-gray-50">
                                 {isLoading ? (
-                                    <tr><td colSpan={8} className="text-center p-4"><Loader /></td></tr>
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-16">
+                                            <Loader />
+                                        </td>
+                                    </tr>
                                 ) : vendors.length === 0 ? (
-                                    <tr><td colSpan={8} className="text-center p-4">No vendors found</td></tr>
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-16">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <svg className="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                <p className="text-sm text-gray-400 font-medium">No vendors found</p>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 ) : (
-                                    vendors.map((vendor, index) => (
-                                        <tr key={index} className="even:bg-blue-gray-50/50 border-b border-blue-gray-50">
+                                    vendors.map((vendor) => (
+                                        <tr
+                                            key={vendor._id}
+                                            className="hover:bg-gray-50/60 transition-colors duration-150"
+                                        >
                                             {/* Vendor Info */}
-                                            <td className="p-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar 
-                                                        src={vendor?.imageUrl || "/images/user.png"} 
-                                                        alt={vendor.name} 
-                                                        size="sm" 
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined} 
-                                                    />
-                                                    <div className="flex flex-col min-w-0">
-                                                        <Typography 
-                                                            variant="small" 
-                                                            color="blue-gray" 
-                                                            className="font-medium text-xs truncate" 
-                                                            placeholder={undefined}
-                                                            onPointerEnterCapture={undefined}
-                                                            onPointerLeaveCapture={undefined}
-                                                        >
-                                                            {vendor.name}
-                                                        </Typography>
-                                                        <Typography 
-                                                            variant="small" 
-                                                            color="blue-gray" 
-                                                            className="font-normal opacity-70 text-xs truncate" 
-                                                            placeholder={undefined}
-                                                            onPointerEnterCapture={undefined}
-                                                            onPointerLeaveCapture={undefined}
-                                                        >
-                                                            {vendor.companyName || "N/A"}
-                                                        </Typography>
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative flex-shrink-0">
+                                                        <img
+                                                            src={vendor?.imageUrl || "/images/user.png"}
+                                                            alt={vendor.name}
+                                                            className="h-9 w-9 rounded-xl object-cover border border-gray-100"
+                                                        />
+                                                        <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${vendor.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-900 leading-tight">{vendor.name}</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">{vendor.companyName || "No company"}</p>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {/* Mobile */}
-                                            <td className="p-3">
-                                                <Typography 
-                                                    variant="small" 
-                                                    color="blue-gray" 
-                                                    className="font-normal text-xs" 
-                                                    placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined}
-                                                >
-                                                    {vendor.contactinfo || "N/A"}
-                                                </Typography>
+                                            <td className="px-5 py-4">
+                                                <span className="text-sm text-gray-600">{vendor.contactinfo || "—"}</span>
                                             </td>
 
-                                            {/* Joined Date */}
-                                            <td className="p-3">
-                                                <Typography 
-                                                    variant="small" 
-                                                    color="blue-gray" 
-                                                    className="font-normal text-xs whitespace-nowrap" 
-                                                    placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined}
-                                                >
-                                                    {new Date(vendor.createdAt).toLocaleDateString('en-US', { 
-                                                        month: 'short', 
+                                            {/* Joined */}
+                                            <td className="px-5 py-4">
+                                                <span className="text-sm text-gray-600">
+                                                    {new Date(vendor.createdAt).toLocaleDateString('en-US', {
+                                                        month: 'short',
                                                         day: 'numeric',
                                                         year: '2-digit'
                                                     })}
-                                                </Typography>
+                                                </span>
                                             </td>
 
                                             {/* Status */}
-                                            <td className="p-3">
-                                                <div className={`w-max rounded-full ${vendor.isActive ? 'bg-green-100' : 'bg-red-100'} px-2 py-1`}>
-                                                    <Typography 
-                                                        variant="small" 
-                                                        className={`${vendor.isActive ? 'text-green-700' : 'text-red-700'} text-xs font-medium`} 
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                    >
-                                                        {vendor.isActive ? "Active" : "Inactive"}
-                                                    </Typography>
-                                                </div>
+                                            <td className="px-5 py-4">
+                                                {getStatusBadge(vendor)}
                                             </td>
 
-                                            {/* Report Count */}
-                                            <td className="p-3">
-                                                <div
-                                                    className={`w-max rounded-full ${
-                                                        vendor.reportCount! > 10
-                                                            ? "bg-red-200" 
-                                                            : vendor.reportCount! > 1
-                                                                ? "bg-yellow-200"
-                                                                : "bg-green-200" 
-                                                    } px-2 py-1`}
+                                            {/* Reports */}
+                                            <td className="px-5 py-4">
+                                                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
+                                                    (vendor.reportCount ?? 0) > 10
+                                                        ? 'bg-red-100 text-red-700'
+                                                        : (vendor.reportCount ?? 0) > 1
+                                                        ? 'bg-amber-100 text-amber-700'
+                                                        : 'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                    {vendor.reportCount ?? 0}
+                                                </span>
+                                            </td>
+
+                                            {/* Block Toggle */}
+                                            <td className="px-5 py-4">
+                                                <button
+                                                    onClick={() => handleBlockUnblock(vendor._id, vendor.isActive)}
+                                                    disabled={
+                                                        vendor.isAccepted === AcceptanceStatus.Pending ||
+                                                        vendor.isAccepted === AcceptanceStatus.Rejected ||
+                                                        vendor.isAccepted === AcceptanceStatus.Reapplied // ✅ also disable for reapplied
+                                                    }
+                                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                                                        vendor.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+                                                    }`}
                                                 >
-                                                    <Typography
-                                                        variant="small"
-                                                        color="blue-gray" 
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                        className="font-medium text-xs text-black" 
-                                                    >
-                                                        {vendor.reportCount || "0"}
-                                                    </Typography>
-                                                </div>
-                                            </td>
-
-                                            {/* Actions (Toggle) */}
-                                            <td className="p-3">
-                                                <div className="flex justify-center">
-                                                    <Switch
-                                                        id={`custom-switch-component-${vendor._id}`}
-                                                        ripple={false}
-                                                        color={vendor.isActive ? "green" : "red"}
-                                                        checked={vendor.isActive}
-                                                        disabled={vendor.isAccepted === AcceptanceStatus.Requested || vendor.isAccepted === AcceptanceStatus.Rejected}
-                                                        crossOrigin={undefined}
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                        className={`h-5 w-10 ${vendor.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-                                                        containerProps={{
-                                                            className: "relative inline-block w-10 h-5",
-                                                        }}
-                                                        circleProps={{
-                                                            className: `absolute left-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-300 ease-in-out ${
-                                                                vendor.isActive ? 'translate-x-5' : ''
-                                                            }`
-                                                        }}
-                                                    />
-                                                </div>
+                                                    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
+                                                        vendor.isActive ? 'translate-x-4.5' : 'translate-x-0.5'
+                                                    }`} />
+                                                </button>
                                             </td>
 
                                             {/* View Details */}
-                                            <td className="p-3">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outlined"
-                                                    className="px-3 py-1.5 text-xs normal-case" 
-                                                    placeholder={undefined}
-                                                    onPointerEnterCapture={undefined}
-                                                    onPointerLeaveCapture={undefined}
+                                            <td className="px-5 py-4">
+                                                <button
                                                     onClick={() => handleViewDetails(vendor)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 shadow-sm"
                                                 >
+                                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
                                                     View
-                                                </Button>
+                                                </button>
                                             </td>
 
-                                            {/* Verify/Status Column */}
-                                            <td className="p-3">
-                                                {vendor.isAccepted === AcceptanceStatus.Requested ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outlined"
-                                                        color="blue"
-                                                        className="px-3 py-1.5 text-xs normal-case whitespace-nowrap"
-                                                        placeholder={undefined}
-                                                        onPointerEnterCapture={undefined}
-                                                        onPointerLeaveCapture={undefined}
-                                                        onClick={() => handleVerifyVendor(vendor._id)}
-                                                    >
-                                                        Verify
-                                                    </Button>
-                                                ) : (
-                                                    <div className="flex flex-col gap-1">
-                                                        <Typography
-                                                            variant="small"
-                                                            color={vendor.isAccepted === AcceptanceStatus.Accepted ? "green" : "red"}
-                                                            className="font-medium text-xs whitespace-nowrap"
-                                                            placeholder={undefined}
-                                                            onPointerEnterCapture={undefined}
-                                                            onPointerLeaveCapture={undefined}
-                                                        >
-                                                            {vendor.isAccepted === AcceptanceStatus.Accepted ? "✓ Accepted" : "✗ Rejected"}
-                                                        </Typography>
-                                                        {vendor.isAccepted === AcceptanceStatus.Rejected && vendor.rejectionReason && (
-                                                            <Typography
-                                                                variant="small"
-                                                                color="red"
-                                                                className="text-xs opacity-70 max-w-[150px] break-words"
-                                                                placeholder={undefined}
-                                                                onPointerEnterCapture={undefined}
-                                                                onPointerLeaveCapture={undefined}
-                                                            >
-                                                                {vendor.rejectionReason}
-                                                            </Typography>
-                                                        )}
-                                                    </div>
-                                                )}
+                                            {/* ✅ Verify column — uses getVerifyColumn helper */}
+                                            <td className="px-5 py-4">
+                                                {getVerifyColumn(vendor)}
                                             </td>
                                         </tr>
                                     ))
@@ -472,42 +451,31 @@ export function SortableTableVendor() {
                             </tbody>
                         </table>
                     </div>
-                </CardBody>
-                
-                <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4" placeholder={undefined}
-                    onPointerEnterCapture={undefined}
-                    onPointerLeaveCapture={undefined}>
-                    <Typography variant="small" color="blue-gray" className="font-normal" placeholder={undefined}
-                        onPointerEnterCapture={undefined}
-                        onPointerLeaveCapture={undefined}>
-                        Page {currentPage} of {totalPages}
-                    </Typography>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outlined"
-                            size="sm"
-                            placeholder={undefined}
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            size="sm"
-                            placeholder={undefined}
-                            onPointerEnterCapture={undefined}
-                            onPointerLeaveCapture={undefined}
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </Button>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+                        <span className="text-sm text-gray-500">
+                            Page <span className="font-semibold text-gray-800">{currentPage}</span> of <span className="font-semibold text-gray-800">{totalPages}</span>
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                            >
+                                ← Previous
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                            >
+                                Next →
+                            </button>
+                        </div>
                     </div>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
 
             <VendorDetailsModal
                 isOpen={isModalOpen}

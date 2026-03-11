@@ -131,11 +131,14 @@ export const useLoginUser = () => {
     loginUser(values)
       .then((response) => {
         localStorage.setItem('userToken', response.data.token);
+        console.log(response.data.user);
+
         dispatch(setUserInfo(response.data.user));
         showToastMessage(response.data.message, 'success');
         navigate(USER.HOME);
       })
       .catch((error) => {
+        console.error(error)
         showToastMessage(error.response?.data?.message, 'error');
       });
   }

@@ -86,7 +86,6 @@ export class UserAuthService {
 
       if (existingUser?.imageUrl) { 
         try {
-          // ✅ IMPORTANT: Use the same folder path as in your uploadToS3 call
           const signedImageUrl = await s3Service.getFile('photo/', existingUser?.imageUrl);
 
           userWithSignedUrl = {
@@ -95,7 +94,6 @@ export class UserAuthService {
           };
         } catch (error) {
           console.error('Error generating signed URL during login:', error);
-          // Keep the original imageUrl as fallback
         }
       }
 
@@ -108,7 +106,7 @@ export class UserAuthService {
         await existingUser.save();
       }
 
-      const userDTO = UserMapper.toDTO(userWithSignedUrl);
+      const userDTO = UserMapper.toProfileDTO(userWithSignedUrl);
 
       return {
         token,
@@ -148,4 +146,7 @@ export class UserAuthService {
       throw new CustomError('Failed to create refresh Token', HTTP_statusCode.InternalServerError);
     }
   };
+
+
+  
 }

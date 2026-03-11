@@ -11,47 +11,42 @@ export class UserProfileService {
     this.userRepository = userRepository;
   }
 
-  getUserProfileService = async (userId: string): Promise<UserDocument> => {
-    try {
-      const user = await this.userRepository.getById(userId.toString());
-      if (!user) {
-        throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.InternalServerError);
-      }
-
-      if (user?.imageUrl) {
+   getUserProfileService = async (userId: string): Promise<UserDocument> => {
         try {
-          // ✅ Fixed: Use consistent folder path 'photo/' instead of 'bookmystills-karthik-gopakumar/photo/'
+            const user = await this.userRepository.getById(userId.toString());
+            if (!user) {
+                throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.InternalServerError);
+            }
+            if (user?.imageUrl) {
+                try {
           const imageUrl = await s3Service.getFile('photo/', user?.imageUrl);
-          return {
-            ...user.toObject(),
-            imageUrl: imageUrl,
-          };
+                    return {
+                        ...user.toObject(),
+                        imageUrl: imageUrl
+                    };
+                } catch (error) {
+                    console.error('Error generating signed URL:', error);
+                    return user;
+                }
+            }
+            return user
         } catch (error) {
-          console.error('Error generating signed url:', error);
-          return user;
+            console.error('Error in getUserProfileService:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError((error as Error).message || 'Failed to get profile details', HTTP_statusCode.InternalServerError);
         }
-      }
-      return user;
-    } catch (error) {
-      console.error('Error in getUserProfileService:', error);
-      if (error instanceof CustomError) {
-        throw error;
-      }
-      throw new CustomError(
-        (error as Error).message || 'Failed to get profile details',
-        HTTP_statusCode.InternalServerError,
-      );
     }
-  };
 
   updateProfileService = async (
     name?: string,
     contactinfo?: string,
     userId?: any,
     files?: Express.Multer.File | null,
-  ): Promise<UserDocument | null> => {
+  ): Promise<UserDocument> => {
     try {
-      const user = await this.userRepository.getById(userId.toString());
+      const user = await this.userRepository.getById(userId);
       if (!user) {
         throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound);
       }
@@ -62,32 +57,26 @@ export class UserProfileService {
         imageUrl?: string;
       } = {};
 
-      // Update name
+      
       if (name && name !== user.name) {
         updateData.name = name;
       }
 
-      // Update contact info
       if (contactinfo && contactinfo !== user.contactinfo) {
         updateData.contactinfo = contactinfo;
       }
 
-      // ✅ Upload image to S3 and store ONLY filename
       if (files) {
-        // ✅ Delete old image from S3 if exists
         if (user.imageUrl) {
           try {
             await s3Service.deleteFromS3(`photo/${user.imageUrl}`);
           } catch (error) {
             console.error('Error deleting old image from S3:', error);
-            // Continue even if delete fails
           }
         }
 
-        // ✅ Upload new image with proper extension
         const fileKey = await s3Service.uploadToS3('photo/', files);
 
-        // IMPORTANT: store only file key, not full URL
         updateData.imageUrl = fileKey;
       }
 
@@ -102,7 +91,6 @@ export class UserProfileService {
 
       await updatedUser.save();
 
-      // ✅ Get fresh user data with signed URL
       const freshUser = await this.getUserProfileService(userId.toString());
 
       return freshUser;

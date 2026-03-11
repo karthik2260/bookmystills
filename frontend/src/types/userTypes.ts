@@ -17,11 +17,9 @@ export interface UserData {
   name: string;
   contactinfo?: string;
   isActive: boolean;
-  isBlocked: boolean;
   isGoogleUser: boolean;
   image?: string | null | undefined;
   imageUrl?: string;
-  favourite: string[];
   refreshToken?: string;
   createdAt: string | undefined;
   updatedAt: string | undefined;

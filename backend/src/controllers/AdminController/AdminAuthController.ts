@@ -23,7 +23,7 @@ const adminloginreq : AdminLoginRequestDTO = req.body;
       if (!email || !password) {
         res
           .status(HTTP_statusCode.BadRequest)
-          .json({ message: 'Email and Password are required!' });
+          .json(Messages.EMAIL_PASSWORD_REQUIRED);
         return;
       }
 
@@ -36,7 +36,7 @@ const adminloginreq : AdminLoginRequestDTO = req.body;
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: Number(process.env.COOKIE_MAX_AGE)
       });
       res.status(HTTP_statusCode.OK).json({ refreshToken, token, adminData, message });
     } catch (error) {

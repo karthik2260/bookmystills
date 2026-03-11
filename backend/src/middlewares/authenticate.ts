@@ -8,39 +8,34 @@ interface JwtPayload {
   role: AuthRole;
 }
 
-export const authenticateToken: RequestHandler  = (
+export const authenticateToken: RequestHandler = (
   req: AuthRequest,
-  _res: Response,
+  res: Response,
   next: NextFunction
-) => {  
+) => {
   const authHeader = req.headers.authorization;
 
-console.log('AUTH HEADER:', authHeader);
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new Error('Authentication required'));
+    return res.status(401).json({ message: 'Authentication required' });
   }
 
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET_KEY!
-    ) as JwtPayload;
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as JwtPayload;
     req.user = {
       _id: decoded._id.toString(),
       role: decoded.role,
     };
-   
-
-
-
-
     next();
-  } catch(err) {
-
-    return next(new Error('Invalid or expired token'));
+  } catch (err) {
+    // ✅ Return proper 401 with expired flag
+    if (err instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ 
+        message: 'Token expired',
+        expired: true  // ← this triggers your axios interceptor refresh logic
+      });
+    }
+    return res.status(401).json({ message: 'Invalid token' });
   }
 };
-

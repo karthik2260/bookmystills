@@ -68,12 +68,17 @@ export interface UserResponseDTO {
   picture?: string;
 }
 
-
 export interface UserProfileResponseDTO {
-  id:string;
-  name:string;
-  email:string;
-  imageUrl?:string
+  id: string;
+  name: string;
+  email: string;
+  imageUrl?: string;
+  contactinfo?: string;
+  isActive: boolean;
+  isGoogleUser?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
+
 
 

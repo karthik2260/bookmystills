@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { handleError } from '../../util/handleError';
 import { CustomError } from '../../error/customError';
-import { AuthenticatedRequest } from '../../types/userType';
+import { AuthenticatedRequestt } from '../../types/userType';
 import { OTP,VendorSession } from '../../interfaces/commonInterfaces';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
@@ -38,6 +38,11 @@ class VendorAuthController {
     try {
       const vendorSignupDto: VendorSignUpRequestDTO = req.body;
       const { email, name, password, city, contactinfo, companyName, about } = vendorSignupDto;
+ const files = req.files as {
+        portfolioImages?: Express.Multer.File[];
+        aadharFront?: Express.Multer.File[];
+        aadharBack?: Express.Multer.File[];
+      };
 
       const vendorData = await this.vendorService.registerVendor({
         email,
@@ -47,6 +52,9 @@ class VendorAuthController {
         contactinfo,
         companyName,
         about,
+        files
+        
+
       });
 
       req.session.vendor = vendorData;
@@ -67,17 +75,23 @@ class VendorAuthController {
     }
   };
 
-  verifyOTP = async (req: Request, res: Response): Promise<void> => {
+ verifyOTP = async (req: Request, res: Response): Promise<void> => {
     try {
       const verifyOtpDto: verifyOtpRequestDTO = {
         otp: req.body.otp,
       };
-      const { name, email, city, password, contactinfo, otpCode, companyName, about, otpExpiry } =
-        req.session.vendor;
+
+      const { 
+        name, email, city, password, contactinfo, 
+        otpCode, companyName, about, otpExpiry, 
+        portfolioImages,
+        aadharImages   
+      } = req.session.vendor;
 
       if (verifyOtpDto.otp !== otpCode) {
         throw new CustomError(Messages.INVALID_OTP, HTTP_statusCode.BadRequest);
       }
+
       const currentTime = Date.now();
       if (currentTime > otpExpiry) {
         throw new CustomError(Messages.OTP_EXPIRED, HTTP_statusCode.BadRequest);
@@ -91,7 +105,10 @@ class VendorAuthController {
         city,
         companyName,
         about,
+        portfolioImages,
+        aadharImages,   
       };
+
       const { vendor } = await this.vendorService.signup(signupData);
 
       res.status(201).json({ vendor, message: Messages.ACCOUNT_CREATED });
@@ -113,13 +130,12 @@ class VendorAuthController {
 
       const { token, refreshToken, vendor, message } = await this.vendorService.login(loginDto);
 
-      res.cookie('jwtToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
+     res.cookie('jwtToken', refreshToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+});
       res.status(HTTP_statusCode.OK).json({ token, vendor, message });
     } catch (error) {
       handleError(res, error, 'VendorLogin');
@@ -189,6 +205,31 @@ class VendorAuthController {
     }
   };
 
+
+ reapplyVendor = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
+  try {
+    const vendorId = req.user?._id?.toString(); // ← add .toString()
+
+    if (!vendorId) {
+      res.status(HTTP_statusCode.Unauthorized).json({ 
+        message: Messages.VENDOR_ID_MISSING 
+      });
+      return;
+    }
+
+    const files = req.files as {
+      portfolioImages?: Express.Multer.File[];
+      aadharFront?: Express.Multer.File[];
+      aadharBack?: Express.Multer.File[];
+    };
+
+    const result = await this.vendorService.reapplyVendor(vendorId, files);
+    res.status(HTTP_statusCode.OK).json(result);
+
+  } catch (error) {
+    handleError(res, error, 'reapplyVendor');
+  }
+};
   changeForgotPassword = async (req: Request, res: Response): Promise<void> => {
     const changePasswordDto: VendorChangePasswordRequestDTO = {
       token: req.params.token,
@@ -229,7 +270,7 @@ class VendorAuthController {
     }
   };
 
-  changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  changePassword = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
     try {
       const { currentPassword, newPassword } = req.body;
 

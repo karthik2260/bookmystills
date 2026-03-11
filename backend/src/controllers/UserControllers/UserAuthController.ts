@@ -8,7 +8,7 @@ import { IUserService } from '../../interfaces/serviceInterfaces/user.Service.in
 import generateOTP from '../../util/generateOtp';
 import { handleError } from '../../util/handleError';
 import jwt from 'jsonwebtoken';
-import { AuthenticatedRequest } from '../../types/userType';
+import { AuthenticatedRequestt } from '../../types/userType';
 import Jwt from 'jsonwebtoken';
 
 
@@ -73,16 +73,19 @@ class UserAuthController {
       const serviceResponse = await this.userService.login(loginDto);
 
       res.cookie('refreshToken', serviceResponse.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+});
 
       res.status(HTTP_statusCode.OK).json({
         token: serviceResponse.token,
         user: serviceResponse.user,
+        
+
         message: serviceResponse.message,
       });
+
     } catch (error) {
       handleError(res, error, 'Login');
     }
@@ -243,7 +246,7 @@ class UserAuthController {
     }
   };
 
-  changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  changePassword = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
     try {
       const changePasswordDto: ChangePasswordRequestDTOO = req.body;
       const { currentPassword, newPassword } = changePasswordDto;
@@ -305,11 +308,11 @@ class UserAuthController {
       const { user, isNewUser, token, refreshToken } =
         await this.userService.authenticateGoogleLogin(googleUserData);
       if (user.isActive) {
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+       res.cookie('refreshToken', refreshToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+});
 
         res.status(HTTP_statusCode.OK).json({
           user,
@@ -319,11 +322,12 @@ class UserAuthController {
             : 'Successfully logged in with Google',
         });
       } else {
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+       res.cookie('jwtTokenAdmin', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'), 
+});
 
         res.status(HTTP_statusCode.OK).json({
           user,

@@ -1,3 +1,5 @@
+import { PostData } from "./postTypes";
+
 export interface VendorData{
     _id:string;
     email : string;
@@ -22,7 +24,8 @@ export interface VendorData{
     reportCount?: number;
     createdAt: string;  
     updatedAt: string;  
-    
+    portfolioImages?: string[];
+    aadharImages?:string[]
 }
 
 export interface VendorFormValues {
@@ -34,19 +37,43 @@ export interface VendorFormValues {
     confirmPassword: string;
     companyName: string;
     about: string,
+    portfolioImages: File[]; 
+    aadharImages:File[]
   }
 
 
-  export interface VendorResponse {
-    vendors:Array<{
-        _doc:VendorData;
-        imageUrl?:string
-    }>;
-    totalPages:number
+
+
+
+
+  export interface VendorFormErrorValues {
+    email: string;
+    password: string;
+    name: string;
+    city : string
+    contactinfo: string;
+    confirmPassword: string;
+    companyName: string;
+    about: string,
+    portfolioImages: string; 
+    aadharImages:string
   }
 
+
+export interface VendorResponse {
+  vendors: (VendorData & { imageUrl: string })[];
+  totalPages: number;
+}
+
+
+export interface IVendorDetails {
+  vendor: VendorData,
+  posts: PostData[],
+
+}
     export enum AcceptanceStatus {
-    Requested = 'requested',
-    Accepted = 'accepted',
-    Rejected = 'rejected'
+  Accepted = 'accepted',   
+  Rejected = 'rejected',
+  Pending = 'requested',
+  Reapplied = 'reapplied'
 }

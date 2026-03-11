@@ -1,0 +1,136 @@
+import { styled } from '@mui/system';
+import { 
+    Card, 
+    LinearProgress,
+    createTheme,
+  } from '@mui/material';
+
+
+
+export type Mode = 'block' | 'unblock';
+
+
+
+
+
+
+export const getCategories = (date: string) => {
+    const currentYear = new Date().getFullYear();
+
+    if (date === "month") {
+        return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    } else if (date === "week") {
+        return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    } else {
+        return Array.from({ length: 5 }, (_, index) => `${currentYear - 4 + index}`);
+    }
+}
+
+
+export const StyledCard = styled(Card)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+  },
+}));
+
+export const StyledLinearProgress = styled(LinearProgress)(({ theme }) => ({
+  height: 8,
+  borderRadius: 5,
+  [`&.MuiLinearProgress-colorPrimary`]: {
+    backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 700],
+  },
+  [`& .MuiLinearProgress-bar`]: {
+    borderRadius: 5,
+  },
+}));
+
+export const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+  },
+});
+
+
+
+
+  export const CATEGORIES = [
+    {
+      title: 'Photographers',
+      image: '/images/cate1.jpg',
+      description: 'Capture your special moments with our talented photographers. From weddings to corporate events, we have the perfect professionals.',
+    },
+   
+  ];
+
+  export const services = [
+    {
+      title: 'WEDDING',
+      image: '/images/event1.jpg',
+      description: 'Love seems the swiftest but it is the slowest of all growths. No man or woman really knows what perfect love is until they have been married a quarter of a century.',
+    },
+    {
+      title: 'ENGAGEMENT',
+      image: '/images/event2.jpg',
+      description: 'When you realize you want to spend the rest of your life with somebody, you want the rest of your life to start as soon as possible.',
+    },
+    {
+      title: 'OUTDOOR',
+      image: '/images/event3.jpg',
+      description: "Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma – which is living with the results of other people's thinking."
+    },
+    {
+      title: 'NATURE',
+      image: '/images/event4.jpg',
+      description: 'Nature always wears the colors of the spirit. It does not hurry, yet everything is accomplished in its own perfect time, reminding us of the beauty in patience and growth.',
+    },
+    {
+      title: 'FOOD',
+      image: '/images/event5.jpg',
+      description: 'Good food is the foundation of genuine happiness. The art of food photography captures flavors beyond taste, making every dish a visual delight before it becomes a feast to savor.',
+    },
+    {
+      title: 'FASHION',
+      image: '/images/event6.jpg',
+      description: 'Fashion is not just about clothing; it is an expression of personality and creativity. Every style tells a story, capturing confidence and elegance in every carefully crafted frame.',
+    },
+  ];
+  
+
+
+export const ReportReasons = [
+  { key: 'Inappropriate Content', label: 'Inappropriate Content' },
+  { key: 'Spam', label: 'Spam' },
+  { key: 'Misleading Information', label: 'Misleading Information' },
+  { key: 'Harassment', label: 'Harassment' },
+  { key: 'Copyright Infringement', label: 'Copyright Infringement' },
+  { key: 'Other', label: 'Other' }
+];
+
+export const VendorReportReasons = [
+    { key: 'Fraudulent Activity', label: 'Fraudulent Activity' },
+    { key: 'Poor Customer Service', label: 'Poor Customer Service' },
+    { key: 'Unresponsive to Communication', label: 'Unresponsive to Communication' },
+    { key: 'Violation of Terms of Service', label: 'Violation of Terms of Service' },
+    { key: 'Unethical Business Practices', label: 'Unethical Business Practices' },
+    { key: 'Other', label: 'Other' }
+  ];
+  
+
+  export const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+
+
+
+  

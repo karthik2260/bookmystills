@@ -1,12 +1,4 @@
 import {
-    Card,
-    CardBody,
-    Typography,
-    Button,
-    Input,
-    CardFooter,
-} from "@material-tailwind/react";
-import {
     Modal,
     ModalContent,
     ModalHeader,
@@ -16,7 +8,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { USER, VENDOR } from '../../../config/constants/constants';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Loader from '../../../components/common/Loader';
 import { useLoginUser } from "../../../hooks/user/useLoginUser";
 import { showToastMessage } from "../../../validations/common/toast";
@@ -26,281 +18,208 @@ const client_id = import.meta.env.VITE_CLIENT_ID || '';
 
 const UserLogin: React.FC = () => {
     const {
-        user,
-        imageIndex,
-        images,
-        isLoading,
-        formik,
-        forgotPasswordEmail,
-        emailError,
-        isOpen,
-        showPassword,
-        onOpen,
-        onOpenChange,
-        togglePasswordVisibility,
-        handleEmailChange,
-        handleForgotPassword,
-        handleGoogleSuccess
+        user, imageIndex, images, isLoading, formik,
+        forgotPasswordEmail, emailError, isOpen, showPassword,
+        onOpen, onOpenChange, togglePasswordVisibility,
+        handleEmailChange, handleForgotPassword, handleGoogleSuccess
     } = useLoginUser();
-    
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user) {
-            navigate(USER.HOME);
-        }
+        if (user) navigate(USER.HOME);
     }, [navigate, user]);
 
-    if (isLoading) {
-        return <Loader />;
-    }
+    if (isLoading) return <Loader />;
 
     return (
-        <div className="w-full h-screen flex flex-col md:flex-row items-start">
-            <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
+        <div className="w-full h-screen flex overflow-hidden">
+
+            {/* ── LEFT: Image / Brand Panel ── */}
+            <div
+                className="hidden md:flex md:w-1/2 relative flex-col justify-between p-12 overflow-hidden"
+                style={{
+                    backgroundImage: images[imageIndex] ? `url(${images[imageIndex]})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
+
+                {/* Logo */}
+                <div className="relative z-10 flex items-center gap-2">
+                   <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center mb-3">
+            <div className="w-5 h-5 rounded-sm bg-white" />
+          </div>
+                    <span className="text-white font-semibold text-lg tracking-wide">bookmystills</span>
+                </div>
+
+                {/* Hero copy */}
+                <div className="relative z-10 space-y-4">
+                    <h1 className="text-4xl font-bold text-white leading-tight">
+                        Elevate Your<br />Event Experience
+                    </h1>
+                    <p className="text-blue-100 text-base leading-relaxed max-w-xs">
+A trusted platform bringing creative photographers and meaningful moments together.                      </p>
+                    {/* Stat pills */}
+                    <div className="flex gap-3 pt-2">
+                        {[['500+', 'Vendors'], ['10k+', 'Events'], ['98%', 'Satisfaction']].map(([num, label]) => (
+                            <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 text-center">
+                                <p className="text-white font-bold text-sm">{num}</p>
+                                <p className="text-blue-200 text-xs">{label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── RIGHT: Form Panel ── */}
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6 py-10">
                 <GoogleOAuthProvider clientId={client_id}>
-                    <Card className="w-full max-w-md overflow-hidden">
-                        <div className="w-full text-center mt-6 mb-4">
-                            <h2 className="text-3xl font-extrabold text-gray-900 mb-6" style={{ fontFamily: 'roboto, sans-serif' }}>
-                                LOGIN
-                            </h2>
+                    <div className="w-full max-w-md space-y-6">
+
+                        {/* Header */}
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">Welcome back</p>
+                            <h2 className="text-3xl font-bold text-gray-900">Sign in to your account</h2>
+                            <p className="text-sm text-gray-500 mt-1">Enter your credentials to continue</p>
                         </div>
 
-                        <form onSubmit={formik.handleSubmit}>
-                            <CardBody className="flex flex-col gap-4 px-4 pb-0">
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                        Email
-                                    </label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="Email"
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.email}
-                                        name="email"
-                                        size="md"
-                                        autoComplete="email"
-                                        className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
-                                    />
-                                    {formik.touched.email && formik.errors.email && (
-                                        <p className="text-sm text-red-500 mt-1">
-                                            {formik.errors.email}
-                                        </p>
-                                    )}
-                                </div>
+                        {/* Form */}
+                        <form onSubmit={formik.handleSubmit} className="space-y-4">
 
+                            {/* Email */}
+                            <div className="space-y-1">
+                                <label className="text-sm font-medium text-gray-700">Email address</label>
                                 <div className="relative">
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                        Password
-                                    </label>
-                                    <div className="relative">
-                                        <Input
-                                            id="password"
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="••••••••"
-                                            onChange={formik.handleChange}
-                                            onBlur={formik.handleBlur}
-                                            value={formik.values.password}
-                                            name="password"
-                                            size="md"
-                                            className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
-                                            autoComplete="new-password"
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                            onClick={togglePasswordVisibility}
-                                        >
-                                            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                                        </button>
-                                    </div>
-
-                                    {formik.touched.password && formik.errors.password && (
-                                        <p className="text-sm text-red-500 mt-1">
-                                            {formik.errors.password}
-                                        </p>
-                                    )}
+                                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        id="email" type="email" name="email"
+                                        placeholder="you@example.com" autoComplete="email"
+                                        onChange={formik.handleChange} onBlur={formik.handleBlur}
+                                        value={formik.values.email}
+                                        className={`w-full pl-9 pr-4 py-2.5 rounded-lg border text-sm bg-white shadow-sm outline-none transition
+                                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                            ${formik.touched.email && formik.errors.email ? 'border-red-400' : 'border-gray-200'}`}
+                                    />
                                 </div>
+                                {formik.touched.email && formik.errors.email && (
+                                    <p className="text-xs text-red-500">{formik.errors.email}</p>
+                                )}
+                            </div>
 
-                                <Typography
-                                    className="text-left cursor-pointer text-sm hover:underline"
-                                    onClick={onOpen}
-                                >
+                            {/* Password */}
+                            <div className="space-y-1">
+                                <label className="text-sm font-medium text-gray-700">Password</label>
+                                <div className="relative">
+                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        id="password" name="password" autoComplete="current-password"
+                                        type={showPassword ? "text" : "password"} placeholder="••••••••"
+                                        onChange={formik.handleChange} onBlur={formik.handleBlur}
+                                        value={formik.values.password}
+                                        className={`w-full pl-9 pr-10 py-2.5 rounded-lg border text-sm bg-white shadow-sm outline-none transition
+                                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                            ${formik.touched.password && formik.errors.password ? 'border-red-400' : 'border-gray-200'}`}
+                                    />
+                                    <button type="button" onClick={togglePasswordVisibility}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                                        {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                                    </button>
+                                </div>
+                                {formik.touched.password && formik.errors.password && (
+                                    <p className="text-xs text-red-500">{formik.errors.password}</p>
+                                )}
+                            </div>
+
+                            {/* Forgot */}
+                            <div className="flex justify-end">
+                                <button type="button" onClick={onOpen}
+                                    className="text-xs text-blue-600 hover:underline font-medium">
                                     Forgot password?
-                                </Typography>
+                                </button>
+                            </div>
 
-                              <div className="flex justify-center mt-6">
-  <Button
-    type="submit"
-    className="w-full max-w-md bg-blue-600 text-white font-medium py-2.5 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    Sign In
-  </Button>
-</div>
-                            </CardBody>
+                            {/* Submit */}
+                            <button type="submit" disabled={isLoading}
+                                className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Signing in…
+                                    </span>
+                                ) : 'Sign In'}
+                            </button>
                         </form>
 
-                       <div className="mt-6 flex justify-center">
-  <div className="w-full max-w-sm">
-    <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md">
-      <GoogleLogin
-        type="standard"
-        theme="outline"
-        size="large"
-        text="signin_with"
-        shape="rectangular"
-        onSuccess={handleGoogleSuccess}
-        onError={() => {
-          showToastMessage("Google login failed", "error");
-        }}
-      />
-    </div>
-  </div>
-</div>
+                        {/* Divider */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex-1 h-px bg-gray-200" />
+                            <span className="text-xs text-gray-400 font-medium">or continue with</span>
+                            <div className="flex-1 h-px bg-gray-200" />
+                        </div>
 
+                        {/* Google */}
+                        <div className="flex justify-center">
+                            <GoogleLogin type="standard" theme="outline" size="large"
+                                text="signin_with" shape="rectangular"
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => showToastMessage("Google login failed", "error")} />
+                        </div>
 
-                        <CardFooter className="pt-0">
-                            <Typography
-                                variant="small"
-                                className="mt-2 mb-2 flex justify-center"
-                                color="black"
-                            >
-                                Don't have an account?
-                                <Link to={USER.SIGNUP}>
-                                    <Typography
-                                        as="a"
-                                        href="#"
-                                        variant="small"
-                                        color="black"
-                                        className="ml-1 font-bold"
-                                    >
-                                        Sign Up
-                                    </Typography>
-                                </Link>
-                            </Typography>
-                            <Typography
-                                variant="small"
-                                className="mt-2 flex justify-center pb-3"
-                                color="black"
-                            >
-                                Are you a vendor?
-                                <Link to={VENDOR.LOGIN}>
-                                    <Typography
-                                        as="a"
-                                        href="#signup"
-                                        variant="small"
-                                        color="black"
-                                        className="ml-1 font-bold"
-                                    >
-                                        SignIn here
-                                    </Typography>
-                                </Link>
-                            </Typography>
-                        </CardFooter>
-                    </Card>
+                        {/* Footer */}
+                        <p className="text-center text-sm text-gray-500">
+                            Don't have an account?{' '}
+                            <Link to={USER.SIGNUP} className="text-blue-600 font-semibold hover:underline">Sign Up</Link>
+                        </p>
+                        <p className="text-center text-sm text-gray-500">
+                            Are you a vendor?{' '}
+                            <Link to={VENDOR.LOGIN} className="text-blue-600 font-semibold hover:underline">Sign in here</Link>
+                        </p>
+                    </div>
                 </GoogleOAuthProvider>
             </div>
 
-            <Modal
-                isOpen={isOpen}
-                onOpenChange={onOpenChange}
-                placement="center"
-                size="sm"
-                classNames={{
-                    base: "bg-white rounded-lg shadow-lg",
-                    header: "border-b border-gray-200",
-                    body: "py-7",
-                    closeButton: "hidden",
-                }}
-            >
+            {/* ── Forgot Password Modal ── */}
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center" size="sm"
+                classNames={{ base: "bg-white rounded-2xl shadow-xl", header: "border-b border-gray-100", closeButton: "hidden" }}>
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <div className="absolute top-2 right-2">
-                                <button
-                                    onClick={onClose}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <ModalHeader className="flex flex-col items-center justify-center text-xl font-semibold text-black">
-                                Forgot Password
-                            </ModalHeader>
-                            <ModalBody>
-                                <div className="space-y-4 font-judson">
-                                    <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email
-                                        </label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="Enter your email"
-                                            value={forgotPasswordEmail}
-                                            onChange={handleEmailChange}
-                                            className="w-full"
-                                            autoComplete="email"
-                                        />
-                                        {emailError && (
-                                            <p className="text-sm text-red-500 mt-1">
-                                                {emailError}
-                                            </p>
-                                        )}
+                            <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                            <ModalHeader className="text-lg font-bold text-gray-900">Reset Password</ModalHeader>
+                            <ModalBody className="py-6">
+                                <div className="space-y-3">
+                                    <label className="text-sm font-medium text-gray-700">Email address</label>
+                                    <div className="relative">
+                                        <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input type="email" placeholder="you@example.com"
+                                            value={forgotPasswordEmail} onChange={handleEmailChange} autoComplete="email"
+                                            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition" />
                                     </div>
-                                    <p className="text-sm text-gray-500">
-                                        Enter your email address and we'll send you a link to reset your password.
-                                    </p>
+                                    {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+                                    <p className="text-xs text-gray-400">We'll send a reset link to this address.</p>
                                 </div>
                             </ModalBody>
-                            <ModalFooter className="flex justify-between space-x-4">
-                                <Button
-                                    className="flex-1 font-judson bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                    onClick={onClose}
-                                    disabled={isLoading}
-                                >
+                            <ModalFooter className="flex gap-3">
+                                <button onClick={onClose}
+                                    className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
                                     Cancel
-                                </Button>
-                                <Button
-                                    className="flex font-judson bg-black text-white hover:bg-gray-900"
-                                    onClick={handleForgotPassword}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center">
-                                            <span className="mr-2">Sending...</span>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        </div>
-                                    ) : (
-                                        "Send Reset Link"
-                                    )}
-                                </Button>
+                                </button>
+                                <button onClick={handleForgotPassword} disabled={isLoading}
+                                    className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50">
+                                    {isLoading ? 'Sending…' : 'Send Reset Link'}
+                                </button>
                             </ModalFooter>
                         </>
                     )}
                 </ModalContent>
             </Modal>
-
-            <div
-                className={`${imageIndex % 2 === 0 ? 'bg-gradient-to-r from-blue-600 to-indigo-900' : ''} w-full h-screen md:w-1/2 object-cover md:static absolute top-0 left-0 z-0 transition-all duration-1000 ease-in-out`}
-                style={{
-                    backgroundImage: `url(${images[imageIndex]})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                }}
-            >
-                <h1 className="animate-fadeIn text-4xl md:text-4xl text-white font-bold mt-20 mx-4 md:block hidden">
-                    Elevate Your Event Experience
-                </h1>
-                <p className="animate-slideIn text-xl md:text-2xl text-white font-normal mt-5 mx-4 md:block hidden">
-                    Find, Connect, and Collaborate with Top Event Planners
-                </p>
-            </div>
         </div>
     );
 };

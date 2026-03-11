@@ -22,6 +22,8 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ routeType }) => {
     switch (type) {
       case 'user':
         return userSignedIn;
+
+
       case 'vendor':
         return vendorSignedIn;
       case 'admin':

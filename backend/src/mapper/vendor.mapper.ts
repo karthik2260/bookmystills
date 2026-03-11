@@ -18,30 +18,28 @@ export const VendorMapper = {
     };
   },
 
-  toLoginResponseDTO(vendor: VendorDocument | any): VendorResponseDTO {
-    return {
-      id: vendor._id.toString(),
-      email: vendor.email,
-      name: vendor.name,
-      companyName: vendor.companyName,
-      city: vendor.city,
-      about: vendor.about,
-      contactinfo: vendor.contactinfo,
-      isActive: vendor.isActive,
-      isVerified: vendor.isVerified,
-      isAccepted: vendor.isAccepted,
-
-      logo: vendor.logo || "",
-      imageUrl: vendor.imageUrl || "",
-
-      totalBooking: vendor.totalBooking ?? 0,
-      postCount: vendor.postCount ?? 0,
-      totalRating: vendor.totalRating ?? 0,
-      walletBalance: vendor.walletBalance ?? 0,
-
-      rejectionReason: vendor.rejectionReason ?? null,
-    };
-  },
+toLoginResponseDTO(vendor: VendorDocument | any): VendorResponseDTO {
+  return {
+    _id: vendor._id?.toString() ?? vendor.id,  // ← handle both
+    email: vendor.email,
+    name: vendor.name,
+    companyName: vendor.companyName,
+    city: vendor.city,
+    about: vendor.about,
+    contactinfo: vendor.contactinfo,
+    isActive: vendor.isActive,
+    isVerified: vendor.isVerified,
+    isAccepted: vendor.isAccepted,        // ← critical
+    logo: vendor.logo || '',
+    imageUrl: vendor.imageUrl || '',
+    totalBooking: vendor.totalBooking ?? 0,
+    postCount: vendor.postCount ?? 0,
+    totalRating: vendor.totalRating ?? 0,
+    walletBalance: vendor.walletBalance ?? 0,
+    rejectionReason: vendor.rejectionReason ?? null,
+    reapplyCount: vendor.reapplyCount ?? 0,
+  };
+},
 
  toVendorProfileResponse(vendor: VendorDocument): VendorProfileResponseDTO {
   // Convert to plain object to access all properties including timestamps

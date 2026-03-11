@@ -9,6 +9,8 @@ import { UserAuthService } from './UserAuthService';
 import { UserPasswordService } from './UserPasswordService';
 import { GoogleAuthService } from './GoogleAuthService';
 import { UserProfileService } from './UserProfileService';
+import { UserManagementService } from './UserManagementservice';
+import { BlockStatus } from '../../enums/commonEnums';
 
 class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -16,6 +18,8 @@ class UserService implements IUserService {
   private passwordService: UserPasswordService;
   private googleAuthService: GoogleAuthService;
   private profileService: UserProfileService;
+  private managementService: UserManagementService;
+
 
   constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
@@ -23,9 +27,10 @@ class UserService implements IUserService {
     this.passwordService = new UserPasswordService(userRepository);
     this.googleAuthService = new GoogleAuthService(userRepository);
     this.profileService = new UserProfileService(userRepository);
+    this.managementService = new UserManagementService(userRepository);
+
   }
 
-// here is used to deligate to user service auth 
   signup = async (signupDto: SignupRequestDTO): Promise<UserDTO> => {
     return this.authService.signup(signupDto);
   };
@@ -42,7 +47,6 @@ class UserService implements IUserService {
     return this.authService.create_RefreshToken(refreshToken);
   };
 
-  // Delegate to UserPasswordService
   
   handleForgotPassword = async (email: string): Promise<void> => {
     return this.passwordService.handleForgotPassword(email);
@@ -64,7 +68,6 @@ class UserService implements IUserService {
     return this.passwordService.passwordCheckUser(currentPassword, newPassword, userId);
   };
 
-  // Delegate to GoogleAuthService
   googleSignup = async ({email,name,googleId}:GoogleUserData): Promise<object> => {
     return this.googleAuthService.googleSignup({email, name, googleId});
   };
@@ -73,7 +76,7 @@ class UserService implements IUserService {
     return this.googleAuthService.authenticateGoogleLogin(userData);
   };
 
-  // Delegate to UserProfileService
+ 
   getUserProfileService = async (userId: string): Promise<UserDocument> => {
     return this.profileService.getUserProfileService(userId);
   };
@@ -86,6 +89,24 @@ class UserService implements IUserService {
   ): Promise<UserDocument | null> => {
     return this.profileService.updateProfileService(name, contactinfo, userId, files);
   };
+
+
+   getUsers = async (
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+  ): Promise<{ users: UserDocument[]; total: number; totalPages: number }> => {
+    return this.managementService.getUsers(page, limit, search, status);
+  };
+
+  SUserBlockUnblock = async (userId: string): Promise<BlockStatus> => {
+  return this.managementService.SUserBlockUnblock(userId);
+};
+
 }
+
+
+
 
 export default UserService;

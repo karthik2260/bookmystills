@@ -25,12 +25,15 @@ export interface VendorDocument extends Vendor, Document {
   posts?: Types.ObjectId[];
   reportCount?: number;
   blockReason: string;
+  aadharImages: string[];
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   rejectionReason?: string | null;
   createdAt:Date;
+    portfolioImages: string[];
   updatedAt:Date
-  
+  reappliedAt?: Date | null;
+reapplyCount: number;
 }
 
 export interface VendorModel extends Model<VendorDocument> {
@@ -85,6 +88,10 @@ const VendorSchema = new Schema<VendorDocument>(
     resetPasswordExpires: { type: Date },
 
     rejectionReason: { type: String, default: null },
+      portfolioImages: { type: [String], default: [] }, 
+aadharImages: { type: [String], default: [] },
+reappliedAt: { type: Date, default: null },
+reapplyCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,

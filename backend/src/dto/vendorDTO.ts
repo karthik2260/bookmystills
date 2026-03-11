@@ -2,13 +2,20 @@ import { AcceptanceStatus } from "../enums/commonEnums";
 
 
 export interface VendorSignUpRequestDTO {
-    email:string;
-    name:string;
-    password:string;
-    city:string;
-    contactinfo:string;
-    companyName:string;
-    about:string
+    email: string;
+    name: string;
+    password: string;
+    city: string;
+    contactinfo: string;
+    companyName: string;
+    about: string;
+    portfolioImages?: string[];
+    aadharImages?: string[];
+    files?: {
+        portfolioImages?: Express.Multer.File[];
+        aadharFront?: Express.Multer.File[];
+        aadharBack?: Express.Multer.File[];
+    };
 }
 
 
@@ -34,6 +41,7 @@ export interface VendorSignupResponseDTO {
   isVerified: boolean;
   isActive: boolean;
   isAccepted: AcceptanceStatus
+  
  
 }
 
@@ -57,7 +65,7 @@ export interface VendorLoginRequestDTO {
 
 
 export interface VendorResponseDTO {
-  id: string;
+  _id: string;         // ← fix from 'id'
   email: string;
   name: string;
   companyName: string;
@@ -66,7 +74,7 @@ export interface VendorResponseDTO {
   contactinfo: string;
   isActive: boolean;
   isVerified: boolean;
-  isAccepted: AcceptanceStatus;
+  isAccepted: AcceptanceStatus;  // ← make sure this exists
   logo: string;
   imageUrl: string;
   totalBooking: number;
@@ -74,8 +82,7 @@ export interface VendorResponseDTO {
   totalRating: number;
   walletBalance: number;
   rejectionReason?: string | null;
-  
-  
+  reapplyCount?: number;
 }
 
 
@@ -141,7 +148,6 @@ export interface VendorUpdateProfileResponseDTO {
     isVerified:boolean;
     createdAt:Date;
     updatedAt:Date;
-
 }
 
 

@@ -10,6 +10,41 @@ class UserRepository extends BaseRepository<UserDocument> implements IUserReposi
     super(User);
   }
 
+   findAllUsers = async(page: number, limit: number, search: string,status?:string): Promise<{users: UserDocument[], total: number, totalPages: number}> => {
+            try {
+                const skip = (page -1) * limit ;
+
+                let query : {[key:string] : any} = {} ;
+                
+                if(search){
+                    query={
+                        $or :[
+                            {name: {$regex : search , $options : 'i'}},
+                            {email: {$regex : search , $options : 'i'}},
+                        ]
+                    }
+                }
+                if(status){
+                    query.isActive= status === 'active'
+                }
+
+                const total = await User.countDocuments(query);
+                const users = await User.find(query)
+                .skip(skip)
+                .limit(limit)
+                .sort({createdAt : -1})
+
+                return {
+                    users,
+                    total,
+                    totalPages : Math.ceil(total/limit)
+                }
+            } catch (error) {
+            throw error 
+            }
+        }
+
+
   UpdatePassword = async (
     userId: mongoose.Types.ObjectId,
     hashedPassword: string,

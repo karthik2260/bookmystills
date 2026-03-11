@@ -15,7 +15,9 @@ interface PrivateRouteProps {
 
 const UnifiedPrivateRoute: React.FC<PrivateRouteProps> = ({ routeType }) => {
   const userState = useSelector((state: UserRootState) => state.user.userData);  
+
   const userSignedIn = useSelector((state: UserRootState) => state.user.isUserSignedIn);
+  console.log("AUTH CHECK =>", userSignedIn, userState);
 
   const vendorState = useSelector((state: VendorRootState) => state.vendor.vendorData);
   const vendorSignedIn = useSelector((state: VendorRootState) => state.vendor.isVendorSignedIn);
@@ -23,6 +25,10 @@ const UnifiedPrivateRoute: React.FC<PrivateRouteProps> = ({ routeType }) => {
   const adminSignedIn = useSelector((state: AdminRootState) => state.admin.isAdminSignedIn);
 
   // useBlockCheck(routeType)
+console.log("PrivateRoute check => ", {
+  userSignedIn,
+  userState
+});
 
   const getRedirectPath = (type: RouteType): string => {
     switch (type) {
@@ -37,18 +43,33 @@ const UnifiedPrivateRoute: React.FC<PrivateRouteProps> = ({ routeType }) => {
     }
   };
 
-  const isAuthenticated = (type: RouteType): boolean => {
-    switch (type) {
-      case 'user':
-        return userSignedIn && userState?.isActive !== false;
-      case 'vendor':
-        return vendorSignedIn && vendorState?.isActive !== false;
-      case 'admin':
-        return adminSignedIn;
-      default:
-        return false;
+ const isAuthenticated = (type: RouteType): boolean => {
+  switch (type) {
+    case 'user': {
+      const token = localStorage.getItem('userToken');
+      return !!token;
     }
-  };
+
+    case 'vendor': {
+      const vendorToken = localStorage.getItem('vendorToken');
+      if (!vendorSignedIn || !vendorToken) return false;
+
+      // Only block if admin manually blocked an accepted vendor
+      if (
+        vendorState?.isActive === false &&
+        vendorState?.isAccepted === 'accepted'
+      ) return false;
+
+      return true; // ✅ rejected/reapplied/pending all get through
+    }
+
+    case 'admin':
+      return adminSignedIn;
+
+    default:
+      return false;
+  }
+};
 
   return isAuthenticated(routeType) ? (
     <Outlet />

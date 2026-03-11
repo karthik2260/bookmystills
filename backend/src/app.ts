@@ -12,7 +12,7 @@ import userRoutes from './routes/userRoutes';
 import vendorRoutes from './routes/vendorRoutes';
 import adminRoutes from './routes/adminRoutes';
 import morgan from 'morgan';
-import { errorLogStream } from './config/loggerConfig';
+import { accessLogStream, errorLogStream } from './config/loggerConfig';
 import HTTP_statusCode from './enums/httpStatusCode';
 import { errorHandler } from './middlewares/errorHandler';
 import helmet from 'helmet';
@@ -22,10 +22,16 @@ export const app = express();
 const server = createServer(app);
 
 app.use(
+  morgan('dev', {
+    stream: accessLogStream
+  })
+);
+
+app.use(
   morgan('combined', {
     stream: errorLogStream,
-    skip: (req, res) => res.statusCode < HTTP_statusCode.BadRequest,
-  }),
+    skip: (req, res) => res.statusCode < 400
+  })
 );
 
 app.use(cors(corsOption));

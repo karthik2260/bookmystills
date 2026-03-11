@@ -35,14 +35,19 @@ export const UserMapper = {
   },
 
 
+toProfileDTO(user: UserDocument): UserProfileResponseDTO {
+  return {
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    imageUrl: user.imageUrl,
+    contactinfo: user.contactinfo,
+    isActive: user.isActive,
+    isGoogleUser: user.isGoogleUser,
+    createdAt: user.createdAt.toISOString(),   // ⭐ convert
+    updatedAt: user.updatedAt.toISOString(),   // ⭐ convert
+  };
+}
 
-  toProfileDTO(user: UserDocument): UserProfileResponseDTO {
-    return {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      imageUrl: user.imageUrl,
-    };
-  },
 
 };

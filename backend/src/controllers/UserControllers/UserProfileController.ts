@@ -3,19 +3,22 @@ import Messages from '../../enums/errorMessages';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { IUserService } from '../../interfaces/serviceInterfaces/user.Service.interface';
 import { handleError } from '../../util/handleError';
-import { AuthenticatedRequest } from '../../types/userType';
+import { AuthenticatedRequestt } from '../../types/userType';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
 import { UserMapper } from '../../mapper/user.mapper';
+import { AuthenticatedRequest } from '../../types/vendorTypes';
 class UserProfileController {
   private userService: IUserService;
   private vendorService: IVendorService;
+  private vendorManagementService:IVendorService
 
   constructor(userService: IUserService, vendorService: IVendorService) {
     this.userService = userService;
     this.vendorService = vendorService;
+    this.vendorManagementService = this.vendorService
   }
 
-  getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  getUserProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
     try {
       console.log('Inside getUserProfile');
       console.log('User ID:', req.user?._id);
@@ -36,7 +39,7 @@ class UserProfileController {
     }
   };
 
-  updateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  updateProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
     try {
       const { name, contactinfo } = req.body;
       const userId = req.user?._id;
@@ -62,11 +65,41 @@ class UserProfileController {
         userId,
         req.file || null,
       );
-      res.status(HTTP_statusCode.OK).json({ user });
+
+      if (!user) {
+  throw new Error("User not found after update");
+}
+
+      const userProfileDTO = UserMapper.toProfileDTO(user)
+      res.status(HTTP_statusCode.OK).json({ userProfileDTO });
     } catch (error) {
       handleError(res, error, 'updateProfile');
     }
   };
+
+
+     getAllVendors= async(req:Request , res:Response) : Promise<void> => {
+        try {
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 6
+            const search = req.query.search as string || '' ;
+            const status = req.query.status as string;
+            const result = await this.vendorService.getVendors(page, limit, search,status)
+
+            res.status(HTTP_statusCode.OK).json({
+                vendors: result.vendors,
+                totalPages : result.totalPages,
+                currentPage : page,
+                totalVendors : result.total
+            })
+
+        } catch (error) {
+            handleError(res,error,'getAllVendors')
+        }
+    }
+
+    
+    
 }
 
 export default UserProfileController;
