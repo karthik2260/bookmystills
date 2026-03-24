@@ -9,7 +9,8 @@ import { VendorData } from '../../types/vendorTypes';
 import { CATEGORIES, services } from "@/utils/utils";
 import { CarouselArrowProps,CarouselNavigationProps } from "@/utils/interface";
 import { getVendors } from "@/services/userAuthService";
-
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 const CAROUSEL_IMAGES = [
   '/images/caro1.jpg',
   '/images/caro2.jpg',
@@ -140,11 +141,12 @@ const handleProfileClick = useCallback(async () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => viewPorfolio(vendor._id)}
             >
-              <img
-                src={vendor.imageUrl || '/images/p5.jpg'}
-                alt={vendor.name}
-                className="w-full h-full object-cover transition-all duration-500 ease-out"
-              />
+             <LazyLoadImage
+  src={vendor.imageUrl || '/images/p5.jpg'}
+  alt={vendor.name}
+  effect="blur"
+  className="w-full h-full object-cover"
+/>
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end justify-center p-2 md:p-4">
                 <h3 className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center">
                   {vendor.name}
@@ -164,11 +166,12 @@ const handleProfileClick = useCallback(async () => {
             {services.slice(0,3).map((service, index) => (
               <div key={index} className="flex flex-col items-center">
                 <div className="w-full aspect-square mb-6 overflow-hidden border border-gray-200">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-full object-cover"
-                  />
+                 <LazyLoadImage
+  src={service.image}
+  alt={service.title}
+  effect="blur"
+  className="w-full h-full object-cover"
+/>
                 </div>
                 <h3 className="text-xl font-serif font-light mb-4 text-gray-900">{service.title}</h3>
                 <p className="text-sm text-center text-gray-600 max-w-xs">{service.description}</p>
@@ -254,9 +257,10 @@ const handleProfileClick = useCallback(async () => {
         >
           {/* Image — sharp rectangle, no border-radius */}
           <div style={{ position: 'relative', width: '100%', height: '300px', overflow: 'hidden' }}>
-            <img
+            <LazyLoadImage
               src={category.image}
               alt={category.title}
+              loading="lazy"
               style={{
                 width: '100%', height: '100%', objectFit: 'cover',
                 transition: 'transform 0.7s cubic-bezier(0.23, 1, 0.32, 1)',
@@ -312,7 +316,7 @@ const handleProfileClick = useCallback(async () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <button
                 onClick={handleProfileClick}
-                style={{
+                style={{  
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: '10px', fontWeight: 500,
                   letterSpacing: '0.35em', textTransform: 'uppercase',
@@ -394,11 +398,12 @@ const handleProfileClick = useCallback(async () => {
             {services.slice(3,6).map((service, index) => (
               <div key={index} className="flex flex-col items-center">
                 <div className="w-full aspect-square mb-6 overflow-hidden border border-gray-200">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-full object-cover"
-                  />
+                 <LazyLoadImage
+  src={service.image}
+  alt={service.title}
+  effect="blur"
+  className="w-full h-full object-cover"
+/>
                 </div>
                 <h3 className="text-xl font-serif font-light mb-4 text-gray-900">{service.title}</h3>
                 <p className="text-sm text-center text-gray-600 max-w-xs">{service.description}</p>

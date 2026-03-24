@@ -7,7 +7,8 @@ import { sendEmail } from '../../util/sendEmail';
 import mongoose from 'mongoose';
 import { emailTemplates } from '../../util/emailTemplates';
 import Messages from '../../enums/errorMessages';
-export class UserPasswordService {
+import { IUserPasswordService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserPassword.service.interface';
+export class UserPasswordService implements IUserPasswordService {
   private userRepository: IUserRepository;
 
   constructor(userRepository: IUserRepository) {

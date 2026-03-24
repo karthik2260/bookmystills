@@ -13,8 +13,8 @@ export const forgotPassword = (email:string) => {
     return axiosInstance.post('/forgot-password',{email})
 }
 
-export const googleLogin = (credential: string) => {
-  return axiosInstance.post('/google/login', { credential });
+export const googleAuth = (credential: string) => {
+  return axiosInstance.post('/google/auth', { credential });
 };
 
 
@@ -22,9 +22,7 @@ export const signupUser = (data:UserFormValues) => {
     return axiosInstance.post('/signup',data)
 }
 
-export const googleRegister = (Credential:string) => {
-    return axiosInstance.post('/google/register',{Credential})
-}
+
 
 
 export const logoutUser = () => {

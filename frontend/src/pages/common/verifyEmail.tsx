@@ -66,69 +66,68 @@ const VerifyEmail = () => {
     startTimer();
   }, [navigate]);
 
-  const handleVerify = async (values: FormValues, { setSubmitting, setFieldError }: FormikHelpers<FormValues>) => {
-    setIsLoading(true);
-    try {
-      const response = await axiosSessionInstance.post('/verify', { otp: values.otp });
+ const handleVerify = async (values: FormValues, { setSubmitting, setFieldError }: FormikHelpers<FormValues>) => {
+  setIsLoading(true);
+  try {
+    const response = await axiosSessionInstance.post('/verify', { otp: values.otp });
+    
+    if (response.status === 201) {
       showToastMessage(response.data.message, 'success');
-      if (response.data.user) {
-        localStorage.removeItem('otpData');
-        navigate('/login');
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || 'Invalid OTP';
-        setFieldError('otp', errorMessage); // Set field error for formik
-        showToastMessage(errorMessage, 'error'); // Display toast message
-        if (error.response?.status === 400 && errorMessage === 'Session expired. Please sign up again.') {
-          setTimeout(() => {
-            navigate('/signup');
-          }, 2000);
-        }
-      } else {
-        showToastMessage('An unexpected error occurred. Please try again.', 'error');
-      }
-
-    } finally {
-      setIsLoading(false);
-      setSubmitting(false);
+      localStorage.removeItem('otpData');
+      navigate('/login');
     }
-  };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || 'Invalid OTP';
+      setFieldError('otp', errorMessage);
+      showToastMessage(errorMessage, 'error');
+      if (error.response?.status === 400 && errorMessage === 'Session expired. Please sign up again.') {
+        setTimeout(() => navigate('/signup'), 2000);
+      }
+    } else {
+      showToastMessage('An unexpected error occurred. Please try again.', 'error');
+    }
+  } finally {
+    setIsLoading(false);
+    setSubmitting(false);
+  }
+};
 
-  const handleResend = async () => {
-    if (resendDisabled) return;
+const handleResend = async () => {
+  if (resendDisabled) return;
 
-    setIsLoading(true);
-    try {
-      const response = await axiosInstance.get('/resendOtp');
+  setIsLoading(true);
+  try {
+    const response = await axiosInstance.get('/resendOtp');
+
+    if (response.status === 200) {              // ✅ status code check
       const { otpExpiry, resendAvailableAt } = response.data;
 
       const otpData = JSON.parse(localStorage.getItem('otpData') || '{}');
       localStorage.setItem('otpData', JSON.stringify({
         ...otpData,
         otpExpiry,
-        resendAvailableAt
+        resendAvailableAt,
       }));
+
       showToastMessage(response.data.message, 'success');
       setTimeLeft(Math.floor((otpExpiry - Date.now()) / 1000));
       setResendDisabled(true);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message ||
-          'An error occurred while processing your request';
-        showToastMessage(errorMessage, 'error');
-      } else {
-        console.error('Failed to resend OTP:', error);
-        showToastMessage('An unexpected error occurred. Please try again.', 'error');
-      }
-
-    } finally {
-      setIsLoading(false);
     }
-  };
-
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'An error occurred while processing your request';
+      showToastMessage(errorMessage, 'error');
+    } else {
+      showToastMessage('An unexpected error occurred. Please try again.', 'error');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

@@ -9,17 +9,20 @@ export default async function generateOTP(email: string): Promise<string> {
     console.log('Generated OTP:', otpCode);
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD?.replace(/\s/g, ''),
-      },
-      logger: true,
-      debug: true,
-    });
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  requireTLS: true,
+  auth: {
+    user: process.env.USER_EMAIL,
+    pass: process.env.USER_PASSWORD?.replace(/\s/g, ''),
+  },
+  tls: {
+    rejectUnauthorized: false, 
+  },
+  logger: true,
+  debug: true,
+});
 
     await transporter.verify(); 
     console.log('SMTP connection successfull 📈');

@@ -3,8 +3,9 @@ import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { UserDocument } from '../../models/userModel';
 import { BlockStatus } from '../../enums/commonEnums';
+import { IUserManagementService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserManagement.service.interface';
 
-export class UserManagementService {
+export class UserManagementService implements IUserManagementService {
   private userRepository: IUserRepository;
 
   constructor(userRepository: IUserRepository) {

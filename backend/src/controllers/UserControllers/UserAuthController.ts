@@ -11,8 +11,14 @@ import jwt from 'jsonwebtoken';
 import { AuthenticatedRequestt } from '../../types/userType';
 import Jwt from 'jsonwebtoken';
 
-
-import { ChangePasswordRequestDTO,ChangePasswordRequestDTOO,ForgotPasswordRequestDTO,LoginRequestDTO,SignupRequestDTO } from '../../dto/userRequest.dto';
+import { SendOtpResponseDTO } from '../../dto/user/auth/response/sendotp.response.dto';
+import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto';
+import { VerifyOtpRequestDTO } from '../../dto/user/auth/request/verify.otp.request.dto';
+import { VerifyOtpResponseDTO } from '../../dto/user/auth/response/verify.otp.response.dto';
+import { ResendOtpResponseDTO } from '../../dto/user/auth/response/resend.otp.response.dto';
+import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
+import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
+import { RefreshTokenResponseDTO } from '../../dto/user/auth/response/refreshtoken.dto';
 
 declare module 'express-session' {
   interface Session {
@@ -27,69 +33,66 @@ class UserAuthController {
     this.userService = userService;
   }
 
-  UserSignup = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const signupDto: SignupRequestDTO = req.body;
-      const { email, password, name, contactinfo } = signupDto;
-      const otpCode = await generateOTP(email);
+ UserSignup = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const signupDto = new SignupRequestDTO(req.body); 
 
-      if (otpCode !== undefined) {
-        const otpSetTimestamp = Date.now();
-        const userData: IUserSession = {
-          email: email,
-          password: password,
-          name: name,
-          contactinfo: contactinfo,
-          otpCode: otpCode,
-          otpSetTimestamp,
-          otpExpiry: otpSetTimestamp + OTP_EXPIRY_TIME,
-          resendTimer: otpSetTimestamp + RESEND_COOLDOWN,
-        };
+    const { email, password, name, contactinfo } = signupDto;
 
-        req.session.user = userData;
-        req.session.save((err) => {
-          if (err) {
-            console.error('session save error', err);
-            throw new CustomError(Messages.SAVE_SESSION, HTTP_statusCode.InternalServerError);
-          }
-          res.status(HTTP_statusCode.OK).json({
-            message: Messages.OTP_SENT,
-            email: email,
-            otpExpiry: userData.otpExpiry,
-            resendAvailableAt: userData.resendTimer,
-          });
+
+    const otpCode = await generateOTP(email);
+    if (otpCode !== undefined) {
+      const otpSetTimestamp = Date.now();
+      const userData: IUserSession = {
+        email, password, name, contactinfo,
+        otpCode,
+        otpSetTimestamp,
+        otpExpiry:   otpSetTimestamp + OTP_EXPIRY_TIME,
+        resendTimer: otpSetTimestamp + RESEND_COOLDOWN,
+      };
+
+      req.session.user = userData;
+      req.session.save((err) => {
+        if (err) throw new CustomError(Messages.SAVE_SESSION, HTTP_statusCode.InternalServerError);
+
+        const response = new SendOtpResponseDTO({ 
+          message:           Messages.OTP_SENT,
+          otpExpiry:         userData.otpExpiry,
+          resendAvailableAt: userData.resendTimer,
         });
-      } else {
-        throw new CustomError(Messages.GENERATE_OTP, HTTP_statusCode.InternalServerError);
-      }
-    } catch (error) {
-      handleError(res, error, 'UserSignup');
-    }
-  };
-
-  Login = async (req: Request, res: Response) => {
-    try {
-      const loginDto: LoginRequestDTO = req.body;
-      const serviceResponse = await this.userService.login(loginDto);
-
-      res.cookie('refreshToken', serviceResponse.refreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
-});
-
-      res.status(HTTP_statusCode.OK).json({
-        token: serviceResponse.token,
-        user: serviceResponse.user,
-        
-
-        message: serviceResponse.message,
+        res.status(HTTP_statusCode.OK).json(response);
       });
-
-    } catch (error) {
-      handleError(res, error, 'Login');
+    } else {
+      throw new CustomError(Messages.GENERATE_OTP, HTTP_statusCode.InternalServerError);
     }
-  };
+  } catch (error) {
+    handleError(res, error, 'UserSignup');
+  }
+};
+
+ Login = async (req: Request, res: Response) => {
+  try {
+    const loginDto = new LoginRequestDTO(req.body);  
+    const serviceResponse = await this.userService.login(loginDto);
+
+    res.cookie('refreshToken', serviceResponse.refreshToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge:   parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+    });
+
+    const response = new LoginResponseDTO({
+      token:   serviceResponse.token,
+      user:    serviceResponse.user,
+      message: serviceResponse.message,
+    });
+    res.status(HTTP_statusCode.OK).json(response);
+
+  } catch (error) {
+    handleError(res, error, 'Login');
+  }
+};
 
   UserLogout = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -105,133 +108,134 @@ class UserAuthController {
   };
 
   VerifyOTP = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { otp } = req.body;
-      const userData = req.session.user;
+  try {
+    const { otp } = new VerifyOtpRequestDTO(req.body); 
+    const userData = req.session.user;
 
-      if (!userData) {
-        throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
-      }
-      const currentTime = Date.now();
-
-      if (currentTime > userData.otpExpiry) {
-        throw new CustomError(Messages.OTP_EXPIRED, HTTP_statusCode.BadRequest);
-      }
-
-      if (otp === userData.otpCode) {
-        const signupDto: SignupRequestDTO = {
-          email: userData.email,
-          password: userData.password,
-          name: userData.name,
-          contactinfo: userData.contactinfo,
-        };
-        const user = await this.userService.signup(signupDto);
-
-        delete req.session.user;
-        req.session.save((err) => {
-          if (err) console.error('Error saving session after clearing user data:', err);
-        });
-
-        res.status(201).json({ user, message: Messages.ACCOUNT_CREATED });
-      } else {
-        throw new CustomError(Messages.INVALID_OTP, HTTP_statusCode.BadRequest);
-      }
-    } catch (error) {
-      handleError(res, error, 'VerifyOTP');
+    if (!userData) {
+      throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
     }
-  };
-
-  ResendOtp = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const userData: IUserSession | undefined = req.session.user;
-      if (!userData) {
-        throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
-      }
-      const currentTime = Date.now();
-      if (currentTime < userData.resendTimer) {
-        const waitTime = Math.ceil((userData.resendTimer - currentTime) / 1000);
-        throw new CustomError(`Please wait ${waitTime} seconds before requesting new OTP`, 429);
-      }
-      const newOtp: string = await this.userService.resendNewOtp(userData.email);
-
-      req.session.user = {
-        ...userData,
-        otpCode: newOtp,
-        otpSetTimestamp: currentTime,
-        otpExpiry: currentTime + OTP_EXPIRY_TIME,
-        resendTimer: currentTime + RESEND_COOLDOWN,
-      };
-
-      res.status(HTTP_statusCode.OK).json({
-        message: 'New OTP sent to email',
-        otpExpiry: currentTime + OTP_EXPIRY_TIME,
-        resendAvailableAt: currentTime + RESEND_COOLDOWN,
-      });
-    } catch (error) {
-      handleError(res, error, 'ResendOtp');
+    if (Date.now() > userData.otpExpiry) {
+      throw new CustomError(Messages.OTP_EXPIRED, HTTP_statusCode.BadRequest);
     }
-  };
+    if (otp !== userData.otpCode) {
+      throw new CustomError(Messages.INVALID_OTP, HTTP_statusCode.BadRequest);
+    }
+
+    const signupDto = new SignupRequestDTO({
+      email:       userData.email,
+      password:    userData.password,
+      name:        userData.name,
+      contactinfo: userData.contactinfo,
+    });
+
+    await this.userService.signup(signupDto);
+
+    delete req.session.user;
+    req.session.save((err) => {
+      if (err) console.error('Error saving session after clearing user data:', err);
+    });
+
+    const response = new VerifyOtpResponseDTO(Messages.ACCOUNT_CREATED); 
+    res.status(201).json(response);
+
+  } catch (error) {
+    handleError(res, error, 'VerifyOTP');
+  }
+};
+ ResendOtp = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userData = req.session.user;
+    if (!userData) {
+      throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
+    }
+
+    const currentTime = Date.now();
+    if (currentTime < userData.resendTimer) {
+      const waitTime = Math.ceil((userData.resendTimer - currentTime) / 1000);
+      throw new CustomError(`Please wait ${waitTime} seconds before requesting new OTP`, 429);
+    }
+
+    const newOtp = await this.userService.resendNewOtp(userData.email);
+
+    req.session.user = {
+      ...userData,
+      otpCode:         newOtp,
+      otpSetTimestamp: currentTime,
+      otpExpiry:       currentTime + OTP_EXPIRY_TIME,
+      resendTimer:     currentTime + RESEND_COOLDOWN,
+    };
+
+    const response = new ResendOtpResponseDTO({ 
+      message:           'New OTP sent to email',
+      otpExpiry:         currentTime + OTP_EXPIRY_TIME,
+      resendAvailableAt: currentTime + RESEND_COOLDOWN,
+    });
+    res.status(HTTP_statusCode.OK).json(response);
+  } catch (error) {
+    handleError(res, error, 'ResendOtp');
+  }
+};
 
   create_RefreshToken = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
-        throw new CustomError(Messages.NO_REFRESHTOKEN, 401);
-      }
-
-      try {
-        const newAccessToken = await this.userService.create_RefreshToken(refreshToken);
-        res.status(HTTP_statusCode.OK).json({ token: newAccessToken });
-      } catch (error) {
-        if (error instanceof jwt.TokenExpiredError) {
-          res.clearCookie('refreshToken');
-          throw new CustomError(Messages.REFRESHTOKEN_EXP, 401);
-        }
-        throw error;
-      }
-    } catch (error) {
-      handleError(res, error, 'CreateRefreshToken');
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      throw new CustomError(Messages.NO_REFRESHTOKEN, 401);
     }
-  };
+
+    try {
+      const newAccessToken = await this.userService.create_RefreshToken(refreshToken);
+
+      const response = new RefreshTokenResponseDTO(newAccessToken);
+      res.status(HTTP_statusCode.OK).json(response);
+
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        res.clearCookie('refreshToken');
+        throw new CustomError(Messages.REFRESHTOKEN_EXP, 401);
+      }
+      throw error;
+    }
+  } catch (error) {
+    handleError(res, error, 'CreateRefreshToken');
+  }
+};
 
   forgotPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const forgotDTO: ForgotPasswordRequestDTO = req.body;
+  try {
+    const email = req.body.email?.trim().toLowerCase();
 
-      if (!forgotDTO.email) {
-        throw new CustomError(Messages.EMAIL_REQUIRED, HTTP_statusCode.BadRequest);
-      }
-      await this.userService.handleForgotPassword(forgotDTO.email);
-      res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_LINK });
-    } catch (error) {
-      handleError(res, error, 'forgotPassword');
+    if (!email) {
+      throw new CustomError(Messages.EMAIL_REQUIRED, HTTP_statusCode.BadRequest);
     }
-  };
+
+    await this.userService.handleForgotPassword(email);
+    res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_LINK });
+  } catch (error) {
+    handleError(res, error, 'forgotPassword');
+  }
+};
 
   changeForgotPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const changePasswordDto: ChangePasswordRequestDTO = {
-        token: req.params.token,
-        password: req.body.password,
-      };
+  try {
+    const token    = req.params.token;
+    const password = req.body.password?.trim();
 
-      if (!changePasswordDto.token) {
-        throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
-      }
-
-      if (!changePasswordDto.password) {
-        throw new CustomError(Messages.PASSWORD_REQUIRED, HTTP_statusCode.BadRequest);
-      }
-
-      await this.userService.newPasswordChange(changePasswordDto.token, changePasswordDto.password);
-
-      res.status(HTTP_statusCode.OK).json({
-        message: Messages.PASSWORD_RESET_SUCCESS,
-      });
-    } catch (error) {
-      handleError(res, error, 'changePassword');
+    if (!token) {
+      throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
     }
-  };
+    if (!password) {
+      throw new CustomError(Messages.PASSWORD_REQUIRED, HTTP_statusCode.BadRequest);
+    }
+
+    await this.userService.newPasswordChange(token, password);
+
+    res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_SUCCESS });
+  } catch (error) {
+    handleError(res, error, 'changePassword');
+  }
+};
 
   validateResetToken = async (req: Request, res: Response): Promise<void> => {
     const { token } = req.params;
@@ -246,98 +250,69 @@ class UserAuthController {
     }
   };
 
-  changePassword = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
-    try {
-      const changePasswordDto: ChangePasswordRequestDTOO = req.body;
-      const { currentPassword, newPassword } = changePasswordDto;
+changePassword = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?._id;
 
-      const userId = req.user?._id;
-      if (!userId) {
-        res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
-        return;
-      }
-      await this.userService.passwordCheckUser(currentPassword, newPassword, userId);
-
-      res.status(HTTP_statusCode.OK).json({ message: 'Password reset successfully.' });
-    } catch (error) {
-      handleError(res, error, 'changePassword');
+    if (!userId) {
+      res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
+      return;
     }
-  };
-
-  googleSignUp = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { credential } = req.body;
-
-      const decodedData = Jwt.decode(credential) as IDecodedData;
-
-      if (!decodedData) {
-        throw new CustomError(Messages.INVALID_TOKEN, HTTP_statusCode.BadRequest);
-      }
-      const { name, email, sub: googleId }: IDecodedData = decodedData;
-
-      const user = await this.userService.googleSignup({ name, email, googleId });
-
-      if (user) {
-        res.status(HTTP_statusCode.OK).json({
-          success: true,
-          message: Messages.ACCOUNT_CREATED,
-          user,
-        });
-      }
-    } catch (error) {
-      handleError(res, error, 'googleSignUp');
+    if (!currentPassword || !newPassword) {
+      res.status(HTTP_statusCode.BadRequest).json({ message: Messages.PASSWORD_REQUIRED });
+      return;
     }
-  };
 
-  googleAuth = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { credential } = req.body;
-      const decodedToken = Jwt.decode(credential) as IDecodedData;
+    await this.userService.passwordCheckUser(currentPassword, newPassword, userId);
+    res.status(HTTP_statusCode.OK).json({ message: 'Password reset successfully.' });
+  } catch (error) {
+    handleError(res, error, 'changePassword');
+  }
+};
 
-      if (!decodedToken || !decodedToken.email) {
-        throw new CustomError('Invalid Google token', HTTP_statusCode.BadRequest);
-      }
+  
 
-      const googleUserData: GoogleUserData = {
-        email: decodedToken.email,
-        name: decodedToken.name,
-        googleId: decodedToken.sub,
-        picture: decodedToken.picture,
-      };
+ googleAuth = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { credential } = req.body;
+    const decodedToken = Jwt.decode(credential) as IDecodedData;
 
-      const { user, isNewUser, token, refreshToken } =
-        await this.userService.authenticateGoogleLogin(googleUserData);
-      if (user.isActive) {
-       res.cookie('refreshToken', refreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
-});
-
-        res.status(HTTP_statusCode.OK).json({
-          user,
-          token,
-          message: isNewUser
-            ? 'Successfully signed up with Google'
-            : 'Successfully logged in with Google',
-        });
-      } else {
-       res.cookie('jwtTokenAdmin', token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'), 
-});
-
-        res.status(HTTP_statusCode.OK).json({
-          user,
-          token,
-        });
-      }
-    } catch (error) {
-      handleError(res, error, 'googleAuth');
+    if (!decodedToken || !decodedToken.email) {
+      throw new CustomError('Invalid Google token', HTTP_statusCode.BadRequest);
     }
-  };
+
+    const googleUserData: GoogleUserData = {
+      email:    decodedToken.email,
+      name:     decodedToken.name,
+      googleId: decodedToken.sub,
+      picture:  decodedToken.picture,
+    };
+
+    const serviceResponse =
+      await this.userService.authenticateGoogleLogin(googleUserData);
+
+    // refreshToken → cookie only
+    res.cookie('refreshToken', serviceResponse.refreshToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge:   parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+    });
+
+    // ✅ no isActive check needed — service throws if user is blocked
+    res.status(HTTP_statusCode.OK).json({
+      token:   serviceResponse.token,
+      user:    serviceResponse.user,
+      message: serviceResponse.isNewUser
+        ? 'Successfully signed up with Google'
+        : 'Successfully logged in with Google',
+    });
+
+  } catch (error) {
+    handleError(res, error, 'googleAuth');
+  }
+ }
 }
 
 export default UserAuthController;

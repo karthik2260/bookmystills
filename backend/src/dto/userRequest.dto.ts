@@ -1,38 +1,12 @@
 import { UserDTO } from './userDTO';
 
-export interface SignupRequestDTO {
-  name: string;
-  email: string;
-  password: string;
-  contactinfo: string;
-}
 
-export interface LoginRequestDTO {
-  email: string;
-  password: string;
-}
 
-export interface SignupResponseDTO {
-  id: string;
-  name: string;
-  email: string;
-  contactinfo?: string;
-  imageUrl: string;
-}
 
-export interface ForgotPasswordRequestDTO {
-  email: string;
-}
 
-export interface ChangePasswordRequestDTO {
-  token: string;
-  password: string;
-}
 
-export interface ChangePasswordRequestDTOO {
-  currentPassword: string;
-  newPassword: string;
-}
+
+
 
 export interface GoogleSignupRequestDTO {
   credential: string;

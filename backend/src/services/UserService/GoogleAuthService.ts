@@ -2,56 +2,23 @@ import { IUserRepository } from '../../interfaces/repositoryInterfaces/user.repo
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { createAccessToken ,createRefreshToken } from '../../config/jwt.config';
-import { ILoginResponse } from '../../interfaces/commonInterfaces';
 import { GoogleUserData } from '../../interfaces/commonInterfaces';
 import { UserDocument } from '../../models/userModel';
 import { s3Service } from '../s3Service';
-import { UserMapper } from '../../mapper/user.mapper';
 import { AuthRole } from '../../enums/commonEnums';
-export class GoogleAuthService {
+import { UserMapper } from '../../mapper/user/user.mapper';
+import { IGoogleAuthService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/GoogleAuth.service.interface';
+import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
+export class GoogleAuthService implements IGoogleAuthService {
   private userRepository: IUserRepository;
 
   constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
   }
 
-  googleSignup = async ({email,name,googleId}:GoogleUserData): Promise<object> => {
-    try {
-      
+  
 
-      const existingUser = await this.userRepository.findByEmail(email);
-
-      if (existingUser) {
-        if (existingUser.isGoogleUser) {
-          return UserMapper.toDTO(existingUser);
-        } else {
-          throw new CustomError(
-            'Email already registered with different method',
-            HTTP_statusCode.Conflict,
-          );
-        }
-      }
-
-      const newUser = await this.userRepository.create({
-        email,
-        googleId,
-        name,
-        isActive: true,
-        isGoogleUser: true,
-      });
-
-     
-      return {user:newUser}
-    } catch (error) {
-      console.error('Error in signup using google', error);
-      if (error instanceof CustomError) {
-        throw error;
-      }
-      throw new CustomError('Failed to SignIn using Google', HTTP_statusCode.InternalServerError);
-    }
-  };
-
-  authenticateGoogleLogin = async (userData: GoogleUserData): Promise<ILoginResponse> => {
+  authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthServiceResult> => {
     try {
       const existingUser = await this.userRepository.findByEmail(userData.email);
       let user: UserDocument;
@@ -109,14 +76,14 @@ export class GoogleAuthService {
 
       user.refreshToken = refreshToken;
       await user.save();
-
+const userDTO = UserMapper.toLoginDTO(userWithSignedUrl as UserDocument)
 
       return {
-        user: userWithSignedUrl,
-        isNewUser,
-        token,
-        refreshToken,
-        message: 'Google authenticate successfull',
+           token,
+      refreshToken,
+      user:      userDTO,
+      isNewUser,
+      message:   'Google authenticate successful',
       };
     } catch (error) {
       console.error('Error in Google authentication:', error);

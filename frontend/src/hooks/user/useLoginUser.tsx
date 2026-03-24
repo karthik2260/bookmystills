@@ -14,7 +14,7 @@ import { USER } from '../../config/constants/constants';
 import { loginValidationSchema } from '../../validations/common/loginValidate';
 import { setUserInfo } from '../../redux/slices/UserSlice';
 import UserRootState from '@/redux/rootstate/UserState';
-import { loginUser,forgotPassword,googleLogin } from '@/services/userAuthService';
+import { loginUser,forgotPassword, googleAuth } from '@/services/userAuthService';
 
 
 interface FormValues {
@@ -110,7 +110,7 @@ export const useLoginUser = () => {
 
    const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
         
-  googleLogin(credentialResponse.credential!)
+  googleAuth(credentialResponse.credential!)
             .then((response) => {
                 localStorage.setItem('userToken', response.data.token);                
                 dispatch(setUserInfo(response.data.user));

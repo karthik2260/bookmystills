@@ -4,7 +4,8 @@ import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { UserDocument } from '../../models/userModel';
 import { s3Service } from '../s3Service';
-export class UserProfileService {
+import { IUserProfileService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserProfile.service.interface';
+export class UserProfileService implements IUserProfileService {
   private userRepository: IUserRepository;
 
   constructor(userRepository: IUserRepository) {

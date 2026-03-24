@@ -79,13 +79,7 @@ export interface IUserSession {
   resendTimer: number;
 }
 
-export interface ILoginResponse {
-  user: UserDTO;
-  message: string;
-  isNewUser: boolean;
-  token: string;
-  refreshToken: string;
-}
+
 
 export interface GoogleUserData {
   email: string;

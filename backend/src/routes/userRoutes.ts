@@ -48,8 +48,7 @@ router.put(
   userAuthController.changePassword.bind(userAuthController),
 );
 
-router.post('/google/register', userAuthController.googleSignUp.bind(userAuthController));
-router.post('/google/login', userAuthController.googleAuth.bind(userAuthController));
+router.post('/google/auth', userAuthController.googleAuth.bind(userAuthController));
 
 router.get(
   '/profile',

@@ -29,11 +29,11 @@ export const authenticateToken: RequestHandler = (
     };
     next();
   } catch (err) {
-    // ✅ Return proper 401 with expired flag
+
     if (err instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ 
         message: 'Token expired',
-        expired: true  // ← this triggers your axios interceptor refresh logic
+        expired: true  
       });
     }
     return res.status(401).json({ message: 'Invalid token' });
