@@ -96,6 +96,7 @@ export interface BookingFormData {
   noOfDays: number;
   message: string;
   selectedDate: string;
+  
 
 }
 export interface ValidationError {

@@ -10,7 +10,6 @@ enum HTTP_statusCode {
   Expired = 410,
   InternalServerError = 500,
   ServiceUnavailable = 503,
-   
 }
 
 export default HTTP_statusCode;

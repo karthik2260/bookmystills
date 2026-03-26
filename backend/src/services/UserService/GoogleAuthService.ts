@@ -1,7 +1,7 @@
 import { IUserRepository } from '../../interfaces/repositoryInterfaces/user.repository.interface';
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
-import { createAccessToken ,createRefreshToken } from '../../config/jwt.config';
+import { createAccessToken, createRefreshToken } from '../../config/jwt.config';
 import { GoogleUserData } from '../../interfaces/commonInterfaces';
 import { UserDocument } from '../../models/userModel';
 import { s3Service } from '../s3Service';
@@ -15,8 +15,6 @@ export class GoogleAuthService implements IGoogleAuthService {
   constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
   }
-
-  
 
   authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthServiceResult> => {
     try {
@@ -57,7 +55,7 @@ export class GoogleAuthService implements IGoogleAuthService {
           if (isExternalUrl) {
             userWithSignedUrl = {
               ...userWithSignedUrl,
-              imageUrl: user.imageUrl, 
+              imageUrl: user.imageUrl,
             };
           } else {
             const signedImageUrl = await s3Service.getFile('photo/', user.imageUrl);
@@ -71,19 +69,19 @@ export class GoogleAuthService implements IGoogleAuthService {
         }
       }
 
-      const token = createAccessToken(user._id.toString(),AuthRole.USER);
+      const token = createAccessToken(user._id.toString(), AuthRole.USER);
       const refreshToken = createRefreshToken(user._id.toString());
 
       user.refreshToken = refreshToken;
       await user.save();
-const userDTO = UserMapper.toLoginDTO(userWithSignedUrl as UserDocument)
+      const userDTO = UserMapper.toLoginDTO(userWithSignedUrl as UserDocument);
 
       return {
-           token,
-      refreshToken,
-      user:      userDTO,
-      isNewUser,
-      message:   'Google authenticate successful',
+        token,
+        refreshToken,
+        user: userDTO,
+        isNewUser,
+        message: 'Google authenticate successful',
       };
     } catch (error) {
       console.error('Error in Google authentication:', error);

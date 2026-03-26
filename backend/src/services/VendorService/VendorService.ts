@@ -2,8 +2,20 @@ import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
 import { AcceptanceStatus, BlockStatus, ServiceProvided } from '../../enums/commonEnums';
 import jwt from 'jsonwebtoken';
-import { CustomizationOption, FindAllVendorsResult,IVendorLoginResponse,VendorDetailsWithAll,VendorSession } from '../../interfaces/commonInterfaces';
-import { VendorLoginRequestDTO,VendorProfileResponseDTO,VendorSignUpRequestDTO,VendorSignupResponseDTO,VendorUpdateProfileResponseDTO } from '../../dto/vendorDTO';
+import {
+  CustomizationOption,
+  FindAllVendorsResult,
+  IVendorLoginResponse,
+  VendorDetailsWithAll,
+  VendorSession,
+} from '../../interfaces/commonInterfaces';
+import {
+  VendorLoginRequestDTO,
+  VendorProfileResponseDTO,
+  VendorSignUpRequestDTO,
+  VendorSignupResponseDTO,
+  VendorUpdateProfileResponseDTO,
+} from '../../dto/vendorDTO';
 import { VendorAuthService } from './VendorAuthService';
 import { VendorPasswordService } from './VendorPasswordService';
 import { VendorProfileService } from './VendorProfileService';
@@ -27,23 +39,17 @@ class VendorService implements IVendorService {
     this.profileService = new VendorProfileService(vendorRepository);
     this.managementService = new VendorManagementService(vendorRepository);
     this.availabilityService = new VendorAvailabilityService(vendorRepository);
-
-
   }
 
-  registerVendor = async (data: 
-   VendorSignUpRequestDTO
-  ): Promise<VendorSession> => {
+  registerVendor = async (data: VendorSignUpRequestDTO): Promise<VendorSession> => {
     return this.authService.registerVendor(data);
   };
 
-  signup = async (
-   data:VendorSignUpRequestDTO
-  ): Promise<{ vendor: VendorSignupResponseDTO }> => {
+  signup = async (data: VendorSignUpRequestDTO): Promise<{ vendor: VendorSignupResponseDTO }> => {
     return this.authService.signup(data);
   };
 
-  login = async (loginDto:VendorLoginRequestDTO): Promise<IVendorLoginResponse> => {
+  login = async (loginDto: VendorLoginRequestDTO): Promise<IVendorLoginResponse> => {
     return this.authService.login(loginDto);
   };
 
@@ -71,10 +77,7 @@ class VendorService implements IVendorService {
     return this.passwordService.passwordCheckVendor(currentPassword, newPassword, vendorId);
   };
 
-
-  getVendorProfileService = async (
-    vendorId: string
-  ): Promise<VendorProfileResponseDTO> => {
+  getVendorProfileService = async (vendorId: string): Promise<VendorProfileResponseDTO> => {
     return this.profileService.getVendorProfileService(vendorId);
   };
 
@@ -87,7 +90,15 @@ class VendorService implements IVendorService {
     files: Express.Multer.File | null,
     vendorId: any,
   ): Promise<VendorUpdateProfileResponseDTO> => {
-    return this.profileService.updateProfileService(name, contactinfo, companyName, city, about, files, vendorId);
+    return this.profileService.updateProfileService(
+      name,
+      contactinfo,
+      companyName,
+      city,
+      about,
+      files,
+      vendorId,
+    );
   };
 
   getVendors = async (
@@ -108,48 +119,49 @@ class VendorService implements IVendorService {
   };
 
   getAllDetails = async (vendorId: string): Promise<VendorDetailsWithAll> => {
-  return this.managementService.getAllDetails(vendorId);
-};
+    return this.managementService.getAllDetails(vendorId);
+  };
   SVendorBlockUnblock = async (vendorId: string): Promise<BlockStatus> => {
-  return this.managementService.SVendorBlockUnblock(vendorId);
-};
+    return this.managementService.SVendorBlockUnblock(vendorId);
+  };
 
-addDates = async (dates: string[], vendorId: string): Promise<{
-  success: boolean;
-  message: string;
-  addedDates: string[];
-  alreadyBookedDates: string[];
-}> => {
-  return this.availabilityService.addDates(dates, vendorId);
-};
+  addDates = async (
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    addedDates: string[];
+    alreadyBookedDates: string[];
+  }> => {
+    return this.availabilityService.addDates(dates, vendorId);
+  };
 
-showDates = async (vendorId: string): Promise<VendorDocument | null> => {
-  return this.availabilityService.showDates(vendorId);
-};
+  showDates = async (vendorId: string): Promise<VendorDocument | null> => {
+    return this.availabilityService.showDates(vendorId);
+  };
 
-removeDates = async (dates: string[], vendorId: string): Promise<{
-  success: boolean;
-  removedDates: string[];
-}> => {
-  return this.availabilityService.removeDates(dates, vendorId);
-};
+  removeDates = async (
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
+    success: boolean;
+    removedDates: string[];
+  }> => {
+    return this.availabilityService.removeDates(dates, vendorId);
+  };
 
-reapplyVendor = async (
-  vendorId: string,
-  files?: {
-    portfolioImages?: Express.Multer.File[];
-    aadharFront?: Express.Multer.File[];
-    aadharBack?: Express.Multer.File[];
-  }
-) => {
-  return this.authService.reapplyVendor(vendorId, files);
+  reapplyVendor = async (
+    vendorId: string,
+    files?: {
+      portfolioImages?: Express.Multer.File[];
+      aadharFront?: Express.Multer.File[];
+      aadharBack?: Express.Multer.File[];
+    },
+  ) => {
+    return this.authService.reapplyVendor(vendorId, files);
+  };
 }
-
-
-
-
-}
-
 
 function toTitleCase(city: string): string {
   return city
@@ -160,8 +172,6 @@ function toTitleCase(city: string): string {
     })
     .join(' ');
 }
-
-
 
 function isTokenExpiringSoon(token: string): boolean {
   try {

@@ -6,20 +6,18 @@ import fs from 'fs';
 const logDirectory = path.join(__dirname, '../logs');
 
 if (!fs.existsSync(logDirectory)) {
-fs.mkdirSync(logDirectory, { recursive: true });}
-
+  fs.mkdirSync(logDirectory, { recursive: true });
+}
 
 export const accessLogStream = rfs.createStream('access.log', {
   interval: '1d',
   path: logDirectory,
-  maxFiles: 7
+  maxFiles: 7,
 });
-
-
 
 export const errorLogStream = rfs.createStream('error.log', {
   interval: '1d',
   path: logDirectory,
   maxFiles: 7,
-  compress:'gzip'
+  compress: 'gzip',
 });

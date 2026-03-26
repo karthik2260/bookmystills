@@ -1,4 +1,4 @@
-import { SortableTableVendor } from "@/components/admin/vendorList/vendortable"
+import {  VendorTable } from "@/components/admin/vendorList/vendortable"
 
 
 
@@ -6,7 +6,7 @@ const VendorList = () => {
     return (
         <>
         <div className="p-4">
-            <SortableTableVendor/>
+            <VendorTable/>
 
         </div>
         

@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { axiosInstance, axiosSessionInstanceV } from '@/config/api/axiosinstance';
 import { showToastMessage } from '../../validations/common/toast';
 import { VENDOR } from '../../config/constants/constants';
 import { Sparkles, ShieldCheck, Clock } from 'lucide-react';
-
+import { verifyVendorOtpApi,resendVendorOtpApi } from '@/services/Verifyemailvendorapi';
 const images = [
   '/images/login.webp',
   '/images/event1.jpg',
@@ -33,7 +32,6 @@ const VerifyEmailVendor = () => {
   const [resendDisabled, setResendDisabled] = useState(false);
   const navigate = useNavigate();
 
-  // Image rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setImageIndex((prev) => (prev + 1) % images.length);
@@ -41,7 +39,6 @@ const VerifyEmailVendor = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // OTP timer
   useEffect(() => {
     const otpData = localStorage.getItem('otpData');
     if (!otpData) {
@@ -50,8 +47,8 @@ const VerifyEmailVendor = () => {
     }
 
     const { otpExpiry, resendAvailableAt } = JSON.parse(otpData);
-
     const now = Date.now();
+
     if (otpExpiry > now) {
       setTimeLeft(Math.floor((otpExpiry - now) / 1000));
       setResendDisabled(resendAvailableAt > now);
@@ -81,9 +78,9 @@ const VerifyEmailVendor = () => {
   ) => {
     setIsLoading(true);
     try {
-      const response = await axiosSessionInstanceV.post('/verify-email', { otp: values.otp });
-      showToastMessage(response.data.message, 'success');
-      if (response.data.vendor) {
+      const data = await verifyVendorOtpApi(values.otp);
+      showToastMessage(data.message, 'success');
+      if (data.vendor) {
         localStorage.removeItem('otpData');
         navigate(`${VENDOR.LOGIN}`);
       }
@@ -108,12 +105,15 @@ const VerifyEmailVendor = () => {
     if (resendDisabled) return;
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get('/resendOtp');
-      const { otpExpiry, resendAvailableAt } = response.data;
+      const data = await resendVendorOtpApi();
       const otpData = JSON.parse(localStorage.getItem('otpData') || '{}');
-      localStorage.setItem('otpData', JSON.stringify({ ...otpData, otpExpiry, resendAvailableAt }));
-      showToastMessage(response.data.message, 'success');
-      setTimeLeft(Math.floor((otpExpiry - Date.now()) / 1000));
+      localStorage.setItem('otpData', JSON.stringify({
+        ...otpData,
+        otpExpiry: data.otpExpiry,
+        resendAvailableAt: data.resendAvailableAt,
+      }));
+      showToastMessage(data.message, 'success');
+      setTimeLeft(Math.floor((data.otpExpiry - Date.now()) / 1000));
       setResendDisabled(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -135,7 +135,6 @@ const VerifyEmailVendor = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Timer progress percentage
   const timerPercent = timeLeft && timeLeft > 0 ? Math.min((timeLeft / 120) * 100, 100) : 0;
 
   return (
@@ -152,7 +151,6 @@ const VerifyEmailVendor = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
 
-        {/* Logo */}
         <div className="relative z-10 flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <Sparkles size={18} className="text-white" />
@@ -160,7 +158,6 @@ const VerifyEmailVendor = () => {
           <span className="text-white font-semibold text-lg tracking-wide">bookmystills</span>
         </div>
 
-        {/* Hero copy */}
         <div className="relative z-10 space-y-4">
           <h1 className="text-4xl font-bold text-white leading-tight">
             One Step<br />Away From Access
@@ -183,9 +180,7 @@ const VerifyEmailVendor = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6 py-10">
         <div className="w-full max-w-md space-y-7">
 
-          {/* Header */}
           <div className="flex flex-col items-center text-center space-y-3">
-            {/* Icon badge */}
             <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
               <ShieldCheck size={32} className="text-blue-600" />
             </div>
@@ -198,7 +193,6 @@ const VerifyEmailVendor = () => {
             </div>
           </div>
 
-          {/* Formik Form */}
           <Formik
             initialValues={{ otp: '' }}
             validationSchema={validationSchema}
@@ -207,7 +201,6 @@ const VerifyEmailVendor = () => {
             {({ isSubmitting }) => (
               <Form className="space-y-5">
 
-                {/* OTP Input */}
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-700">Enter OTP</label>
                   <Field
@@ -227,7 +220,6 @@ const VerifyEmailVendor = () => {
                   />
                 </div>
 
-                {/* Timer */}
                 {timeLeft !== null && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
@@ -242,7 +234,6 @@ const VerifyEmailVendor = () => {
                         {timeLeft > 0 ? formatTime(timeLeft) : 'Expired'}
                       </span>
                     </div>
-                    {/* Progress bar */}
                     <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-1000 ${
@@ -255,7 +246,6 @@ const VerifyEmailVendor = () => {
                   </div>
                 )}
 
-                {/* Buttons */}
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -289,7 +279,6 @@ const VerifyEmailVendor = () => {
                   </button>
                 </div>
 
-                {/* Expired note */}
                 {timeLeft === 0 && (
                   <p className="text-center text-xs text-red-500">
                     Your OTP has expired. Please request a new one.

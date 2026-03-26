@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { Pagination } from '@nextui-org/react'
 import { PostData, ServiceProvided, PostStatus } from '../../types/postTypes'
-import { axiosInstance } from '@/config/api/axiosinstance'
 import { PostCard } from './PostCard'
 import { PostModal } from './PostModal'
 import { ServiceTabs } from '../common/ServiceTabs';
+import { fetchPostsAPI } from '@/services/serviceapi'
 
 
 export default function ShowAllPosts() {
@@ -22,30 +22,21 @@ export default function ShowAllPosts() {
         fetchPosts()
     }, [])
 
-    const fetchPosts = async () => {
-        setIsLoading(true)
-        try {
-            const token = localStorage.getItem('userToken')
-            const response = await axiosInstance.get('/viewposts', {
-                headers: { Authorization: `Bearer ${token}` },
-            })
+   const fetchPosts = async () => {
+  setIsLoading(true);
 
-            const publishedPosts = response.data.data.posts.filter(
-                (post: PostData) => post.status === PostStatus.Published && post.vendor.isActive
-            )
+  try {
+    const token = localStorage.getItem('userToken');
+    if (!token) throw new Error('User token not found');
 
-
-            if (Array.isArray(publishedPosts)) {
-                setAllPosts(publishedPosts)
-            } else {
-                console.error('Published posts is not an array:', publishedPosts)
-            }
-        } catch (error) {
-            console.error('Error fetching posts:', error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    const publishedPosts: PostData[] = await fetchPostsAPI(token);
+    setAllPosts(publishedPosts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     const filteredPosts = allPosts.filter(post => post.serviceType === selectedService)
 

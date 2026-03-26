@@ -1,11 +1,11 @@
 import { UserDocument } from '../../models/userModel';
-import { GoogleUserData, User } from '../commonInterfaces';
+import { GoogleUserData } from '../commonInterfaces';
 import { BlockStatus } from '../../enums/commonEnums';
 import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto';
 import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
-import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
 import { LoginServiceResult } from '../../dto/user/auth/response/login.service.result';
 import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
+import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';
 export interface IUserService {
   signup(signupDto: SignupRequestDTO): Promise<void>;
   login(loginDto: LoginRequestDTO): Promise<LoginServiceResult>;
@@ -16,14 +16,18 @@ export interface IUserService {
   validateToken(token: string): Promise<boolean>;
   passwordCheckUser(currentPassword: string, newPassword: string, userId: any): Promise<void>;
   authenticateGoogleLogin(userData: GoogleUserData): Promise<GoogleAuthServiceResult>;
-getUserProfileService(userId: string): Promise<UserDocument>;
- updateProfileService(
-  name?: string,
-  contactinfo?: string,
-  userId?: any,
-  files?: Express.Multer.File | null,
-): Promise<UserDocument | null>;
-  getUsers(page: number, limit: number, search: string, status?: string): Promise<{users: UserDocument[], total: number, totalPages: number}>;
-    SUserBlockUnblock(userId: string): Promise<BlockStatus>;
-
+  getUserProfileService(userId: string): Promise<UserDocument>;
+  updateProfileService(
+    name?: string,
+    contactinfo?: string,
+    userId?: unknown,
+    files?: Express.Multer.File | null,
+  ): Promise<UserDocument | null>;
+  getUsers(
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+  ): Promise<UserListServiceResult>;
+  SUserBlockUnblock(userId: string): Promise<BlockStatus>;
 }

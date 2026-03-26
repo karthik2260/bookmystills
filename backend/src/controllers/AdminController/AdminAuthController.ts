@@ -16,14 +16,12 @@ class AdminAuthController {
   constructor(adminService: IAdminService) {
     this.adminService = adminService;
   }
- adminLogin = async (req: Request<{},{},AdminLoginRequestDTO>, res: Response): Promise<void> => {
+  adminLogin = async (req: Request<{}, {}, AdminLoginRequestDTO>, res: Response): Promise<void> => {
     try {
-const adminloginreq : AdminLoginRequestDTO = req.body;
-      const { email, password } = adminloginreq
+      const adminloginreq: AdminLoginRequestDTO = req.body;
+      const { email, password } = adminloginreq;
       if (!email || !password) {
-        res
-          .status(HTTP_statusCode.BadRequest)
-          .json(Messages.EMAIL_PASSWORD_REQUIRED);
+        res.status(HTTP_statusCode.BadRequest).json(Messages.EMAIL_PASSWORD_REQUIRED);
         return;
       }
 
@@ -36,14 +34,12 @@ const adminloginreq : AdminLoginRequestDTO = req.body;
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: Number(process.env.COOKIE_MAX_AGE)
+        maxAge: Number(process.env.COOKIE_MAX_AGE),
       });
       res.status(HTTP_statusCode.OK).json({ refreshToken, token, adminData, message });
     } catch (error) {
       handleError(res, error, 'AdminLogin');
     }
-
-    
   };
 
   adminLogout = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -75,7 +71,7 @@ const adminloginreq : AdminLoginRequestDTO = req.body;
           res.clearCookie('jwtTokenAdmin');
           throw new CustomError(Messages.REFRESHTOKEN_EXP, HTTP_statusCode.Unauthorized);
         }
-        throw error;  
+        throw error;
       }
     } catch (error) {
       handleError(res, error, 'CreateRefreshToken');

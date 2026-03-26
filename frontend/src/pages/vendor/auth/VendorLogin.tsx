@@ -22,8 +22,7 @@ import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { IFormValues } from '@/utils/interface';
 import { vendorForgotPassword, vendorLogin } from '@/services/vendorAuthService';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-
+import { fetchVendorProfileStatusApi } from '@/services/Vendorloginapi';
 const initialValues: IFormValues = { email: '', password: '' };
 
 const images = [
@@ -102,47 +101,41 @@ const VendorLogin = () => {
     const formik = useFormik({
         initialValues,
         validationSchema: loginValidationSchema,
-      onSubmit: async (values) => {
-  if (Object.keys(formik.errors).length !== 0) {
-    showToastMessage('Please fix validation errors', 'error');
-    return;
-  }
-  try {
-    const response = await vendorLogin(values);
-    const token = response.data.token;
-    localStorage.setItem('vendorToken', token);
+        onSubmit: async (values) => {
+            if (Object.keys(formik.errors).length !== 0) {
+                showToastMessage('Please fix validation errors', 'error');
+                return;
+            }
+            try {
+                const response = await vendorLogin(values);
+                const token = response.data.token;
+                localStorage.setItem('vendorToken', token);
 
-    // ✅ Store vendor info from login response first
-    dispatch(setVendorInfo(response.data.vendor));
+                dispatch(setVendorInfo(response.data.vendor));
 
-    // ✅ Then fetch fresh status from DB to make sure Redux is accurate
-    try {
-      const profileResponse = await axiosInstanceVendor.get('/profile', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const freshVendor = profileResponse.data?.vendor ?? profileResponse.data;
-      if (freshVendor?.isAccepted) {
-        dispatch(updateVendorStatus({
-          isAccepted: freshVendor.isAccepted,
-          rejectionReason: freshVendor.rejectionReason ?? undefined,
-        }));
-      }
-    } catch (profileError) {
-      console.error('Profile fetch failed, using login data:', profileError);
-      // Falls back to login response data — still works
-    }
+                try {
+                    const profileStatus = await fetchVendorProfileStatusApi(token);
+                    if (profileStatus.isAccepted) {
+                        dispatch(updateVendorStatus({
+                            isAccepted: profileStatus.isAccepted,
+                            rejectionReason: profileStatus.rejectionReason,
+                        }));
+                    }
+                } catch (profileError) {
+                    console.error('Profile fetch failed, using login data:', profileError);
+                }
 
-    showToastMessage(response.data.message, 'success');
-    navigate(VENDOR.DASHBOARD);
+                showToastMessage(response.data.message, 'success');
+                navigate(VENDOR.DASHBOARD);
 
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToastMessage(error.response?.data?.message || 'Login failed', 'error');
-    } else {
-      showToastMessage('Unexpected error occurred', 'error');
-    }
-  }
-},
+            } catch (error: unknown) {
+                if (axios.isAxiosError(error)) {
+                    showToastMessage(error.response?.data?.message || 'Login failed', 'error');
+                } else {
+                    showToastMessage('Unexpected error occurred', 'error');
+                }
+            }
+        },
     });
 
     return (
@@ -157,10 +150,8 @@ const VendorLogin = () => {
                     backgroundPosition: 'center',
                 }}
             >
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
 
-                {/* Logo */}
                 <div className="relative z-10 flex items-center gap-2">
                     <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                         <Sparkles size={18} className="text-white" />
@@ -168,7 +159,6 @@ const VendorLogin = () => {
                     <span className="text-white font-semibold text-lg tracking-wide">bookmystills</span>
                 </div>
 
-                {/* Hero copy */}
                 <div className="relative z-10 space-y-4">
                     <h1 className="text-4xl font-bold text-white leading-tight">
                         Grow Your<br />Vendor Business
@@ -176,7 +166,6 @@ const VendorLogin = () => {
                     <p className="text-blue-100 text-base leading-relaxed max-w-xs">
                         Manage bookings, connect with clients, and scale your event services — all in one place.
                     </p>
-                    {/* Stat pills */}
                     <div className="flex gap-3 pt-2">
                         {[['500+', 'Vendors'], ['10k+', 'Events'], ['98%', 'Satisfaction']].map(([num, label]) => (
                             <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 text-center">
@@ -192,14 +181,12 @@ const VendorLogin = () => {
             <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6 py-10">
                 <div className="w-full max-w-md space-y-6">
 
-                    {/* Header */}
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">Vendor Portal</p>
                         <h2 className="text-3xl font-bold text-gray-900">Sign in to your account</h2>
                         <p className="text-sm text-gray-500 mt-1">Enter your credentials to continue</p>
                     </div>
 
-                    {/* Form */}
                     <form onSubmit={formik.handleSubmit} className="space-y-4">
 
                         {/* Email */}
@@ -268,14 +255,12 @@ const VendorLogin = () => {
                         </button>
                     </form>
 
-                    {/* Divider */}
                     <div className="flex items-center gap-3">
                         <div className="flex-1 h-px bg-gray-200" />
                         <span className="text-xs text-gray-400 font-medium">vendor access only</span>
                         <div className="flex-1 h-px bg-gray-200" />
                     </div>
 
-                    {/* Footer */}
                     <p className="text-center text-sm text-gray-500">
                         Don't have an account?{' '}
                         <Link to={VENDOR.SIGNUP} className="text-blue-600 font-semibold hover:underline">Sign Up</Link>

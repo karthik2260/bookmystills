@@ -1,5 +1,9 @@
 import { UserDTO } from '../dto/userDTO';
-import { GoogleSignupResponseDTO, UserProfileResponseDTO, UserResponseDTO } from '../dto/userRequest.dto';
+import {
+  GoogleSignupResponseDTO,
+  UserProfileResponseDTO,
+  UserResponseDTO,
+} from '../dto/userRequest.dto';
 import { UserDocument } from '../models/userModel';
 
 export const UserMapper = {
@@ -24,8 +28,7 @@ export const UserMapper = {
     };
   },
 
-
- toResponseDTO(user: UserDocument): UserResponseDTO {
+  toResponseDTO(user: UserDocument): UserResponseDTO {
     return {
       id: user._id.toString(),
       name: user.name,
@@ -34,20 +37,17 @@ export const UserMapper = {
     };
   },
 
-
-toProfileDTO(user: UserDocument): UserProfileResponseDTO {
-  return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    imageUrl: user.imageUrl,
-    contactinfo: user.contactinfo,
-    isActive: user.isActive,
-    isGoogleUser: user.isGoogleUser,
-    createdAt: user.createdAt.toISOString(),   
-    updatedAt: user.updatedAt.toISOString(),   
-  };
-}
-
-
+  toProfileDTO(user: UserDocument): UserProfileResponseDTO {
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      imageUrl: user.imageUrl,
+      contactinfo: user.contactinfo,
+      isActive: user.isActive,
+      isGoogleUser: user.isGoogleUser,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    };
+  },
 };

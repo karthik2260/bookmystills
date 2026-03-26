@@ -30,8 +30,8 @@ import IconButton from '@mui/material/IconButton'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { useNavigate } from 'react-router-dom';
 import { USER } from '../../config/constants/constants';
-import { axiosInstance } from '@/config/api/axiosinstance';
 import { debounce } from 'lodash';
+import { fetchVendors } from '@/services/serviceapi';
 
 
 const ListedVendors = () => {
@@ -46,44 +46,36 @@ const ListedVendors = () => {
 
   const navigate = useNavigate();
 
-  const fetchVendorsData = useCallback(async (page: number, search: string) => {
-    setIsLoading(true);
-    try {
-      const response = await axiosInstance.get<VendorResponse>('/vendors', {
-        params: {
-          page: page,
-          limit: 3,
-          search: search,
-        }
-      });
+ const fetchVendorsData = useCallback(async (page: number, search: string) => {
+  setIsLoading(true);
 
-const transformedVendors: VendorData[] = response.data.vendors.map((vendor) => {
-  const { imageUrl, ...vendorData } = vendor;
-  return {
-    ...vendorData,
-    imageUrl,  
-  };
-});
+  try {
+    const data = await fetchVendors(page, search);
 
-     
+    const transformedVendors: VendorData[] = data.vendors.map((vendor) => {
+      const { imageUrl, ...vendorData } = vendor;
+      return {
+        ...vendorData,
+        imageUrl,
+      };
+    });
 
-      setVendors(transformedVendors);
-      setTotalPages(response.data.totalPages);
+    setVendors(transformedVendors);
+    setTotalPages(data.totalPages);
 
-    } catch (error) {
-      console.error('Error fetching details:', error);
-    } finally {
-      setIsLoading(false);
-    }
-    
-
-    console.log('Vendors from API:', vendors);
-console.log('Filtered count:', vendors.filter(v => 
-  v.isActive && v.isVerified && v.isAccepted === AcceptanceStatus.Accepted
-).length);
-
-  }, []);
-
+    console.log('Vendors from API:', transformedVendors);
+    console.log(
+      'Filtered count:',
+      transformedVendors.filter(
+        (v) => v.isActive && v.isVerified && v.isAccepted === AcceptanceStatus.Accepted
+      ).length
+    );
+  } catch (error) {
+    console.error('Error fetching vendors:', error);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
   const debouncedFetchData = useMemo(
     () => debounce(fetchVendorsData, 500),
     [fetchVendorsData]

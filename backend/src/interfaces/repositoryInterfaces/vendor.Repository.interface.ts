@@ -15,15 +15,21 @@ export interface IVendorRepository {
     search: string,
     status?: string,
   ): Promise<FindAllVendorsResult>;
-      getAllPopulate(vendorId: string):Promise<VendorDetailsWithAll>;
-addDates(dates:string[],vendorId:string): Promise<{
-        previousDates: string[];
-        newDates: string[];
-        alreadyBooked: string[];
-        updatedVendor: VendorDocument;
-    }>;
-    removeDates(dates: string[], vendorId: string): Promise<{
-        removedDates: string[];
-        updatedVendor: VendorDocument;
-        }>;
+  getAllPopulate(vendorId: string): Promise<VendorDetailsWithAll>;
+  addDates(
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
+    previousDates: string[];
+    newDates: string[];
+    alreadyBooked: string[];
+    updatedVendor: VendorDocument;
+  }>;
+  removeDates(
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
+    removedDates: string[];
+    updatedVendor: VendorDocument;
+  }>;
 }

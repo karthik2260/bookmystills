@@ -8,31 +8,31 @@ import HeroBannerVendor from './HeroBannerVendor';
 import MainSectionVendor from './MainSectionVendor';
 import RejectionBanner from '@/components/vendor/RejectionBanner';
 import { updateVendorStatus } from '@/redux/slices/VendorSlice';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
 import { AcceptanceStatus } from '@/types/vendorTypes';
-
+import { fetchVendorStatusApi } from '@/services/vendorserviceapi';
 const Dashboard = () => {
   const vendorData = useSelector((state: VendorRootState) => state.vendor.vendorData);
   const dispatch = useDispatch();
-useEffect(() => {
-  console.log('Current vendor Redux state:', vendorData);
-  console.log('isAccepted value:', vendorData?.isAccepted);
-}, [vendorData]);
+
+  useEffect(() => {
+    console.log('Current vendor Redux state:', vendorData);
+    console.log('isAccepted value:', vendorData?.isAccepted);
+  }, [vendorData]);
 
   useEffect(() => {
     const fetchFreshStatus = async () => {
       try {
-        const response = await axiosInstanceVendor.get('/profile');
-      console.log('vendorDetails response:', response.data); 
+        const freshVendor = await fetchVendorStatusApi();
 
-        const freshVendor = response.data?.vendor ?? response.data;
-      console.log('Fresh isAccepted from vendorDetails:', freshVendor?.isAccepted);
+        console.log('Fresh isAccepted from API:', freshVendor?.isAccepted);
 
         if (freshVendor?.isAccepted) {
-          dispatch(updateVendorStatus({
-            isAccepted: freshVendor.isAccepted as AcceptanceStatus,
-            rejectionReason: freshVendor.rejectionReason ?? undefined,
-          }));
+          dispatch(
+            updateVendorStatus({
+              isAccepted: freshVendor.isAccepted as AcceptanceStatus,
+              rejectionReason: freshVendor.rejectionReason ?? undefined,
+            })
+          );
         }
       } catch (error) {
         console.error('Failed to fetch fresh vendor status:', error);
@@ -43,9 +43,11 @@ useEffect(() => {
   }, [dispatch]);
 
   const isAccepted = vendorData?.isAccepted;
-  const isLocked = isAccepted === 'requested' ||
-                   isAccepted === 'rejected'  ||
-                   isAccepted === 'reapplied';
+
+  const isLocked =
+    isAccepted === 'requested' ||
+    isAccepted === 'rejected' ||
+    isAccepted === 'reapplied';
 
   return (
     <>

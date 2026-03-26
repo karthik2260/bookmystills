@@ -26,9 +26,9 @@ export const sessionOptions: session.SessionOptions = {
 
   store: MongoStore.create({
     mongoUrl: MONGO_URI,
-    dbName: 'projectbookmystills', 
+    dbName: 'projectbookmystills',
     collectionName: 'sessions',
-    ttl: 24 * 60 * 60, 
+    ttl: 24 * 60 * 60,
   }),
 
   cookie: {

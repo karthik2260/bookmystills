@@ -4,5 +4,4 @@ export interface IGoogleAuthService {
   authenticateGoogleLogin(userData: GoogleUserData): Promise<GoogleAuthServiceResult>;
 }
 
-
-// this is hte interface for googleauthentication only 
+// this is hte interface for googleauthentication only

@@ -16,7 +16,9 @@ class VendorAvailabilityController {
     try {
       const vendorId = req.user?._id;
       if (!vendorId) {
-        res.status(HTTP_statusCode.Unauthorized).json({ success: false, message: Messages.VENDOR_ID_MISSING });
+        res
+          .status(HTTP_statusCode.Unauthorized)
+          .json({ success: false, message: Messages.VENDOR_ID_MISSING });
         return;
       }
 
@@ -38,7 +40,9 @@ class VendorAvailabilityController {
       const { dates } = req.body;
 
       if (!vendorId) {
-        res.status(HTTP_statusCode.Unauthorized).json({ success: false, message: Messages.VENDOR_ID_MISSING });
+        res
+          .status(HTTP_statusCode.Unauthorized)
+          .json({ success: false, message: Messages.VENDOR_ID_MISSING });
         return;
       }
 
@@ -71,7 +75,9 @@ class VendorAvailabilityController {
       const { dates } = req.body;
 
       if (!vendorId) {
-        res.status(HTTP_statusCode.Unauthorized).json({ success: false, message: Messages.VENDOR_ID_MISSING });
+        res
+          .status(HTTP_statusCode.Unauthorized)
+          .json({ success: false, message: Messages.VENDOR_ID_MISSING });
         return;
       }
 

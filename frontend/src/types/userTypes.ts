@@ -11,7 +11,7 @@ export interface UserFormValues {
 
 
 export interface UserData {
-   _id: string;
+   id: string;
   email: string;
   password?: string;
   name: string;

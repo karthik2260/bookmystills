@@ -12,13 +12,33 @@ import {
   MessageCircle,
   Phone
 } from 'lucide-react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { showToastMessage } from '@/validations/common/toast';
 import SidebarVendor from '@/layout/vendor/SidebarProfileVendor';
-import { Mode } from '@/utils/utils';
-import { BookingFormData, UnifiedCalendarProps } from '@/utils/interface';
-
 import { BookingModal } from '../user/BookingFormModal';
+import { BookingFormData, UnifiedCalendarProps } from '@/utils/interface';
+import { Mode } from '@/utils/utils';
+ // <-- update this import path as needed
+
+import { fetchUnavailableDatesApi,updateAvailabilityApi,submitBookingRequestApi,isAxiosErrorWithMessage } from '@/services/CalenderApi';
+
+
+const EMPTY_BOOKING_FORM: BookingFormData = {
+  name: '',
+  phone: '',
+  email: '',
+  venue: '',
+  serviceType: '',
+  noOfDays: 1,
+  fullAddress: '',
+  city: '',
+  landmark: '',
+  pincode: '',
+  message: '',
+  selectedDate: '',
+};
+
+
 export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
   isVendor = false,
   vendorDetails,
@@ -30,16 +50,7 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<Mode>('block');
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingForm, setBookingForm] = useState<BookingFormData>({
-    name: '',
-    phone: '',
-    email: '',
-    venue: '',
-    serviceType: '',
-    noOfDays: 1,
-    message: '',
-    selectedDate: '',
-  });
+  const [bookingForm, setBookingForm] = useState<BookingFormData>(EMPTY_BOOKING_FORM);
 
   const TODAY = new Date();
   TODAY.setHours(0, 0, 0, 0);
@@ -50,21 +61,24 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
   const MAX_BOOKING_DATE = new Date(TODAY);
   MAX_BOOKING_DATE.setFullYear(MAX_BOOKING_DATE.getFullYear() + 1);
 
-  const formatDate = (date: Date) => date.toLocaleDateString('en-GB');
-  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  useEffect(() => {
+    if (selectedDates.length > 0) {
+      setBookingForm(prev => ({
+        ...prev,
+        selectedDate: selectedDates[0]
+      }));
+    }
+  }, [selectedDates]);
+
 
   const fetchUnavailableDates = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get('/dateAvailabilty');
-      console.log('Date response:', response.data)
-      if (response.data.result?.bookedDates) {
-        setUnavailableDates(response.data.result.bookedDates);
-      }
+      const bookedDates = await fetchUnavailableDatesApi(axiosInstance);
+      setUnavailableDates(bookedDates);
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        showToastMessage(error.response.data?.message || 'Failed to get dates', 'error');
+      if (isAxiosErrorWithMessage(error)) {
+        showToastMessage(error.response!.data.message || 'Failed to get dates', 'error');
       } else {
         showToastMessage('Failed to fetch unavailable dates', 'error');
       }
@@ -81,31 +95,30 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
     }
   }, [isVendor, vendorDetails, fetchUnavailableDates]);
 
+
   const updateAvailability = async () => {
     if (selectedDates.length === 0) {
       showToastMessage('Please select at least one date', 'error');
       return;
     }
+
     try {
       setIsLoading(true);
-      const endpoint = mode === 'block' ? '/dateAvailabilty' : '/dateAvailabilty/unblock';
-      const response = await axiosInstance.post(endpoint, { dates: selectedDates });
+      const result = await updateAvailabilityApi(axiosInstance, mode, selectedDates);
 
-      if (response.data.success) {
-        if (mode === 'block') {
-          setUnavailableDates(prev => [...new Set([...prev, ...selectedDates])]);
+      if (result.success) {
+        if (result.mode === 'block') {
+          setUnavailableDates(prev => [...new Set([...prev, ...result.dates])]);
         } else {
-          setUnavailableDates(prev => prev.filter(date => !selectedDates.includes(date)));
+          setUnavailableDates(prev => prev.filter(date => !result.dates.includes(date)));
         }
-        showToastMessage(
-          `Successfully ${mode === 'block' ? 'blocked' : 'unblocked'} ${selectedDates.length} date(s)`,
-          'success'
-        );
-        setSelectedDates([]);
+        showToastMessage(`Successfully ${result.mode}ed ${result.dates.length} date(s)`, 'success');
       }
+
+      setSelectedDates([]);
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        showToastMessage(error.response.data?.message || 'Failed to update dates', 'error');
+      if (isAxiosErrorWithMessage(error)) {
+        showToastMessage(error.response!.data.message || 'Failed to update dates', 'error');
       } else {
         showToastMessage('Failed to connect to the server', 'error');
       }
@@ -114,68 +127,59 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
     }
   };
 
-  const resetBookingForm = () => {
-    setBookingForm({
-      name: '',
-      phone: '',
-      email: '',
-      venue: '',
-      serviceType: '',
-      noOfDays: 1,
-      message: '',
-      selectedDate: '',
-    });
-    setSelectedDates([]);
-  };
 
   const handleBookingSubmit = async (e: React.FormEvent, formData?: BookingFormData) => {
     e.preventDefault();
-    const data = formData || bookingForm;
-
-    // Guard: never submit an unavailable date
-    if (!data.selectedDate) {
-      showToastMessage('Please select a date', 'error');
-      return;
-    }
-    if (unavailableDates.includes(data.selectedDate)) {
-      showToastMessage('Selected date is unavailable. Please choose another date.', 'error');
-      return;
-    }
-
     try {
-      const response = await axiosInstance.post('/bookings/request', {
-        ...data,
+      const success = await submitBookingRequestApi(axiosInstance, {
+        ...(formData || bookingForm),
         vendorId: vendorDetails?._id,
-        // single source of truth — use selectedDate from form, not selectedDates[0]
-        selectedDate: data.selectedDate,
+        startingDate: selectedDates[0],
       });
 
-      if (response.data.success) {
+      if (success) {
         showToastMessage('Booking request sent successfully', 'success');
         setShowBookingModal(false);
-        resetBookingForm();
+        setBookingForm(EMPTY_BOOKING_FORM);
+        setSelectedDates([]);
       } else {
-        showToastMessage(response.data?.message || 'Failed to send booking request', 'error');
+        showToastMessage('Failed to send booking request', 'error');
       }
     } catch (error) {
+      console.error('Error while submitting: ', error);
       if (error instanceof AxiosError) {
-        showToastMessage(
-          error.response?.data?.message || 'Failed to send booking request',
-          'error'
-        );
+        showToastMessage(error.response?.data.message, 'error');
       } else {
         showToastMessage('Failed to send booking request', 'error');
       }
     }
   };
 
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB');
+  };
+
   const handleDateClick = (date: Date) => {
     if (date < MIN_BOOKING_DATE) {
-      if (!isVendor) showToastMessage('Bookings must be made at least 3 days in advance', 'error');
+      if (!isVendor) {
+        showToastMessage('Bookings must be made at least 3 days in advance', 'error');
+      }
       return;
     }
+
     if (date > MAX_BOOKING_DATE) {
-      if (!isVendor) showToastMessage('Bookings cannot be made more than 1 year in advance', 'error');
+      if (!isVendor) {
+        showToastMessage('Bookings cannot be made more than 1 year in advance', 'error');
+      }
       return;
     }
 
@@ -187,34 +191,18 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
         setMode(isUnavailable ? 'unblock' : 'block');
       }
       if ((mode === 'block' && !isUnavailable) || (mode === 'unblock' && isUnavailable)) {
-        setSelectedDates(prev =>
-          prev.includes(formattedDate)
-            ? prev.filter(d => d !== formattedDate)
-            : [formattedDate]
-        );
+        setSelectedDates(prev => {
+          if (prev.includes(formattedDate)) {
+            return prev.filter(d => d !== formattedDate);
+          } else {
+            return [formattedDate];
+          }
+        });
       }
-    } else {
-      if (isUnavailable) {
-        showToastMessage('This date is unavailable. Please choose another date.', 'error');
-        return;
-      }
-      // Keep form and selectedDates in sync from a single place
-      const updated = formattedDate;
-      setSelectedDates([updated]);
-      setBookingForm(prev => ({ ...prev, selectedDate: updated }));
+    } else if (!isUnavailable) {
+      setSelectedDates([formattedDate]);
       setShowBookingModal(true);
     }
-  };
-
-  const handleModalDateSelect = (date: Date) => {
-    const formattedDate = formatDate(date);
-    if (unavailableDates.includes(formattedDate)) {
-      showToastMessage('This date is unavailable. Please choose another date.', 'error');
-      return;
-    }
-    // Single source of truth: always update both together
-    setSelectedDates([formattedDate]);
-    setBookingForm(prev => ({ ...prev, selectedDate: formattedDate }));
   };
 
   const getDateStatus = (date: Date) => {
@@ -227,20 +215,36 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
   };
 
   const nextMonth = () => {
-    const next = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
-    if (next <= MAX_BOOKING_DATE) setCurrentMonth(next);
+    const nextMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+    if (nextMonthDate <= MAX_BOOKING_DATE) {
+      setCurrentMonth(nextMonthDate);
+    }
   };
 
   const prevMonth = () => {
-    const prev = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
-    const min = new Date(MIN_BOOKING_DATE.getFullYear(), MIN_BOOKING_DATE.getMonth(), 1);
-    if (prev >= min) setCurrentMonth(prev);
+    const prevMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
+    const minMonthDate = new Date(MIN_BOOKING_DATE.getFullYear(), MIN_BOOKING_DATE.getMonth(), 1);
+    if (prevMonthDate >= minMonthDate) {
+      setCurrentMonth(prevMonthDate);
+    }
   };
+
+  const handleModalDateSelect = (date: Date) => {
+    const formattedDate = formatDate(date);
+    if (!unavailableDates.includes(formattedDate)) {
+      setSelectedDates([formattedDate]);
+      setBookingForm(prev => ({
+        ...prev,
+        selectedDate: formattedDate
+      }));
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="shadow-xl">
-        {isVendor && <SidebarVendor />}
+        {isVendor ? <SidebarVendor /> : <></>}
       </div>
 
       <div className="flex-1 p-4 md:p-8">
@@ -263,27 +267,35 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                     <p className="text-sm text-gray-600">
                       {isVendor
                         ? 'Click on dates to toggle their availability status'
-                        : 'Click on available dates to request a booking'}
+                        : 'Click on available dates to request a booking'
+                      }
                     </p>
                   </div>
                 </div>
               </CardHeader>
 
               <CardBody className="p-6">
-                {/* Month navigation */}
                 <div className="flex justify-between items-center mb-6">
-                  <Button isIconOnly variant="light" onPress={prevMonth}>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    onPress={prevMonth}
+                    disabled={currentMonth <= new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)}
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <h2 className="text-xl font-semibold">
                     {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                   </h2>
-                  <Button isIconOnly variant="light" onPress={nextMonth}>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    onPress={nextMonth}
+                  >
                     <ChevronRight className="w-5 h-5" />
                   </Button>
                 </div>
 
-                {/* Calendar grid */}
                 <div className="grid grid-cols-7 gap-2 px-4">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                     <div key={day} className="text-center text-sm font-medium text-gray-600 mb-2">
@@ -296,7 +308,11 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                   ))}
 
                   {Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => {
-                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1);
+                    const date = new Date(
+                      currentMonth.getFullYear(),
+                      currentMonth.getMonth(),
+                      i + 1
+                    );
                     const status = getDateStatus(date);
 
                     return (
@@ -307,11 +323,12 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                         className="relative flex items-center justify-center h-8"
                       >
                         <div className={`
-                          w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200
+                          w-8 h-8 flex items-center justify-center rounded-full
+                          transition-all duration-200
                           ${status === 'past' || status === 'future' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer'}
-                          ${status === 'selected'    ? 'bg-blue-500 text-white hover:bg-blue-600' : ''}
+                          ${status === 'selected' ? 'bg-blue-500 text-white hover:bg-blue-600' : ''}
                           ${status === 'unavailable' ? 'bg-red-500 text-white hover:bg-red-600' : ''}
-                          ${status === 'available'   ? 'bg-green-500 text-white hover:bg-green-600' : ''}
+                          ${status === 'available' ? 'bg-green-500 text-white hover:bg-green-600' : ''}
                         `}>
                           <span className="text-sm">{i + 1}</span>
                         </div>
@@ -320,25 +337,25 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                   })}
                 </div>
 
-                {/* Legend */}
                 <div className="flex flex-wrap gap-4 mt-6 justify-center">
-                  {[
-                    { color: 'bg-green-500', label: 'Available' },
-                    { color: 'bg-red-500',   label: 'Unavailable' },
-                    { color: 'bg-blue-500',  label: 'Selected' },
-                  ].map(({ color, label }) => (
-                    <div key={label} className="flex items-center">
-                      <div className={`w-6 h-6 rounded-full ${color} mr-2`} />
-                      <span className="text-sm text-gray-600">{label}</span>
-                    </div>
-                  ))}
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 rounded-full bg-green-500 mr-2" />
+                    <span className="text-sm text-gray-600">Available</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 rounded-full bg-red-500 mr-2" />
+                    <span className="text-sm text-gray-600">Unavailable</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 rounded-full bg-blue-500 mr-2" />
+                    <span className="text-sm text-gray-600">Selected</span>
+                  </div>
                 </div>
 
                 <div className="mt-4 text-sm text-gray-600 text-center">
                   <p>Bookings must be made at least 3 days in advance and no more than 1 year ahead.</p>
                 </div>
 
-                {/* Vendor block/unblock button */}
                 {isVendor && selectedDates.length > 0 && (
                   <div className="mt-6">
                     <Button
@@ -350,14 +367,13 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                       startContent={!isLoading && <CalendarIcon className="w-4 h-4" />}
                     >
                       {isLoading
-                        ? 'Updating Availability...'
+                        ? "Updating Availability..."
                         : `Mark ${selectedDates.length} Selected Date${selectedDates.length > 1 ? 's' : ''} as ${mode === 'block' ? 'Unavailable' : 'Available'}`
                       }
                     </Button>
                   </div>
                 )}
 
-                {/* User actions */}
                 {!isVendor && (
                   <div className="flex justify-center gap-4 mt-6">
                     <Button
@@ -381,16 +397,16 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
               </CardBody>
             </Card>
 
-           <BookingModal
-  isOpen={showBookingModal}
-  onOpenChange={setShowBookingModal}
-  bookingForm={bookingForm}
-  setBookingForm={setBookingForm}
-  onSubmit={handleBookingSubmit}
-  selectedDate={bookingForm.selectedDate}
-  unavailableDates={unavailableDates}
-  onDateSelect={handleModalDateSelect}
-/>
+            <BookingModal
+              isOpen={showBookingModal}
+              onOpenChange={setShowBookingModal}
+              bookingForm={bookingForm}
+              setBookingForm={setBookingForm}
+              onSubmit={handleBookingSubmit}
+              selectedDate={selectedDates[0]}
+              unavailableDates={unavailableDates}
+              onDateSelect={handleModalDateSelect}
+            />
           </div>
         </div>
       </div>

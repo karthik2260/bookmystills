@@ -18,37 +18,24 @@ class AdminRepository extends BaseRepository<AdminDocument> implements IAdminRep
       isVerified: true,
       isAccepted: 'accepted',
     });
-
-
   }
-
-
 
   async getTotalUsers(): Promise<number> {
     return await User.countDocuments();
   }
 
-
   async getDashboardStats(): Promise<{
     totalVendors: number;
     totalUsers: number;
-
-
   }> {
-    const [
-      totalVendors,
-      totalUsers,
-
-    ] = await Promise.all([
+    const [totalVendors, totalUsers] = await Promise.all([
       this.getTotalVendors(),
       this.getTotalUsers(),
-
     ]);
 
     return {
       totalVendors,
       totalUsers,
-
     };
   }
 }

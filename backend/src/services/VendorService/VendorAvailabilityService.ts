@@ -2,41 +2,50 @@ import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { VendorDocument } from '../../models/vendorModel';
+import { IVendorAvailabilityService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorAvailability.interface';
 
-
-export class VendorAvailabilityService {
+export class VendorAvailabilityService implements IVendorAvailabilityService {
   private vendorRepository: IVendorRepository;
 
   constructor(vendorRepository: IVendorRepository) {
     this.vendorRepository = vendorRepository;
   }
 
-  addDates = async (dates: string[], vendorId: string): Promise<{
+  addDates = async (
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
     success: boolean;
     message: string;
     addedDates: string[];
     alreadyBookedDates: string[];
   }> => {
     try {
-      const isValidDates = dates.every(date => {
+      const isValidDates = dates.every((date) => {
         const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
         return dateRegex.test(date);
       });
 
       if (!isValidDates)
-        throw new CustomError('Invalid date format. Use DD/MM/YYYY', HTTP_statusCode.InternalServerError);
+        throw new CustomError(
+          'Invalid date format. Use DD/MM/YYYY',
+          HTTP_statusCode.InternalServerError,
+        );
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const hasInvalidDate = dates.some(date => {
+      const hasInvalidDate = dates.some((date) => {
         const [day, month, year] = date.split('/');
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         return dateObj < today;
       });
 
       if (hasInvalidDate)
-        throw new CustomError('Cannot add dates from the past', HTTP_statusCode.InternalServerError);
+        throw new CustomError(
+          'Cannot add dates from the past',
+          HTTP_statusCode.InternalServerError,
+        );
 
       const { newDates, alreadyBooked } = await this.vendorRepository.addDates(dates, vendorId);
 
@@ -66,34 +75,46 @@ export class VendorAvailabilityService {
       return await this.vendorRepository.getById(vendorId);
     } catch (error) {
       console.error('Error in showUnavailable dates:', error);
-      throw new CustomError('Failed to get dates from database', HTTP_statusCode.InternalServerError);
+      throw new CustomError(
+        'Failed to get dates from database',
+        HTTP_statusCode.InternalServerError,
+      );
     }
   };
 
-  removeDates = async (dates: string[], vendorId: string): Promise<{
+  removeDates = async (
+    dates: string[],
+    vendorId: string,
+  ): Promise<{
     success: boolean;
     removedDates: string[];
   }> => {
     try {
-      const isValidDates = dates.every(date => {
+      const isValidDates = dates.every((date) => {
         const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
         return dateRegex.test(date);
       });
 
       if (!isValidDates)
-        throw new CustomError('Invalid date format. Use DD/MM/YYYY', HTTP_statusCode.InternalServerError);
+        throw new CustomError(
+          'Invalid date format. Use DD/MM/YYYY',
+          HTTP_statusCode.InternalServerError,
+        );
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const hasInvalidDate = dates.some(date => {
+      const hasInvalidDate = dates.some((date) => {
         const [day, month, year] = date.split('/');
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         return dateObj < today;
       });
 
       if (hasInvalidDate)
-        throw new CustomError('Cannot modify dates from the past', HTTP_statusCode.InternalServerError);
+        throw new CustomError(
+          'Cannot modify dates from the past',
+          HTTP_statusCode.InternalServerError,
+        );
 
       const result = await this.vendorRepository.removeDates(dates, vendorId);
 

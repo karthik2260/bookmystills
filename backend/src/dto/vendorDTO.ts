@@ -1,34 +1,31 @@
-import { AcceptanceStatus } from "../enums/commonEnums";
-
+import { AcceptanceStatus } from '../enums/commonEnums';
 
 export interface VendorSignUpRequestDTO {
-    email: string;
-    name: string;
-    password: string;
-    city: string;
-    contactinfo: string;
-    companyName: string;
-    about: string;
-    portfolioImages?: string[];
-    aadharImages?: string[];
-    files?: {
-        portfolioImages?: Express.Multer.File[];
-        aadharFront?: Express.Multer.File[];
-        aadharBack?: Express.Multer.File[];
-    };
+  email: string;
+  name: string;
+  password: string;
+  city: string;
+  contactinfo: string;
+  companyName: string;
+  about: string;
+  portfolioImages?: string[];
+  aadharImages?: string[];
+  files?: {
+    portfolioImages?: Express.Multer.File[];
+    aadharFront?: Express.Multer.File[];
+    aadharBack?: Express.Multer.File[];
+  };
 }
-
 
 export interface VendorCreateDTO {
-    email:string;
-    password:string;
-    name:string;
-    contactinfo:string;
-    city:string;
-    companyName:string;
-    about:string
+  email: string;
+  password: string;
+  name: string;
+  contactinfo: string;
+  city: string;
+  companyName: string;
+  about: string;
 }
-
 
 export interface VendorSignupResponseDTO {
   id: string;
@@ -40,32 +37,25 @@ export interface VendorSignupResponseDTO {
   about: string;
   isVerified: boolean;
   isActive: boolean;
-  isAccepted: AcceptanceStatus
-  
- 
+  isAccepted: AcceptanceStatus;
 }
-
 
 export interface verifyOtpRequestDTO {
-    otp:string;
+  otp: string;
 }
-
 
 export interface VerifyOtpResponseDTO {
-    message:string;
-    vendor:VendorSignupResponseDTO
+  message: string;
+  vendor: VendorSignupResponseDTO;
 }
-
-
 
 export interface VendorLoginRequestDTO {
-    email:string;
-    password:string;
+  email: string;
+  password: string;
 }
 
-
 export interface VendorResponseDTO {
-  _id: string;         // ← fix from 'id'
+  _id: string; // ← fix from 'id'
   email: string;
   name: string;
   companyName: string;
@@ -74,7 +64,7 @@ export interface VendorResponseDTO {
   contactinfo: string;
   isActive: boolean;
   isVerified: boolean;
-  isAccepted: AcceptanceStatus;  // ← make sure this exists
+  isAccepted: AcceptanceStatus; // ← make sure this exists
   logo: string;
   imageUrl: string;
   totalBooking: number;
@@ -85,40 +75,36 @@ export interface VendorResponseDTO {
   reapplyCount?: number;
 }
 
-
 export interface VendorLoginResponseDTO {
-    token:string;
-    vendor:VendorResponseDTO;
-    message:string;
+  token: string;
+  vendor: VendorResponseDTO;
+  message: string;
 }
-
 
 export interface VendorLogoutResponseDTO {
-    message:string;
+  message: string;
 }
 
-
 export interface VendorRefreshTokenResponseDTO {
-    token:string;
+  token: string;
 }
 
 export interface VendorForgotPasswordRequestDTO {
-    email:string;
+  email: string;
 }
 
 export interface VendorForgotPasswordResponse {
-    message:string;
+  message: string;
 }
 
 export interface VendorChangePasswordRequestDTO {
-    token:string;
-    password:string;
+  token: string;
+  password: string;
 }
 
 export interface VendorChangePasswordResponseDTO {
-    message:string;
+  message: string;
 }
-
 
 export interface VendorProfileResponseDTO {
   _id: string;
@@ -135,21 +121,16 @@ export interface VendorProfileResponseDTO {
   updatedAt: Date;
 }
 
-
 export interface VendorUpdateProfileResponseDTO {
-    _id:string;
-    name:string;
-    email:string;
-    companyName:string;
-    city:string;
-    about:string;
-    contactinfo:string;
-    imageUrl:string;
-    isVerified:boolean;
-    createdAt:Date;
-    updatedAt:Date;
+  _id: string;
+  name: string;
+  email: string;
+  companyName: string;
+  city: string;
+  about: string;
+  contactinfo: string;
+  imageUrl: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
-
-
-
-

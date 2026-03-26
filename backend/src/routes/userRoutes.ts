@@ -3,7 +3,6 @@ import UserRepository from '../repositories/userRepository';
 import UserService from '../services/UserService/userService';
 import VendorService from '../services/VendorService/VendorService';
 import VendorRepository from '../repositories/vendorRepository';
-import VendorAuthController from '../controllers/VendorController/VendorAuthController';
 import multer from 'multer';
 import { AuthRole } from '../enums/commonEnums';
 import { authenticateToken } from '../middlewares/authenticate';
@@ -19,15 +18,13 @@ const upload = multer({ storage: storage });
 
 const userRepository = new UserRepository();
 const vendorRepository = new VendorRepository();
-const postRepository = new PostRepository()
+const postRepository = new PostRepository();
 const vendorService = new VendorService(vendorRepository);
-const postService = new PostService(postRepository,vendorRepository)
+const postService = new PostService(postRepository, vendorRepository);
 const userService = new UserService(userRepository);
 const userAuthController = new UserAuthController(userService);
-const postController = new PostController(postService)
-const userProfileController = new UserProfileController(userService,vendorService)
-const UserControllerr = new VendorAuthController(vendorService)
-const vendorController = new VendorAuthController(vendorService);
+const postController = new PostController(postService);
+const userProfileController = new UserProfileController(userService, vendorService);
 
 const router = express.Router();
 
@@ -40,8 +37,14 @@ router.get('/resendOtp', userAuthController.ResendOtp.bind(userAuthController));
 router.post('/refresh-token', userAuthController.create_RefreshToken.bind(userAuthController));
 
 router.post('/forgot-password', userAuthController.forgotPassword.bind(userAuthController));
-router.post('/reset-password/:token', userAuthController.changeForgotPassword.bind(userAuthController));
-router.get('/validate-reset-token/:token', userAuthController.validateResetToken.bind(userAuthController));
+router.post(
+  '/reset-password/:token',
+  userAuthController.changeForgotPassword.bind(userAuthController),
+);
+router.get(
+  '/validate-reset-token/:token',
+  userAuthController.validateResetToken.bind(userAuthController),
+);
 router.put(
   '/change-password',
   authenticateToken,
@@ -53,19 +56,34 @@ router.post('/google/auth', userAuthController.googleAuth.bind(userAuthControlle
 router.get(
   '/profile',
   authenticateToken,
-  authorizeRole(AuthRole.USER), 
-  userProfileController.getUserProfile.bind(userProfileController)
+  authorizeRole(AuthRole.USER),
+  userProfileController.getUserProfile.bind(userProfileController),
 );
 router.put(
   '/profile',
   upload.single('image'),
-  authenticateToken,authorizeRole(AuthRole.USER),
+  authenticateToken,
+  authorizeRole(AuthRole.USER),
   userProfileController.updateProfile.bind(userProfileController),
 );
 
-router.get('/vendors',authenticateToken,authorizeRole(AuthRole.USER),userProfileController.getAllVendors.bind(userProfileController));
-router.get('/viewposts',authenticateToken,authorizeRole(AuthRole.USER),postController.getAllPostsUser.bind(postController))
-router.get('/portfolio/:vendorId',authenticateToken,authorizeRole(AuthRole.USER),postController.getVendorIdPosts.bind(postController))
-
+router.get(
+  '/vendors',
+  authenticateToken,
+  authorizeRole(AuthRole.USER),
+  userProfileController.getAllVendors.bind(userProfileController),
+);
+router.get(
+  '/viewposts',
+  authenticateToken,
+  authorizeRole(AuthRole.USER),
+  postController.getAllPostsUser.bind(postController),
+);
+router.get(
+  '/portfolio/:vendorId',
+  authenticateToken,
+  authorizeRole(AuthRole.USER),
+  postController.getVendorIdPosts.bind(postController),
+);
 
 export default router;

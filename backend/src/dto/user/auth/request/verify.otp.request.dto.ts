@@ -1,7 +1,7 @@
 export class VerifyOtpRequestDTO {
-    otp:string;
+  otp: string;
 
-    constructor (data:{otp:string}){
-        this.otp = data.otp.trim()
-    }
+  constructor(data: { otp: string }) {
+    this.otp = data.otp.trim();
+  }
 }

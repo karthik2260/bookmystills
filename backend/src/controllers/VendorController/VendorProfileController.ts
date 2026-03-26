@@ -68,24 +68,20 @@ class VendorProfileController {
   };
 
   getVendorWithAll = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        try {
-            const vendorId = req.user?._id
-            if (!vendorId) {
-                res.status(HTTP_statusCode.BadRequest).json({ message: Messages.VENDOR_ID_MISSING });
-                return;
-            }
+    try {
+      const vendorId = req.user?._id;
+      if (!vendorId) {
+        res.status(HTTP_statusCode.BadRequest).json({ message: Messages.VENDOR_ID_MISSING });
+        return;
+      }
 
-            const result = await this.vendorService.getAllDetails(vendorId.toString())
+      const result = await this.vendorService.getAllDetails(vendorId.toString());
 
-            res.status(HTTP_statusCode.OK).json({ vendor: result })
-
-        } catch (error) {
-            handleError(res, error, 'getVendorWithAll')
-        }
+      res.status(HTTP_statusCode.OK).json({ vendor: result });
+    } catch (error) {
+      handleError(res, error, 'getVendorWithAll');
     }
-
-
-  
+  };
 }
 
 export default VendorProfileController;

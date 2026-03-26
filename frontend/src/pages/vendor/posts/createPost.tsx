@@ -12,6 +12,7 @@ import { axiosInstanceVendor } from '@/config/api/axiosinstance';
 import { VENDOR } from '../../../config/constants/constants';
 import { postValidationSchema } from '@/validations/vendor/postValidationSchema';
 import * as Yup from 'yup';
+import { submitPostApi } from '@/services/vendorserviceapi';
 
 interface CreatePostProps {
     isEditMode?: boolean;
@@ -24,8 +25,10 @@ export default function CreatePost({
     existingPost,
     onClose
 }: CreatePostProps) {
+
     const navigate = useNavigate();
     const MAX_IMAGES = 6;
+
     const [formData, setFormData] = useState<PostFormData>({
         caption: existingPost?.caption || '',
         location: existingPost?.location || '',
@@ -42,6 +45,7 @@ export default function CreatePost({
             : [existingPost.imageUrl];
 
         const validUrls = urls.slice(0, MAX_IMAGES);
+
         return [...validUrls, ...Array(MAX_IMAGES - validUrls.length).fill('')];
     });
 
@@ -53,227 +57,148 @@ export default function CreatePost({
     const cropperRef = useRef<ReactCropperElement>(null);
     const [deletedImages, setDeletedImages] = useState<string[]>([]);
 
-    const validateField = async (field: string, value: unknown) => {
-        try {
-            const schema = postValidationSchema(isEditMode, existingPost);
-            await schema.validateAt(field, { ...formData, [field]: value });
-         
-            setErrors(prev => Object.fromEntries(
-                Object.entries(prev).filter(([key]) => key !== field)
-            ));
-        } catch (error) {
-            if (error instanceof Yup.ValidationError) {
-                setErrors(prev => ({
-                    ...prev,
-                    [field]: error.message
-                }));
-            }
-        }
-    };
-
     const handleInputChange = (field: keyof PostFormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
-            setErrors(prev => Object.fromEntries(
-                Object.entries(prev).filter(([key]) => key !== field)
-            ));
-
-        }
     };
 
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement> | null, index: number) => {
-        const file = event?.target?.files?.[0];
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = event.target.files?.[0];
         if (!file) return;
 
-        try {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showToastMessage('Invalid image type', 'error');
+            return;
+        }
 
-            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            if (!validTypes.includes(file.type)) {
-                showToastMessage('Please upload only JPG, JPEG or PNG images', 'error');
-                return;
-            }
+        if (file.size > 8 * 1024 * 1024) {
+            showToastMessage('Image must be less than 8MB', 'error');
+            return;
+        }
 
-            if (file.size > 8 * 1024 * 1024) {
-                showToastMessage('Image size should be less than 8MB', 'error');
-                return;
-            }
-
-
-            const tempImageFiles = [...imageFiles];
-            tempImageFiles[index] = file;
-
-
-            if (isEditMode && existingImages[index] && !existingImages[index].startsWith('blob:')) {
-                setDeletedImages(prev => [...prev, existingImages[index]]);
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setCropperSrc(e.target?.result as string);
-                setCurrentImageIndex(index);
-                setImageFiles(tempImageFiles);
-            };
-            reader.readAsDataURL(file);
-        } catch (error) {
-            console.error('Image validation error:', error);
+        const reader = new FileReader();
+        reader.onload = () => {
+            setCropperSrc(reader.result as string);
+            setCurrentImageIndex(index);
         };
-    }
+        reader.readAsDataURL(file);
+    };
 
     const handleCrop = async () => {
         const cropper = cropperRef.current?.cropper;
         if (!cropper || currentImageIndex === null) return;
 
-        try {
-            const croppedCanvas = cropper.getCroppedCanvas({
-                maxWidth: 1080,
-                maxHeight: 1080,
-                imageSmoothingQuality: 'high'
-            });
+        const canvas = cropper.getCroppedCanvas();
+        const blob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((b) => resolve(b!), 'image/jpeg');
+        });
 
-            const blob = await new Promise<Blob>((resolve, reject) => {
-                croppedCanvas.toBlob(
-                    (b) => b ? resolve(b) : reject(new Error('Failed to create blob')),
-                    'image/jpeg',
-                    0.9
-                );
-            });
-
-            const croppedFile = new File([blob], `cropped-image-${currentImageIndex}.jpg`, {
-                type: 'image/jpeg'
-            });
-
-            setImageFiles(prev => {
-                const newFiles = [...prev];
-                newFiles[currentImageIndex] = croppedFile;
-                return newFiles;
-            });
-
-            // Create object URL for preview
-            const imageUrl = URL.createObjectURL(croppedFile);
-            setExistingImages(prev => {
-                const newImages = [...prev];
-                newImages[currentImageIndex] = imageUrl;
-                return newImages;
-            });
-
-            setCropperSrc(null);
-            setCurrentImageIndex(null);
-        } catch (error) {
-            console.error('Cropping error:', error);
-            showToastMessage('Failed to process image. Please try again.', 'error');
-        }
-    };
-
-
-
-    const handleRemoveImage = async (index: number) => {
-
-        if (existingImages[index] && !existingImages[index].startsWith('blob:')) {
-            setDeletedImages(prev => [...prev, existingImages[index]]);
-        }
-        // Update existing images
-        setExistingImages(prev => {
-            const newImages = [...prev];
-            newImages[index] = '';
-            return newImages;
+        const file = new File([blob], `image-${currentImageIndex}.jpg`, {
+            type: 'image/jpeg'
         });
 
         setImageFiles(prev => {
-            const newFiles = [...prev];
-            newFiles[index] = null;
-            return newFiles;
+            const updated = [...prev];
+            updated[currentImageIndex] = file;
+            return updated;
         });
 
-        const updatedImageFiles = imageFiles.map((file, i) =>
-            i === index ? null : file
-        );
-        await validateField('images', updatedImageFiles);
+        const previewUrl = URL.createObjectURL(file);
+
+        setExistingImages(prev => {
+            const updated = [...prev];
+            updated[currentImageIndex] = previewUrl;
+            return updated;
+        });
+
+        setCropperSrc(null);
+        setCurrentImageIndex(null);
     };
 
+    const handleRemoveImage = (index: number) => {
+        setExistingImages(prev => {
+            const updated = [...prev];
+            if (updated[index] && !updated[index].startsWith('blob:')) {
+                setDeletedImages(d => [...d, updated[index]]);
+            }
+            updated[index] = '';
+            return updated;
+        });
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        setImageFiles(prev => {
+            const updated = [...prev];
+            updated[index] = null;
+            return updated;
+        });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isSubmitting) return;
 
         try {
-
             const schema = postValidationSchema(isEditMode, existingPost);
+
             await schema.validate({
                 ...formData,
                 images: imageFiles
             }, { abortEarly: false });
 
             setIsSubmitting(true);
-            const submitFormData = new FormData();
 
-            submitFormData.append('caption', formData.caption);
-            submitFormData.append('location', formData.location);
-            submitFormData.append('serviceType', formData.serviceType);
-            submitFormData.append('status', formData.status);
+            const form = new FormData();
+
+            form.append('caption', formData.caption);
+            form.append('location', formData.location);
+            form.append('serviceType', formData.serviceType);
+            form.append('status', formData.status);
 
             if (isEditMode) {
-                const remainingImages = existingImages
-                    .filter((url, index) =>
+                const remainingImages = existingImages.filter(
+                    (url, i) =>
                         url &&
                         !url.startsWith('blob:') &&
                         !deletedImages.includes(url) &&
-                        !imageFiles[index]
-                    );
-                const newImageCount = imageFiles.filter(file => file instanceof File).length;
-                const totalImages = remainingImages.length + newImageCount;
-                if (totalImages < 4 || totalImages > 6) {
-                    throw new Error(`Total images must be between 4 and 6. Current: ${totalImages}`);
-                }
+                        !imageFiles[i]
+                );
+
                 if (remainingImages.length > 0) {
-                    submitFormData.append('existingImages', remainingImages.join(','));
+                    form.append('existingImages', remainingImages.join(','));
                 }
+
                 if (deletedImages.length > 0) {
-                    submitFormData.append('deletedImages', deletedImages.join(','));
+                    form.append('deletedImages', deletedImages.join(','));
                 }
             }
 
-            const validImageFiles = imageFiles.filter((file): file is File => file instanceof File);
-            validImageFiles.forEach(file => {
-                submitFormData.append('images', file);
+            imageFiles.forEach(file => {
+                if (file) form.append('images', file);
             });
 
-
-            const endpoint = isEditMode && existingPost?._id
-                ? `/edit-post/${existingPost._id}`
-                : '/add-post';
-
-            const method = isEditMode ? 'put' : 'post';
-
-            await axiosInstanceVendor[method](endpoint, submitFormData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
-          
-
-            showToastMessage(
-                isEditMode ? "Post updated successfully!" : "Post created successfully!",
-                'success'
+            // ✅ SERVICE CALL
+            await submitPostApi(
+                isEditMode,
+                existingPost?._id,
+                form
             );
+
+            showToastMessage('Success!', 'success');
 
             if (isEditMode && onClose) {
                 onClose();
-                window.dispatchEvent(new CustomEvent('postUpdated'));
             } else {
                 navigate(VENDOR.VIEW_POSTS);
             }
+
         } catch (error) {
             if (error instanceof Yup.ValidationError) {
-                const validationErrors: Record<string, string> = {};
-                error.inner.forEach(err => {
-                    if (err.path) {
-                        validationErrors[err.path] = err.message;
-                    }
+                const err: Record<string, string> = {};
+                error.inner.forEach(e => {
+                    if (e.path) err[e.path] = e.message;
                 });
-                setErrors(validationErrors);
-                showToastMessage('Please fix all validation errors', 'error');
-                return;
+                setErrors(err);
             }
-            console.error("Error submitting post:", error);
-            showToastMessage('Failed to submit post', 'error');
+
+            showToastMessage('Submission failed', 'error');
         } finally {
             setIsSubmitting(false);
         }

@@ -13,9 +13,7 @@ const UserSchema = new Schema<UserDocument, UserModel>(
     password: {
       type: String,
     },
-    name: { type: String, required: true ,
-       set: (v: string) => v.trim().replace(/\s+/g, ' ')
-    },
+    name: { type: String, required: true, set: (v: string) => v.trim().replace(/\s+/g, ' ') },
     contactinfo: { type: String },
     isActive: { type: Boolean, default: true },
     refreshToken: { type: String },

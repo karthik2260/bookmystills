@@ -18,6 +18,7 @@ import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto
 import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
 import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
 import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
+import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';
 
 class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -27,7 +28,6 @@ class UserService implements IUserService {
   private profileService: IUserProfileService;
   private managementService: IUserManagementService;
 
-
   constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
     this.authService = new UserAuthService(userRepository);
@@ -35,7 +35,6 @@ class UserService implements IUserService {
     this.googleAuthService = new GoogleAuthService(userRepository);
     this.profileService = new UserProfileService(userRepository);
     this.managementService = new UserManagementService(userRepository);
-
   }
 
   signup = async (signupDto: SignupRequestDTO): Promise<void> => {
@@ -46,7 +45,9 @@ class UserService implements IUserService {
     return this.authService.resendNewOtp(email);
   };
 
-  login = async (loginDto: LoginRequestDTO): Promise<LoginResponseDTO & { refreshToken: string }> => {
+  login = async (
+    loginDto: LoginRequestDTO,
+  ): Promise<LoginResponseDTO & { refreshToken: string }> => {
     return this.authService.login(loginDto);
   };
 
@@ -54,7 +55,6 @@ class UserService implements IUserService {
     return this.authService.create_RefreshToken(refreshToken);
   };
 
-  
   handleForgotPassword = async (email: string): Promise<void> => {
     return this.passwordService.handleForgotPassword(email);
   };
@@ -75,12 +75,10 @@ class UserService implements IUserService {
     return this.passwordService.passwordCheckUser(currentPassword, newPassword, userId);
   };
 
-  
+  authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthServiceResult> => {
+    return this.googleAuthService.authenticateGoogleLogin(userData);
+  };
 
-authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthServiceResult> => {
-  return this.googleAuthService.authenticateGoogleLogin(userData);
-}
- 
   getUserProfileService = async (userId: string): Promise<UserDocument> => {
     return this.profileService.getUserProfileService(userId);
   };
@@ -94,23 +92,18 @@ authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthSe
     return this.profileService.updateProfileService(name, contactinfo, userId, files);
   };
 
-
-   getUsers = async (
+  getUsers = async (
     page: number,
     limit: number,
     search: string,
     status?: string,
-  ): Promise<{ users: UserDocument[]; total: number; totalPages: number }> => {
+  ): Promise<UserListServiceResult> => {
     return this.managementService.getUsers(page, limit, search, status);
   };
 
   SUserBlockUnblock = async (userId: string): Promise<BlockStatus> => {
-  return this.managementService.SUserBlockUnblock(userId);
-};
-
+    return this.managementService.SUserBlockUnblock(userId);
+  };
 }
-
-
-
 
 export default UserService;

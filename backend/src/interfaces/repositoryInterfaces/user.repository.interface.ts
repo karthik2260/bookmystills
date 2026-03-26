@@ -13,6 +13,10 @@ export interface IUserRepository {
   getById(id: string): Promise<UserDocument | null>;
   findByToken(resetPasswordToken: string): Promise<UserDocument | null>;
   update(id: string, data: Partial<UserDocument>): Promise<UserDocument | null>;
-  findAllUsers(page: number, limit: number, search: string, status?:string): Promise<{users: UserDocument[], total: number, totalPages: number}>;
-
+  findAllUsers(
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+  ): Promise<{ users: UserDocument[]; total: number; totalPages: number }>;
 }

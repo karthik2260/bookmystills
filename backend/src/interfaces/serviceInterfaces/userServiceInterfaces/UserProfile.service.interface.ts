@@ -1,7 +1,5 @@
 import { UserDocument } from '../../../models/userModel';
 
-
-
 export interface IUserProfileService {
   getUserProfileService(userId: string): Promise<UserDocument>;
   updateProfileService(

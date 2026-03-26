@@ -13,8 +13,6 @@ import vendorRoutes from './routes/vendorRoutes';
 import adminRoutes from './routes/adminRoutes';
 import morgan from 'morgan';
 import { accessLogStream, errorLogStream } from './config/loggerConfig';
-import HTTP_statusCode from './enums/httpStatusCode';
-import { errorHandler } from './middlewares/errorHandler';
 import helmet from 'helmet';
 dotenv.config();
 
@@ -23,15 +21,15 @@ const server = createServer(app);
 
 app.use(
   morgan('dev', {
-    stream: accessLogStream
-  })
+    stream: accessLogStream,
+  }),
 );
 
 app.use(
   morgan('combined', {
     stream: errorLogStream,
-    skip: (req, res) => res.statusCode < 400
-  })
+    skip: (req, res) => res.statusCode < 400,
+  }),
 );
 
 app.use(cors(corsOption));

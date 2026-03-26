@@ -12,33 +12,36 @@ export class UserProfileService implements IUserProfileService {
     this.userRepository = userRepository;
   }
 
-   getUserProfileService = async (userId: string): Promise<UserDocument> => {
+  getUserProfileService = async (userId: string): Promise<UserDocument> => {
+    try {
+      const user = await this.userRepository.getById(userId.toString());
+      if (!user) {
+        throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.InternalServerError);
+      }
+      if (user?.imageUrl) {
         try {
-            const user = await this.userRepository.getById(userId.toString());
-            if (!user) {
-                throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.InternalServerError);
-            }
-            if (user?.imageUrl) {
-                try {
           const imageUrl = await s3Service.getFile('photo/', user?.imageUrl);
-                    return {
-                        ...user.toObject(),
-                        imageUrl: imageUrl
-                    };
-                } catch (error) {
-                    console.error('Error generating signed URL:', error);
-                    return user;
-                }
-            }
-            return user
+          return {
+            ...user.toObject(),
+            imageUrl: imageUrl,
+          };
         } catch (error) {
-            console.error('Error in getUserProfileService:', error);
-            if (error instanceof CustomError) {
-                throw error;
-            }
-            throw new CustomError((error as Error).message || 'Failed to get profile details', HTTP_statusCode.InternalServerError);
+          console.error('Error generating signed URL:', error);
+          return user;
         }
+      }
+      return user;
+    } catch (error) {
+      console.error('Error in getUserProfileService:', error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError(
+        (error as Error).message || 'Failed to get profile details',
+        HTTP_statusCode.InternalServerError,
+      );
     }
+  };
 
   updateProfileService = async (
     name?: string,
@@ -58,7 +61,6 @@ export class UserProfileService implements IUserProfileService {
         imageUrl?: string;
       } = {};
 
-      
       if (name && name !== user.name) {
         updateData.name = name;
       }

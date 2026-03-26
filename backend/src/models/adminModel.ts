@@ -27,7 +27,7 @@ const adminSchema = new Schema<AdminDocument>(
   },
   {
     timestamps: true, // 👈 runtime timestamps
-  }
+  },
 );
 
 export default model<AdminDocument>('Admin', adminSchema);

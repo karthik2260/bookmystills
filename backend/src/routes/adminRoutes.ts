@@ -24,19 +24,44 @@ const adminController = new AdminController(adminService, userService, vendorSer
 const adminAuthController = new AdminAuthController(adminService);
 
 router.post('/login', adminAuthController.adminLogin.bind(adminAuthController));
-router.get('/logout',authenticateToken,authorizeRole(AuthRole.ADMIN), adminAuthController.adminLogout.bind(adminAuthController));
-router.get('/vendors',authenticateToken, adminController.getAllVendors.bind(adminController));
+router.get(
+  '/logout',
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
+  adminAuthController.adminLogout.bind(adminAuthController),
+);
+router.get('/vendors', authenticateToken, adminController.getAllVendors.bind(adminController));
 router.put(
   '/vendors/:vendorId/status',
-  authenticateToken,authorizeRole(AuthRole.ADMIN),
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
   adminController.VerifyVendor.bind(adminController),
 );
 
 router.post('/refresh-token', adminAuthController.createRefreshToken.bind(adminAuthController));
-router.get('/users',authenticateToken,authorizeRole(AuthRole.ADMIN),adminController.getAllUsers.bind(adminController));
-router.patch('/block-unblock',authenticateToken,authorizeRole(AuthRole.ADMIN), adminController.UserBlockUnblock.bind(adminController));
-router.get('/dashboard',authenticateToken,authorizeRole(AuthRole.ADMIN), adminController.getAllInOneDashboardStats.bind(adminController));
-router.patch('/vendorblock-unblock',authenticateToken,authorizeRole(AuthRole.ADMIN), adminController.VendorBlockUnblock.bind(adminController));
-
+router.get(
+  '/users',
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
+  adminController.getAllUsers.bind(adminController),
+);
+router.patch(
+  '/block-unblock',
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
+  adminController.UserBlockUnblock.bind(adminController),
+);
+router.get(
+  '/dashboard',
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
+  adminController.getAllInOneDashboardStats.bind(adminController),
+);
+router.patch(
+  '/vendorblock-unblock',
+  authenticateToken,
+  authorizeRole(AuthRole.ADMIN),
+  adminController.VendorBlockUnblock.bind(adminController),
+);
 
 export default router;

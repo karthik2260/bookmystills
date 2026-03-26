@@ -4,34 +4,35 @@ import { faMapMarkerAlt, faChevronUp, faExpand, faFlag } from '@fortawesome/free
 import { Button } from '@nextui-org/react';
 import { PostCardProps } from '../../types/postTypes';
 import { useState } from 'react';
-import { axiosInstance } from '@/config/api/axiosinstance';
 import { showToastMessage } from '@/validations/common/toast';
 import { AxiosError } from 'axios';
+import { submitReport } from '@/services/serviceapi';
 
 export const PostCard = ({ post, onShowDetails }: PostCardProps) => {
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-    const handleReportSubmit = async (reportData: {
-        reason: string;
-        additionalDetails?: string;
-    }) => {
-        try {
-            await axiosInstance.post('/reports', {
-                itemId: post._id,
-                type: 'Post',
-                reason: reportData.reason,
-                additionalDetails: reportData.additionalDetails
-            });
+   const handleReportSubmit = async (reportData: {
+  reason: string;
+  additionalDetails?: string;
+}) => {
+  try {
+    await submitReport({
+      itemId: post._id,
+      type: 'Post',
+      reason: reportData.reason,
+      additionalDetails: reportData.additionalDetails,
+    });
 
-            showToastMessage('Post reported successfully', 'success');
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                showToastMessage(error.response?.data.message || 'Error fetching booking data', 'error');
-              } else {
-                showToastMessage('An unknown error occurred', 'error');
-              }            throw error;
-        }
-    };
+    showToastMessage('Post reported successfully', 'success');
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      showToastMessage(error.response?.data.message || 'Error submitting report', 'error');
+    } else {
+      showToastMessage('An unknown error occurred', 'error');
+    }
+    throw error;
+  }
+};
 
     return (
         <>

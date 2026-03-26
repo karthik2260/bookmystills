@@ -2,23 +2,23 @@ import { Request, Response } from 'express';
 import { handleError } from '../../util/handleError';
 import { CustomError } from '../../error/customError';
 import { AuthenticatedRequestt } from '../../types/userType';
-import { OTP,VendorSession } from '../../interfaces/commonInterfaces';
+import { OTP, VendorSession } from '../../interfaces/commonInterfaces';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
 import jwt from 'jsonwebtoken';
 
-
-
-import { VendorChangePasswordRequestDTO,
-    VendorChangePasswordResponseDTO,
-    VendorForgotPasswordRequestDTO,
-    VendorForgotPasswordResponse,
-    VendorLoginRequestDTO,
-     VendorLogoutResponseDTO,
-     VendorRefreshTokenResponseDTO,
-     VendorSignUpRequestDTO,
-     verifyOtpRequestDTO } from '../../dto/vendorDTO';
+import {
+  VendorChangePasswordRequestDTO,
+  VendorChangePasswordResponseDTO,
+  VendorForgotPasswordRequestDTO,
+  VendorForgotPasswordResponse,
+  VendorLoginRequestDTO,
+  VendorLogoutResponseDTO,
+  VendorRefreshTokenResponseDTO,
+  VendorSignUpRequestDTO,
+  verifyOtpRequestDTO,
+} from '../../dto/vendorDTO';
 
 declare module 'express-session' {
   interface Session {
@@ -38,7 +38,7 @@ class VendorAuthController {
     try {
       const vendorSignupDto: VendorSignUpRequestDTO = req.body;
       const { email, name, password, city, contactinfo, companyName, about } = vendorSignupDto;
- const files = req.files as {
+      const files = req.files as {
         portfolioImages?: Express.Multer.File[];
         aadharFront?: Express.Multer.File[];
         aadharBack?: Express.Multer.File[];
@@ -52,9 +52,7 @@ class VendorAuthController {
         contactinfo,
         companyName,
         about,
-        files
-        
-
+        files,
       });
 
       req.session.vendor = vendorData;
@@ -75,17 +73,24 @@ class VendorAuthController {
     }
   };
 
- verifyOTP = async (req: Request, res: Response): Promise<void> => {
+  verifyOTP = async (req: Request, res: Response): Promise<void> => {
     try {
       const verifyOtpDto: verifyOtpRequestDTO = {
         otp: req.body.otp,
       };
 
-      const { 
-        name, email, city, password, contactinfo, 
-        otpCode, companyName, about, otpExpiry, 
+      const {
+        name,
+        email,
+        city,
+        password,
+        contactinfo,
+        otpCode,
+        companyName,
+        about,
+        otpExpiry,
         portfolioImages,
-        aadharImages   
+        aadharImages,
       } = req.session.vendor;
 
       if (verifyOtpDto.otp !== otpCode) {
@@ -106,7 +111,7 @@ class VendorAuthController {
         companyName,
         about,
         portfolioImages,
-        aadharImages,   
+        aadharImages,
       };
 
       const { vendor } = await this.vendorService.signup(signupData);
@@ -130,12 +135,12 @@ class VendorAuthController {
 
       const { token, refreshToken, vendor, message } = await this.vendorService.login(loginDto);
 
-     res.cookie('jwtToken', refreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
-});
+      res.cookie('jwtToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+      });
       res.status(HTTP_statusCode.OK).json({ token, vendor, message });
     } catch (error) {
       handleError(res, error, 'VendorLogin');
@@ -205,31 +210,29 @@ class VendorAuthController {
     }
   };
 
+  reapplyVendor = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
+    try {
+      const vendorId = req.user?._id?.toString(); // ← add .toString()
 
- reapplyVendor = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
-  try {
-    const vendorId = req.user?._id?.toString(); // ← add .toString()
+      if (!vendorId) {
+        res.status(HTTP_statusCode.Unauthorized).json({
+          message: Messages.VENDOR_ID_MISSING,
+        });
+        return;
+      }
 
-    if (!vendorId) {
-      res.status(HTTP_statusCode.Unauthorized).json({ 
-        message: Messages.VENDOR_ID_MISSING 
-      });
-      return;
+      const files = req.files as {
+        portfolioImages?: Express.Multer.File[];
+        aadharFront?: Express.Multer.File[];
+        aadharBack?: Express.Multer.File[];
+      };
+
+      const result = await this.vendorService.reapplyVendor(vendorId, files);
+      res.status(HTTP_statusCode.OK).json(result);
+    } catch (error) {
+      handleError(res, error, 'reapplyVendor');
     }
-
-    const files = req.files as {
-      portfolioImages?: Express.Multer.File[];
-      aadharFront?: Express.Multer.File[];
-      aadharBack?: Express.Multer.File[];
-    };
-
-    const result = await this.vendorService.reapplyVendor(vendorId, files);
-    res.status(HTTP_statusCode.OK).json(result);
-
-  } catch (error) {
-    handleError(res, error, 'reapplyVendor');
-  }
-};
+  };
   changeForgotPassword = async (req: Request, res: Response): Promise<void> => {
     const changePasswordDto: VendorChangePasswordRequestDTO = {
       token: req.params.token,

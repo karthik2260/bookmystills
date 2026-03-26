@@ -3,10 +3,8 @@ import { X, Upload, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { updateVendorStatus } from '@/redux/slices/VendorSlice';
 import { showToastMessage } from '@/validations/common/toast';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-import axios from 'axios';
 import { AcceptanceStatus } from '@/types/vendorTypes';
-
+import { submitReapplicationApi,isAxiosErrorWithMessage } from './Reapplyapi';
 interface ReapplyModalProps {
   rejectionReason?: string | null;
   onClose: () => void;
@@ -26,49 +24,30 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
     }
   };
 
-const handleSubmit = async () => {
-  setIsLoading(true);
-  try {
-    const formData = new FormData();
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      await submitReapplicationApi({ portfolioFiles, aadharFront, aadharBack });
 
-    portfolioFiles.forEach((file) => {
-      formData.append('portfolioImages', file);
-    });
-    if (aadharFront) formData.append('aadharFront', aadharFront);
-    if (aadharBack) formData.append('aadharBack', aadharBack);
+      dispatch(updateVendorStatus({
+        isAccepted: AcceptanceStatus.Reapplied,
+        rejectionReason: undefined,
+      }));
 
-    // ✅ ADD THESE TWO LINES — manually attach token
-    const token = localStorage.getItem('vendorToken');
-    console.log('Token being sent:', token); // ← check console for this
+      setSubmitted(true);
+      showToastMessage('Reapplication submitted successfully!', 'success');
+      setTimeout(() => onClose(), 2000);
 
-    await axiosInstanceVendor.post('/reapply', formData, {
-      headers: { 
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`, // ← add this
-      },
-    });
-
-    // rest of your code stays same...
-    dispatch(updateVendorStatus({ 
-      isAccepted: AcceptanceStatus.Reapplied,
-      rejectionReason: undefined
-    }));
-
-    setSubmitted(true);
-    showToastMessage('Reapplication submitted successfully!', 'success');
-    setTimeout(() => onClose(), 2000);
-
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.log('Full error response:', error.response?.data);
-      showToastMessage(error.response?.data?.message || 'Failed to submit reapplication', 'error');
-    } else {
-      showToastMessage('Unexpected error occurred', 'error');
+    } catch (error) {
+      if (isAxiosErrorWithMessage(error)) {
+        showToastMessage(error.response?.data?.message || 'Failed to submit reapplication', 'error');
+      } else {
+        showToastMessage('Unexpected error occurred', 'error');
+      }
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
@@ -86,7 +65,7 @@ const handleSubmit = async () => {
         </div>
 
         {submitted ? (
-          // ✅ Success state
+          // Success state
           <div className="px-6 py-12 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={32} className="text-green-600" />
@@ -110,7 +89,7 @@ const handleSubmit = async () => {
             )}
 
             <p className="text-xs text-gray-500">
-              Please re-upload the documents mentioned in the rejection reason. 
+              Please re-upload the documents mentioned in the rejection reason.
               You can skip fields that don't need changes.
             </p>
 
@@ -123,8 +102,8 @@ const handleSubmit = async () => {
               <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                 <Upload size={20} className="text-gray-400 mb-1" />
                 <span className="text-xs text-gray-500">
-                  {portfolioFiles.length > 0 
-                    ? `${portfolioFiles.length} file(s) selected` 
+                  {portfolioFiles.length > 0
+                    ? `${portfolioFiles.length} file(s) selected`
                     : 'Click to upload portfolio images'}
                 </span>
                 <input

@@ -102,7 +102,7 @@ export class S3Service {
       'image/bmp': '.bmp',
       'image/tiff': '.tiff',
     };
-    return mimeToExt[mimeType] || '.jpg'; 
+    return mimeToExt[mimeType] || '.jpg';
   }
 }
 

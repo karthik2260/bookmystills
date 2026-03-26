@@ -1,13 +1,5 @@
 import { UserDTO } from './userDTO';
 
-
-
-
-
-
-
-
-
 export interface GoogleSignupRequestDTO {
   credential: string;
 }
@@ -34,7 +26,6 @@ export interface GoogleLoginResponseDTO {
   message: string;
 }
 
-
 export interface UserResponseDTO {
   id: string;
   name: string;
@@ -53,6 +44,3 @@ export interface UserProfileResponseDTO {
   createdAt: string;
   updatedAt: string;
 }
-
-
-

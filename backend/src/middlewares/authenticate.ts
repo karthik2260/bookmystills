@@ -1,4 +1,4 @@
-import { Response, NextFunction,RequestHandler } from 'express';
+import { Response, NextFunction, RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRole } from '../enums/commonEnums';
 import { AuthRequest } from '../types/authRequest';
@@ -11,7 +11,7 @@ interface JwtPayload {
 export const authenticateToken: RequestHandler = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
 
@@ -29,11 +29,10 @@ export const authenticateToken: RequestHandler = (
     };
     next();
   } catch (err) {
-
     if (err instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Token expired',
-        expired: true  
+        expired: true,
       });
     }
     return res.status(401).json({ message: 'Invalid token' });
