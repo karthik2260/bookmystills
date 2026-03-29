@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Avatar,
   Button,
@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { showToastMessage } from "../../../validations/common/toast";
 import { useSelector, useDispatch } from "react-redux";
 import UserRootState from "@/redux/rootstate/UserState";
-import { setUserInfo } from "@/redux/slices/UserSlice";
+import { setProfileData, setUserInfo } from "@/redux/slices/UserSlice";
 import Sidebar from "../../../layout/user/Sidebar";
 import EditProfileModal from "./editProfile";
 import Loader from "../../../components/common/Loader";
@@ -19,14 +19,38 @@ import { AxiosError } from "axios";
 import ChangePasswordModal, { PasswordFormData } from "@/pages/common/changePassword";
 import { formatDate } from "@/utils/userUtils";
 import { changePasswordService, updateProfileService } from "@/services/userAuthService";
+import { getUserProfileService } from "@/services/userProfileService";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
-  const userD = useSelector((state: UserRootState) => state.user.userData);
+  const profileData = useSelector((state: UserRootState) => state.user.profileData);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+
+ const fetchProfile = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("userToken") || "";
+      const profile = await getUserProfileService(token);
+      dispatch(setProfileData(profile)); 
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      showToastMessage("Failed to load profile", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+
+
 
   const handlePasswordChange = async (passwordData: PasswordFormData) => {
     try {
@@ -45,23 +69,23 @@ const UserProfile = () => {
     }
   };
 
-  const handleSaveProfile = useCallback(async (updates: FormData) => {
-    try {
-      const token = localStorage.getItem("userToken");
-      if (!token) {
-        showToastMessage("Authentication required", "error");
-        return;
-      }
-      const response = await updateProfileService(updates, token);
-      dispatch(setUserInfo(response.userProfileDTO));
-      showToastMessage("Profile updated successfully", "success");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showToastMessage("Error updating profile", "error");
+ const handleSaveProfile = useCallback(async (updates: FormData) => {
+  try {
+    const token = localStorage.getItem("userToken");
+    if (!token) {
+      showToastMessage("Authentication required", "error");
+      return;
     }
-  }, [dispatch]);
+    await updateProfileService(updates, token); 
+    await fetchProfile();                        
+    showToastMessage("Profile updated successfully", "success");
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    showToastMessage("Error updating profile", "error");
+  }
+}, [fetchProfile]); 
 
-  if (!userD) {
+  if (!profileData) {
     return <div><Loader /></div>;
   }
 
@@ -233,7 +257,7 @@ const UserProfile = () => {
                       size="xxl"
                       placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                       className="h-32 w-32 ring-4 ring-white -mt-20 relative"
-                      src={userD?.imageUrl || "/images/user.png"}
+                      src={profileData?.imageUrl || "/images/user.png"}
                     />
                     <div className="up2-cam-btn" onClick={() => setIsEditModalOpen(true)}>
                       <Camera size={11} color="#fff" strokeWidth={2.5} />
@@ -241,25 +265,25 @@ const UserProfile = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <h2 className="up2-name">{userD?.name}</h2>
+                    <h2 className="up2-name">{profileData?.name}</h2>
                     <div className="up2-contact">
                       <Mail size={13} color="#9ca3af" />
-                      <span>{userD?.email}</span>
+                      <span>{profileData?.email}</span>
                     </div>
                     <div className="up2-contact">
                       <Phone size={13} color="#9ca3af" />
-                      <span>{userD?.contactinfo || '—'}</span>
+                      <span>{profileData?.contactinfo || '—'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Chips */}
                 <div className="flex flex-col items-end gap-2">
-                  <span className={`up2-chip ${userD?.isActive ? 'up2-chip-green' : 'up2-chip-gray'}`}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: userD?.isActive ? '#16a34a' : '#71717a', display: 'inline-block' }} />
-                    {userD?.isActive ? "Active" : "Inactive"}
+                  <span className={`up2-chip ${profileData?.isActive ? 'up2-chip-green' : 'up2-chip-gray'}`}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: profileData?.isActive ? '#16a34a' : '#71717a', display: 'inline-block' }} />
+                    {profileData?.isActive ? "Active" : "Inactive"}
                   </span>
-                  {userD?.isGoogleUser && (
+                  {profileData?.isGoogleUser && (
                     <span className="up2-chip up2-chip-blue">
                       <Shield size={9} />
                       Google Account
@@ -281,7 +305,7 @@ const UserProfile = () => {
                     <div className="up2-icon-box"><Shield size={13} color="#6b7280" /></div>
                     <div>
                       <p className="up2-info-label">User ID</p>
-                      <p className="up2-info-val">#{userD?.id?.slice(-6).toUpperCase()}</p>
+                      <p className="up2-info-val">#{profileData?.id?.slice(-6).toUpperCase()}</p>
                     </div>
                   </div>
 
@@ -289,7 +313,7 @@ const UserProfile = () => {
                     <div className="up2-icon-box"><Clock size={13} color="#6b7280" /></div>
                     <div>
                       <p className="up2-info-label">Member Since</p>
-                      <p className="up2-info-val">{formatDate(userD?.createdAt)}</p>
+                      <p className="up2-info-val">{formatDate(profileData?.createdAt)}</p>
                     </div>
                   </div>
 
@@ -297,7 +321,7 @@ const UserProfile = () => {
                     <div className="up2-icon-box"><CalendarDays size={13} color="#6b7280" /></div>
                     <div>
                       <p className="up2-info-label">Last Updated</p>
-                      <p className="up2-info-val">{formatDate(userD?.updatedAt)}</p>
+                      <p className="up2-info-val">{formatDate(profileData?.updatedAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -334,7 +358,7 @@ const UserProfile = () => {
                   <Pencil size={12} strokeWidth={2.5} />
                   Edit Profile
                 </button>
-                {userD && !userD.isGoogleUser && (
+                {profileData && !profileData.isGoogleUser && (
                   <button className="up2-btn-light" onClick={() => setIsPasswordModalOpen(true)}>
                     <KeyRound size={12} strokeWidth={2.5} />
                     Change Password
@@ -346,15 +370,15 @@ const UserProfile = () => {
         </section>
 
         {/* Modals */}
-        {userD && (
+        {profileData && (
           <EditProfileModal
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
-            user={userD}
+            user={profileData}
             onSave={handleSaveProfile}
           />
         )}
-        {userD && !userD.isGoogleUser && isPasswordModalOpen && (
+        {profileData && !profileData.isGoogleUser && isPasswordModalOpen && (
           <ChangePasswordModal
             isOpen={isPasswordModalOpen}
             onClose={() => setIsPasswordModalOpen(false)}

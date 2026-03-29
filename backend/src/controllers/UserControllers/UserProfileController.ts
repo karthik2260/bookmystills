@@ -5,8 +5,6 @@ import { IUserService } from '../../interfaces/serviceInterfaces/user.Service.in
 import { handleError } from '../../util/handleError';
 import { AuthenticatedRequestt } from '../../types/userType';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
-import { AuthenticatedRequest } from '../../types/vendorTypes';
-import { UserMapper } from '../../mapper/user.mapper';
 class UserProfileController {
   private userService: IUserService;
   private vendorService: IVendorService;
@@ -18,64 +16,58 @@ class UserProfileController {
     this.vendorManagementService = this.vendorService;
   }
 
-  getUserProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
-    try {
-      console.log('Inside getUserProfile');
-      console.log('User ID:', req.user?._id);
-      console.log('User role:', req.user?.role);
+ getUserProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?._id;
 
-      const userId = req.user?._id;
-
-      if (!userId) {
-        res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
-        return;
-      }
-
-      const result = await this.userService.getUserProfileService(userId.toString());
-      const userDTO = UserMapper.toProfileDTO(result);
-      res.status(HTTP_statusCode.OK).json(userDTO);
-    } catch (error) {
-      handleError(res, error, 'getUser');
+    if (!userId) {
+      res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
+      return;
     }
-  };
 
-  updateProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
-    try {
-      const { name, contactinfo } = req.body;
-      const userId = req.user?._id;
+    const userDTO = await this.userService.getUserProfileService(userId.toString());
+    res.status(HTTP_statusCode.OK).json(userDTO); 
+  } catch (error) {
+    handleError(res, error, 'getUser');
+  }
+};
 
-      if (!userId) {
-        res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
-        return;
-      }
+ updateProfile = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
+  try {
+    const { name, contactinfo } = req.body;
+    const userId = req.user?._id;
 
-      if (
-        (!name && !contactinfo && !req.file) ||
-        (name === '' && contactinfo === '' && !req.file)
-      ) {
-        res.status(HTTP_statusCode.BadRequest).json({
-          message: 'At least one field (name, contactinfo, or image) is required',
-        });
-        return;
-      }
-
-      const user = await this.userService.updateProfileService(
-        name,
-        contactinfo,
-        userId,
-        req.file || null,
-      );
-
-      if (!user) {
-        throw new Error('User not found after update');
-      }
-
-      const userProfileDTO = UserMapper.toProfileDTO(user);
-      res.status(HTTP_statusCode.OK).json({ userProfileDTO });
-    } catch (error) {
-      handleError(res, error, 'updateProfile');
+    if (!userId) {
+      res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
+      return;
     }
-  };
+
+    if (
+      (!name && !contactinfo && !req.file) ||
+      (name === '' && contactinfo === '' && !req.file)
+    ) {
+      res.status(HTTP_statusCode.BadRequest).json({
+        message: 'At least one field (name, contactinfo, or image) is required',
+      });
+      return;
+    }
+
+    const userProfileDTO = await this.userService.updateProfileService(
+      name,
+      contactinfo,
+      userId,
+      req.file || null,
+    );
+
+    if (!userProfileDTO) {
+      throw new Error('User not found after update');
+    }
+
+    res.status(HTTP_statusCode.OK).json(userProfileDTO); // ✅ already a DTO, send directly
+  } catch (error) {
+    handleError(res, error, 'updateProfile');
+  }
+};
 
   getAllVendors = async (req: Request, res: Response): Promise<void> => {
     try {

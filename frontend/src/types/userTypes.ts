@@ -24,3 +24,23 @@ export interface UserData {
   createdAt: string | undefined;
   updatedAt: string | undefined;
 }
+
+
+export interface ProfileUserDTO {
+  id:string;
+  email:string;
+  name:string;
+  contactinfo?: string;
+  isActive: boolean;
+  isGoogleUser: boolean;
+  imageUrl?: string;
+  createdAt: string | undefined;
+  updatedAt: string | undefined;
+
+
+
+
+
+
+  
+}
