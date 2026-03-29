@@ -13,8 +13,11 @@ enum Messages {
   VENDOR_NOT_FOUND = 'Vendor not found',
   USER_NOT_FOUND = 'User not found',
   BLOCKED = 'Blocked by Admin',
+
   EMAIL_REQUIRED = 'Email is required',
   PASSWORD_REQUIRED = 'Password is required',
+  EMAIL_PASSWORD_REQUIRED = 'Email and Password are required!', // ✅ Added here
+
   TOKEN_REQUIRED = 'Token is required',
   PASSWORD_RESET_LINK = 'Password reset link sent to your email',
   PASSWORD_RESET_SUCCESS = 'Password Reset Successfull',
@@ -39,11 +42,10 @@ enum Messages {
   UPDATE_USER_STATUS = 'User block/unblock status updated succesfully.',
   UPDATE_POST_STATUS = 'Post status updated successfully',
   DASHBOARD_DETAILS = 'Dashboard statistics retrieved successfully',
-    UNAUTHORIZED = 'Unauthorized access. Please log in to continue.',
+
+  UNAUTHORIZED = 'Unauthorized access. Please log in to continue.',
   FORBIDDEN = 'Access forbidden. You do not have permission to perform this action.',
-ACCESS_DENIED = 'Access denied. You do not have permission to access this resource.',
-
-
+  ACCESS_DENIED = 'Access denied. You do not have permission to access this resource.',
 }
 
 export default Messages;

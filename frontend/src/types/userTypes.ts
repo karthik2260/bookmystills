@@ -11,18 +11,36 @@ export interface UserFormValues {
 
 
 export interface UserData {
-   _id: string;
+   id: string;
   email: string;
   password?: string;
   name: string;
   contactinfo?: string;
   isActive: boolean;
-  isBlocked: boolean;
   isGoogleUser: boolean;
   image?: string | null | undefined;
   imageUrl?: string;
-  favourite: string[];
   refreshToken?: string;
   createdAt: string | undefined;
   updatedAt: string | undefined;
+}
+
+
+export interface ProfileUserDTO {
+  id:string;
+  email:string;
+  name:string;
+  contactinfo?: string;
+  isActive: boolean;
+  isGoogleUser: boolean;
+  imageUrl?: string;
+  createdAt: string | undefined;
+  updatedAt: string | undefined;
+
+
+
+
+
+
+  
 }

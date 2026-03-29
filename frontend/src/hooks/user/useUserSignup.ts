@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { UserFormValues } from "../../types/userTypes";
 import { useSelector } from 'react-redux';
 import UserRootState from '../../redux/rootstate/UserState';
@@ -7,7 +7,7 @@ import { USER } from '../../config/constants/constants';
 import { validate } from '../../validations/user/userVal';
 import { CredentialResponse } from '@react-oauth/google';
 import { showToastMessage } from '../../validations/common/toast';
-import { googleRegister, signupUser } from '@/services/userAuthService';
+import { googleAuth, signupUser } from '@/services/userAuthService';
 
 const initialValues: UserFormValues = {
     email: "",
@@ -37,13 +37,17 @@ const images = [
     const [imageIndex, setImageIndex] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate()
-  
-    useEffect(() => {
-      if (user) {
-        navigate(USER.HOME)
-      }
-    }, [navigate, user])
-  
+  const location = useLocation();
+
+   useEffect(() => {
+  if (
+    user &&
+    (location.pathname === USER.LOGIN ||
+     location.pathname === USER.SIGNUP)
+  ) {
+    navigate(USER.HOME);
+  }
+}, [navigate, user, location.pathname]);
     useEffect(() => {
       const interval = setInterval(() => {
         setImageIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -72,7 +76,7 @@ const images = [
       };
   
     const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
-  googleRegister(credentialResponse.credential!)
+  googleAuth(credentialResponse.credential!)
         .then((res) => {
           if (res.data.message) {
             showToastMessage(res.data.message, 'success')
@@ -85,32 +89,33 @@ const images = [
     };
   
   
-    const   submitHandler = async (e: { preventDefault: () => void }) => {
-      e.preventDefault();
-      const errors = validate(formValues);
-      setFormErrors(errors);
-      if (Object.values(errors).every((error) => error === "")) {
-        setIsLoading(true);
-        try {
-                const response = await signupUser(formValues);
+  const submitHandler = async (e: { preventDefault: () => void }) => {
+  e.preventDefault();
+  const errors = validate(formValues);
+  setFormErrors(errors);
 
-          if (response.data.email) {
-            showToastMessage('OTP sent successfully', 'success');
-            localStorage.setItem('otpData', JSON.stringify({
-              otpExpiry: response.data.otpExpiry,
-              resendAvailableAt: response.data.resendAvailableAt,
-              email: response.data.email
-            }));
-            navigate('/verify');
-          }
-        } catch (error) {
-          console.error(error)
-          showToastMessage( 'Failed to send OTP', 'error');
-        } finally {
-          setIsLoading(false);
-        }
+  if (Object.values(errors).every((error) => error === "")) {
+    setIsLoading(true);
+    try {
+      const response = await signupUser(formValues);
+
+      if (response.status === 200) {              // ✅ status code
+        showToastMessage('OTP sent successfully', 'success');
+        localStorage.setItem('otpData', JSON.stringify({
+          otpExpiry:         response.data.otpExpiry,
+          resendAvailableAt: response.data.resendAvailableAt,
+          // ✅ email removed
+        }));
+        navigate('/verify');
       }
+    } catch (error) {
+      console.error(error);
+      showToastMessage('Failed to send OTP', 'error');
+    } finally {
+      setIsLoading(false);
     }
+  }
+};
 
     return {
         formValues,

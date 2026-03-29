@@ -5,7 +5,7 @@ import * as Yup from 'yup';
 import { Card, CardBody, Button, Typography } from "@material-tailwind/react";
 import axios from 'axios';
 import { showToastMessage } from '../../validations/common/toast';
-import { axiosInstance,axiosSessionInstance } from '@/config/api/axiosinstance';
+import { verifyOtpApi,resendOtpApi } from '@/services/Verifyemailapi';
 const images = [
   '/images/login.webp',
   '/images/event1.jpg',
@@ -14,7 +14,8 @@ const images = [
 
 interface FormValues {
   otp: string;
-}  
+}
+
 const VerifyEmail = () => {
   const [imageIndex, setImageIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -66,29 +67,27 @@ const VerifyEmail = () => {
     startTimer();
   }, [navigate]);
 
-  const handleVerify = async (values: FormValues, { setSubmitting, setFieldError }: FormikHelpers<FormValues>) => {
+  const handleVerify = async (
+    values: FormValues,
+    { setSubmitting, setFieldError }: FormikHelpers<FormValues>
+  ) => {
     setIsLoading(true);
     try {
-      const response = await axiosSessionInstance.post('/verify', { otp: values.otp });
-      showToastMessage(response.data.message, 'success');
-      if (response.data.user) {
-        localStorage.removeItem('otpData');
-        navigate('/login');
-      }
+      const data = await verifyOtpApi(values.otp);
+      showToastMessage(data.message, 'success');
+      localStorage.removeItem('otpData');
+      navigate('/login');
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || 'Invalid OTP';
-        setFieldError('otp', errorMessage); // Set field error for formik
-        showToastMessage(errorMessage, 'error'); // Display toast message
+        setFieldError('otp', errorMessage);
+        showToastMessage(errorMessage, 'error');
         if (error.response?.status === 400 && errorMessage === 'Session expired. Please sign up again.') {
-          setTimeout(() => {
-            navigate('/signup');
-          }, 2000);
+          setTimeout(() => navigate('/signup'), 2000);
         }
       } else {
         showToastMessage('An unexpected error occurred. Please try again.', 'error');
       }
-
     } finally {
       setIsLoading(false);
       setSubmitting(false);
@@ -100,30 +99,29 @@ const VerifyEmail = () => {
 
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get('/resendOtp');
-      const { otpExpiry, resendAvailableAt } = response.data;
+      const data = await resendOtpApi();
 
       const otpData = JSON.parse(localStorage.getItem('otpData') || '{}');
       localStorage.setItem('otpData', JSON.stringify({
         ...otpData,
-        otpExpiry,
-        resendAvailableAt
+        otpExpiry: data.otpExpiry,
+        resendAvailableAt: data.resendAvailableAt,
       }));
-      showToastMessage(response.data.message, 'success');
-      setTimeLeft(Math.floor((otpExpiry - Date.now()) / 1000));
+
+      showToastMessage(data.message, 'success');
+      setTimeLeft(Math.floor((data.otpExpiry - Date.now()) / 1000));
       setResendDisabled(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message ||
+        const errorMessage =
+          error.response?.data?.message ||
           error.response?.data?.error ||
           error.message ||
           'An error occurred while processing your request';
         showToastMessage(errorMessage, 'error');
       } else {
-        console.error('Failed to resend OTP:', error);
         showToastMessage('An unexpected error occurred. Please try again.', 'error');
       }
-
     } finally {
       setIsLoading(false);
     }
@@ -138,9 +136,9 @@ const VerifyEmail = () => {
   const validationSchema = Yup.object().shape({
     otp: Yup.string()
       .required('OTP is required')
-      .matches(/^[0-9]+$/, "Must be only digits")
+      .matches(/^[0-9]+$/, 'Must be only digits')
       .min(4, 'Must be exactly 4 digits')
-      .max(4, 'Must be exactly 4 digits')
+      .max(4, 'Must be exactly 4 digits'),
   });
 
   return (
@@ -158,7 +156,6 @@ const VerifyEmail = () => {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Animated text */}
         <h1 className="animate-fadeIn text-4xl md:text-4xl text-white font-bold mt-20 mx-4 md:block hidden">
           Elevate Your Event Experience
         </h1>
@@ -168,7 +165,7 @@ const VerifyEmail = () => {
       </div>
 
       <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
-        <Card className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden"    >
+        <Card className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden">
 
           <div className="w-full text-center mt-6 mb-4">
             <h2 className="text-3xl font-extrabold text-gray-900">
@@ -182,8 +179,7 @@ const VerifyEmail = () => {
             onSubmit={handleVerify}
           >
             {({ isSubmitting }) => (
-              <CardBody className="flex flex-col gap-4 px-4"   >
-
+              <CardBody className="flex flex-col gap-4 px-4">
                 <Form className="space-y-4">
                   <div>
                     <Field
@@ -197,11 +193,13 @@ const VerifyEmail = () => {
                   </div>
 
                   {timeLeft !== null && (
-                    <Typography className="text-center" color={timeLeft > 0 ? "blue-gray" : "red"}
-                     >
+                    <Typography
+                      className="text-center"
+                      color={timeLeft > 0 ? 'blue-gray' : 'red'}
+                    >
                       {timeLeft > 0
                         ? `Time remaining: ${formatTime(timeLeft)}`
-                        : "OTP has expired"}
+                        : 'OTP has expired'}
                     </Typography>
                   )}
 
@@ -210,24 +208,23 @@ const VerifyEmail = () => {
                       type="button"
                       color="gray"
                       onClick={handleResend}
-                       disabled={isLoading || resendDisabled || isSubmitting}
+                      disabled={isLoading || resendDisabled || isSubmitting}
                       className="bg-black"
                       fullWidth
                     >
-                      {isLoading ? "Sending..." : "Resend OTP"}
+                      {isLoading ? 'Sending...' : 'Resend OTP'}
                     </Button>
 
                     <Button
                       type="submit"
-                       disabled={isLoading || !timeLeft || timeLeft === 0 || isSubmitting}
+                      disabled={isLoading || !timeLeft || timeLeft === 0 || isSubmitting}
                       className="bg-black"
                       fullWidth
                     >
-                      {isSubmitting ? "Verifying..." : "Verify"}
+                      {isSubmitting ? 'Verifying...' : 'Verify'}
                     </Button>
                   </div>
                 </Form>
-
               </CardBody>
             )}
           </Formik>
@@ -235,10 +232,6 @@ const VerifyEmail = () => {
         </Card>
       </div>
     </div>
-
-
-
-
   );
 };
 

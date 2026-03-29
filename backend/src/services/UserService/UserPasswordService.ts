@@ -7,7 +7,8 @@ import { sendEmail } from '../../util/sendEmail';
 import mongoose from 'mongoose';
 import { emailTemplates } from '../../util/emailTemplates';
 import Messages from '../../enums/errorMessages';
-export class UserPasswordService {
+import { IUserPasswordService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserPassword.service.interface';
+export class UserPasswordService implements IUserPasswordService {
   private userRepository: IUserRepository;
 
   constructor(userRepository: IUserRepository) {
@@ -18,7 +19,7 @@ export class UserPasswordService {
     try {
       const user = await this.userRepository.findByEmail(email);
       if (!user) {
-        throw new CustomError('Email does not exist',HTTP_statusCode.BadRequest)
+        throw new CustomError('Email does not exist', HTTP_statusCode.BadRequest);
       }
       const resetToken = crypto.randomBytes(20).toString('hex');
       const resetTokenExpiry = new Date(Date.now() + 30 * 60 * 1000);
@@ -49,31 +50,23 @@ export class UserPasswordService {
 
   newPasswordChange = async (token: string, password: string): Promise<void> => {
     try {
-     
-
       const user = await this.userRepository.findByToken(token);
 
       console.log('👤 User found:', user ? 'YES' : 'NO');
-      if (user) {
-       
-      }
+      
 
       if (!user) {
         throw new CustomError('Invalid token', HTTP_statusCode.BadRequest); // Change to 400
       }
 
       if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
-       
         throw new CustomError('Passwo rd reset token has expired', HTTP_statusCode.BadRequest); // Change to 400
       }
-
-     
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-
-      let updateSuccess = await this.userRepository.UpdatePasswordAndClearToken(
+      const updateSuccess = await this.userRepository.UpdatePasswordAndClearToken(
         user._id,
         hashedPassword,
       );
@@ -82,14 +75,11 @@ export class UserPasswordService {
         throw new CustomError('Failed to Update password', HTTP_statusCode.InternalServerError);
       }
 
-     
-
       await sendEmail(
         user.email,
         'Password Reset Successful',
         emailTemplates.ResetPasswordSuccess(user.name),
       );
-
     } catch (error) {
       if (error instanceof CustomError) {
         throw error;

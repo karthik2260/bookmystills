@@ -25,8 +25,7 @@ class AdminService implements IAdminService {
         throw new CustomError('Incorrect Password', HTTP_statusCode.Unauthorized);
       }
 
-      const token = createAccessToken(existingAdmin._id.toString(),AuthRole.ADMIN);
-      jwt.sign({ _id: existingAdmin._id ,role:AuthRole.ADMIN}, process.env.JWT_SECRET_KEY!, { expiresIn: '2h' });
+      const token = createAccessToken(existingAdmin._id.toString(), AuthRole.ADMIN);
 
       let { refreshToken } = existingAdmin;
       if (!refreshToken || isTokenExpiringSoon(refreshToken)) {
@@ -63,15 +62,44 @@ class AdminService implements IAdminService {
         throw new CustomError('Invalid refresh Token', HTTP_statusCode.Unauthorized);
       }
 
-      const accessToken = createAccessToken(admin._id.toString(),AuthRole.ADMIN);
+      const accessToken = createAccessToken(admin._id.toString(), AuthRole.ADMIN);
 
       return accessToken;
     } catch (error) {
-      console.error('Error while creatin refreshToken', error);
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new CustomError('Refresh token expired. Please login again.', 401);
+      }
+
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new CustomError('Invalid refresh token.', 401);
+      }
+
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError('Failed to create refresh Token', HTTP_statusCode.InternalServerError);
+
+      throw new CustomError('Failed to create refresh token', 500);
+    }
+  };
+
+  getDashboardStats = async (): Promise<{
+    totalVendors: { count: number };
+    totalUsers: { count: number };
+  }> => {
+    try {
+      const stats = await this.adminRepository.getDashboardStats();
+
+      return {
+        totalVendors: {
+          count: stats.totalVendors,
+        },
+        totalUsers: {
+          count: stats.totalUsers,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      throw new Error('Unable to fetch dashboard statistics');
     }
   };
 }

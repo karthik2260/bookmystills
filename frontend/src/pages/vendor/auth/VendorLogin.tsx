@@ -1,49 +1,34 @@
 import { useEffect, useState } from 'react'
 import {
-    Card,
-    CardBody,
-    Typography,
-    Button,
-    Input,
-    CardFooter
-
-} from "@material-tailwind/react";
-import {
     Modal,
     ModalContent,
     ModalHeader,
     ModalBody,
     ModalFooter,
-    
+    useDisclosure,
 } from "@nextui-org/react";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { USER,VENDOR } from '../../../config/constants/constants';
+import { USER, VENDOR } from '../../../config/constants/constants';
 import { useFormik } from "formik";
-import { Eye, EyeOff } from 'lucide-react';
-import { setVendorInfo } from '../../../redux/slices/VendorSlice';
+import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react';
+import { setVendorInfo, updateVendorStatus } from '../../../redux/slices/VendorSlice';
 import { loginValidationSchema } from '../../../validations/common/loginValidate';
 import { showToastMessage } from '../../../validations/common/toast';
 import VendorRootState from '../../../redux/rootstate/VendorState';
 import { ErrorResponse, useLoginUser } from '../../../hooks/user/useLoginUser';
-import { useDisclosure } from '@nextui-org/react';
 import { validateEmail } from '../../../validations/user/userVal';
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { IFormValues } from '@/utils/interface';
 import { vendorForgotPassword, vendorLogin } from '@/services/vendorAuthService';
-
-
-const initialValues: IFormValues = {
-    email: '',
-    password: ''
-}
+import { fetchVendorProfileStatusApi } from '@/services/Vendorloginapi';
+const initialValues: IFormValues = { email: '', password: '' };
 
 const images = [
     '/images/vendorimage1.jpg',
-  '/images/vendorimage2.jpg',
-  '/images/vendorimage3.jpg'
-
+    '/images/vendorimage2.jpg',
+    '/images/vendorimage3.jpg',
 ];
 
 const VendorLogin = () => {
@@ -51,46 +36,43 @@ const VendorLogin = () => {
     const [imageIndex, setImageIndex] = useState(0);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [emailError, setEmailError] = useState('');
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
-    const {showPassword,togglePasswordVisibility} = useLoginUser()
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { showPassword, togglePasswordVisibility } = useLoginUser();
 
     useEffect(() => {
-        if (vendor) {
-            navigate(VENDOR.DASHBOARD);
-        }
+        if (vendor) navigate(VENDOR.DASHBOARD);
     }, [navigate, vendor]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-        }, 3000)
-        return () => clearInterval(interval)
-    }, [])
+            setImageIndex((prev) => (prev + 1) % images.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const email = e.target.value;
-        setForgotPasswordEmail(email)
+        setForgotPasswordEmail(email);
         const errors = validateEmail({ email });
         setEmailError(errors.email);
-    }
+    };
 
     const handleForgotPassword = async () => {
         try {
-
             if (!forgotPasswordEmail.trim()) {
-                showToastMessage('Please enter a valid email address', 'error')
-                return
+                showToastMessage('Please enter a valid email address', 'error');
+                return;
             }
             if (emailError) {
-                showToastMessage(emailError, 'error')
-                return
+                showToastMessage(emailError, 'error');
+                return;
             }
             setIsLoading(true);
-           const response = await vendorForgotPassword(forgotPasswordEmail)
-            showToastMessage(response.data.message, "success");
+            const response = await vendorForgotPassword(forgotPasswordEmail);
+            showToastMessage(response.data.message, 'success');
             onOpenChange();
             Swal.fire({
                 title: 'Reset Link Sent!',
@@ -102,307 +84,251 @@ const VendorLogin = () => {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError<ErrorResponse>;
-                const errorMessage = axiosError.response?.data?.message ||
+                const errorMessage =
+                    axiosError.response?.data?.message ||
                     axiosError.response?.data?.error ||
                     axiosError.message ||
-                    "An error occurred while processing your request";
-                showToastMessage(errorMessage, "error");
+                    'An error occurred';
+                showToastMessage(errorMessage, 'error');
             } else {
-                // This is an unknown error
-                console.error('An unexpected error occurred:', error);
-                showToastMessage("An unexpected error occurred", "error");
+                showToastMessage('An unexpected error occurred', 'error');
             }
         } finally {
-            setIsLoading(false); // Stop loading regardless of outcome
+            setIsLoading(false);
         }
     };
-
 
     const formik = useFormik({
         initialValues,
         validationSchema: loginValidationSchema,
-       onSubmit: async (values) => {
-  if (Object.keys(formik.errors).length !== 0) {
-    showToastMessage("Please fix validation errors", "error");
-    return;
-  }
+        onSubmit: async (values) => {
+            if (Object.keys(formik.errors).length !== 0) {
+                showToastMessage('Please fix validation errors', 'error');
+                return;
+            }
+            try {
+                const response = await vendorLogin(values);
+                const token = response.data.token;
+                localStorage.setItem('vendorToken', token);
 
-  try {
-    const response = await vendorLogin(values);
+                dispatch(setVendorInfo(response.data.vendor));
 
-    localStorage.setItem("vendorToken", response.data.token);
-    dispatch(setVendorInfo(response.data.vendor));
+                try {
+                    const profileStatus = await fetchVendorProfileStatusApi(token);
+                    if (profileStatus.isAccepted) {
+                        dispatch(updateVendorStatus({
+                            isAccepted: profileStatus.isAccepted,
+                            rejectionReason: profileStatus.rejectionReason,
+                        }));
+                    }
+                } catch (profileError) {
+                    console.error('Profile fetch failed, using login data:', profileError);
+                }
 
-    showToastMessage(response.data.message, "success");
-    navigate(VENDOR.DASHBOARD);
+                showToastMessage(response.data.message, 'success');
+                navigate(VENDOR.DASHBOARD);
 
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToastMessage(
-        error.response?.data?.message || "Login failed",
-        "error"
-      );
-    } else {
-      showToastMessage("Unexpected error occurred", "error");
-    }
-  }
-}
-
-    })
+            } catch (error: unknown) {
+                if (axios.isAxiosError(error)) {
+                    showToastMessage(error.response?.data?.message || 'Login failed', 'error');
+                } else {
+                    showToastMessage('Unexpected error occurred', 'error');
+                }
+            }
+        },
+    });
 
     return (
-        <div className="w-full h-screen flex flex-col md:flex-row items-start">
-            <div className="w-full md:w-1/2 mt-10 md:mt-0 flex justify-center items-center min-h-screen relative z-10">
+        <div className="w-full h-screen flex overflow-hidden">
 
-                <Card className="w-full max-w-md overflow-hidden" >
-                    <div className="w-full text-center mt-6 mb-4">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            VENDOR LOGIN
-                        </h2>
+            {/* ── LEFT: Image / Brand Panel ── */}
+            <div
+                className="hidden md:flex md:w-1/2 relative flex-col justify-between p-12 overflow-hidden"
+                style={{
+                    backgroundImage: images[imageIndex] ? `url(${images[imageIndex]})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
+
+                <div className="relative z-10 flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <Sparkles size={18} className="text-white" />
+                    </div>
+                    <span className="text-white font-semibold text-lg tracking-wide">bookmystills</span>
+                </div>
+
+                <div className="relative z-10 space-y-4">
+                    <h1 className="text-4xl font-bold text-white leading-tight">
+                        Grow Your<br />Vendor Business
+                    </h1>
+                    <p className="text-blue-100 text-base leading-relaxed max-w-xs">
+                        Manage bookings, connect with clients, and scale your event services — all in one place.
+                    </p>
+                    <div className="flex gap-3 pt-2">
+                        {[['500+', 'Vendors'], ['10k+', 'Events'], ['98%', 'Satisfaction']].map(([num, label]) => (
+                            <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 text-center">
+                                <p className="text-white font-bold text-sm">{num}</p>
+                                <p className="text-blue-200 text-xs">{label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── RIGHT: Form Panel ── */}
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6 py-10">
+                <div className="w-full max-w-md space-y-6">
+
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">Vendor Portal</p>
+                        <h2 className="text-3xl font-bold text-gray-900">Sign in to your account</h2>
+                        <p className="text-sm text-gray-500 mt-1">Enter your credentials to continue</p>
                     </div>
 
-                    <form onSubmit={formik.handleSubmit}>
-                        <CardBody className="flex flex-col gap-4 px-4">
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="Email"
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
+                    <form onSubmit={formik.handleSubmit} className="space-y-4">
+
+                        {/* Email */}
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-gray-700">Email address</label>
+                            <div className="relative">
+                                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    id="email" type="email" name="email"
+                                    placeholder="you@example.com" autoComplete="email"
+                                    onChange={formik.handleChange} onBlur={formik.handleBlur}
                                     value={formik.values.email}
-                                    name="email"
-                                    size="md"
-                                    crossOrigin={undefined}
-                                    autoComplete="email"
-                                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
-                                   
+                                    className={`w-full pl-9 pr-4 py-2.5 rounded-lg border text-sm bg-white shadow-sm outline-none transition
+                                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                        ${formik.touched.email && formik.errors.email ? 'border-red-400' : 'border-gray-200'}`}
                                 />
-                                {formik.touched.email && formik.errors.email && (
-                                    <p className="text-sm" style={{ color: 'red' }}>
-                                        {formik.errors.email}
-                                    </p>
-                                )}
-
                             </div>
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                                <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
+                            {formik.touched.email && formik.errors.email && (
+                                <p className="text-xs text-red-500">{formik.errors.email}</p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-gray-700">Password</label>
+                            <div className="relative">
+                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    id="password" name="password" autoComplete="current-password"
+                                    type={showPassword ? 'text' : 'password'} placeholder="••••••••"
+                                    onChange={formik.handleChange} onBlur={formik.handleBlur}
                                     value={formik.values.password}
-                                    name="password"
-                                    size="md"
-                                    crossOrigin={undefined}
-                                 
-                                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm py-2 px-2 text-md"
-                                    autoComplete="new-password"
+                                    className={`w-full pl-9 pr-10 py-2.5 rounded-lg border text-sm bg-white shadow-sm outline-none transition
+                                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                        ${formik.touched.password && formik.errors.password ? 'border-red-400' : 'border-gray-200'}`}
                                 />
-                                <button
-                                        type="button"
-                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                        onClick={togglePasswordVisibility}
-                                    >
-                                        {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                                    </button>
-                                    </div>
-                                {formik.touched.password && formik.errors.password && (
-                                    <p className="text-sm" style={{ color: 'red' }}>
-                                        {formik.errors.password}
-                                    </p>
-                                )}
+                                <button type="button" onClick={togglePasswordVisibility}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                                </button>
                             </div>
-                            <Typography
-                                    className="text-left cursor-pointer"
-                                    onClick={onOpen}
-                                 
-                                    placeholder={undefined}
-                                >
-                                    Forgot password?
-                                </Typography>
+                            {formik.touched.password && formik.errors.password && (
+                                <p className="text-xs text-red-500">{formik.errors.password}</p>
+                            )}
+                        </div>
 
-                           <div className="flex justify-center mt-6">
-  <Button
-    type="submit"
-    className="w-full max-w-sm rounded-lg bg-blue-700 py-2.5 text-sm font-semibold text-white 
-               transition-all duration-200 
-               hover:bg-gray-900 
-               focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
-               disabled:opacity-60 disabled:cursor-not-allowed"
-  >
-    Sign In
-  </Button>
-</div>
+                        {/* Forgot */}
+                        <div className="flex justify-end">
+                            <button type="button" onClick={onOpen}
+                                className="text-xs text-blue-600 hover:underline font-medium">
+                                Forgot password?
+                            </button>
+                        </div>
 
-                        </CardBody>
+                        {/* Submit */}
+                        <button
+                            type="submit" disabled={isLoading}
+                            className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold shadow-md shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Signing in…
+                                </span>
+                            ) : 'Sign In'}
+                        </button>
                     </form>
 
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-gray-200" />
+                        <span className="text-xs text-gray-400 font-medium">vendor access only</span>
+                        <div className="flex-1 h-px bg-gray-200" />
+                    </div>
 
-
-                    <CardFooter className="pt-0" >
-                        <Typography
-                            variant="small"
-                            className="mt-2 mb-4 flex justify-center"
-                            color="black"
-                                >
-                            Don't have an account?
-                            <Link to={VENDOR.SIGNUP}>
-                                <Typography
-                                    as="a"
-                                    href="#"
-                                    variant="small"
-                                    color="black"
-                                    className="ml-1 font-bold"
-                                    >
-                                    Sign Up
-                                </Typography>
-                            </Link>
-                        </Typography>
-                        <Typography
-                            variant="small"
-                            className="mt-3 flex justify-center"
-                            color="black"
-                     >
-                            Are you a User?
-                            <Link to={USER.LOGIN}>
-                                <Typography
-                                    as="a"
-                                    href="#signup"
-                                    variant="small"
-                                    color="black"
-                                    className="ml-1 font-bold pb-3"
-                                    >
-                                    SignIn here
-                                </Typography>
-                            </Link>
-                        </Typography>
-                    </CardFooter>
-
-                </Card>
-
-
+                    <p className="text-center text-sm text-gray-500">
+                        Don't have an account?{' '}
+                        <Link to={VENDOR.SIGNUP} className="text-blue-600 font-semibold hover:underline">Sign Up</Link>
+                    </p>
+                    <p className="text-center text-sm text-gray-500">
+                        Are you a user?{' '}
+                        <Link to={USER.LOGIN} className="text-blue-600 font-semibold hover:underline">Sign in here</Link>
+                    </p>
+                </div>
             </div>
+
+            {/* ── Forgot Password Modal ── */}
             <Modal
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
                 placement="center"
                 size="sm"
                 classNames={{
-                    base: "bg-white rounded-lg ",
-                    header: "border-b border-gray-200",
-                    body: "py-6",
+                    base: "bg-white rounded-2xl shadow-xl",
+                    header: "border-b border-gray-100",
                     closeButton: "hidden",
                 }}
             >
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <div className="absolute top-2 right-2">
-                                <button
-                                    onClick={onClose}
-                                    className="text-gray-400 hover:text-gray-500"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <ModalHeader className="flex flex-col items-center justify-center text-xl font-semibold">
-                                Forgot Password
-                            </ModalHeader>
-                            <ModalBody>
-                                <div className="space-y-4 ">
-                                    <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email
-                                        </label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="Enter your email"
-                                            value={forgotPasswordEmail}
-                                            crossOrigin={undefined}
-                                       
-                                            onChange={handleEmailChange}
-                                            className="w-full"
-                                            autoComplete='email'
-                                            error={!!emailError}
+                            <button onClick={onClose}
+                                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
 
+                            <ModalHeader className="text-lg font-bold text-gray-900">Reset Password</ModalHeader>
+
+                            <ModalBody className="py-6">
+                                <div className="space-y-3">
+                                    <label className="text-sm font-medium text-gray-700">Email address</label>
+                                    <div className="relative">
+                                        <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="email" placeholder="you@example.com"
+                                            value={forgotPasswordEmail}
+                                            onChange={handleEmailChange} autoComplete="email"
+                                            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition"
                                         />
-                                        {emailError ? (
-                                            <p
-                                                className="text-sm"
-                                                style={{ color: "red", marginBottom: -15, marginTop: 5 }}
-                                            >
-                                                {emailError}
-                                            </p>
-                                        ) : null}
                                     </div>
-                                    <p className="text-sm text-gray-500">
-                                        Enter your email address and we'll send you a link to reset your password.
-                                    </p>
+                                    {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+                                    <p className="text-xs text-gray-400">We'll send a reset link to this address.</p>
                                 </div>
                             </ModalBody>
-                            <ModalFooter className="flex justify-between space-x-4">
-                                <Button
-                                    className="flex-1 font-judson bg-gray-200 text-gray-700 hover:bg-gray-300"
-                               
-                                    onClick={onClose} disabled={isLoading}
-                                >
+
+                            <ModalFooter className="flex gap-3">
+                                <button onClick={onClose}
+                                    className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
                                     Cancel
-                                </Button>
-                                <Button
-                                    className="flex font-judson bg-black text-white hover:bg-gray-900"
-                            
-                                    onClick={handleForgotPassword} disabled={isLoading}
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center">
-                                            <span className="mr-2">Sending...</span>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        </div>
-                                    ) : (
-                                        "Send Reset Link"
-                                    )}
-                                </Button>
+                                </button>
+                                <button onClick={handleForgotPassword} disabled={isLoading}
+                                    className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50">
+                                    {isLoading ? 'Sending…' : 'Send Reset Link'}
+                                </button>
                             </ModalFooter>
                         </>
                     )}
                 </ModalContent>
             </Modal>
-
-            <div
-                className={`${imageIndex % 2 === 0
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-900'
-                    : ''
-                    } w-full h-screen md:w-1/2 object-cover md:static absolute top-0 left-0 z-0 transition-all duration-1000 ease-in-out`}
-                style={{
-                    backgroundImage: `url(${images[imageIndex]})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                }}
-            >
-                {/* Animated text */}
-                <h1 className="animate-fadeIn text-4xl md:text-4xl text-white font-bold mt-20 mx-4 md:block hidden">
-                    Elevate Your Event Experience
-                </h1>
-                <p className="animate-slideIn text-xl md:text-2xl text-white font-normal mt-5 mx-4 md:block hidden">
-                    Find, Connect, and Collaborate with Top Event Planners
-                </p>
-            </div>
-
-
-
-
         </div>
-    )
-}
-
+    );
+};
 
 export default VendorLogin;

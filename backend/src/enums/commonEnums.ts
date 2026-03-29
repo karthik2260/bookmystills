@@ -43,9 +43,10 @@ export enum PostStatus {
 }
 
 export enum AcceptanceStatus {
-  Requested = 'requested',
   Accepted = 'accepted',
   Rejected = 'rejected',
+  Requested = 'requested',
+  Reapplied = 'reapplied',
 }
 
 export enum BookingAcceptanceStatus {
@@ -96,9 +97,8 @@ export enum ReportStatus {
   DISMISSED = 'Dismissed',
 }
 
-
 export enum AuthRole {
   USER = 'user',
   ADMIN = 'admin',
-  VENDOR = 'vendor'
+  VENDOR = 'vendor',
 }

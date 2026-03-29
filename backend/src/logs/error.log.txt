@@ -1,7 +1,7 @@
-D:\bookmystills\backend\src\logs\20260121-0000-01-error.log
-D:\bookmystills\backend\src\logs\20260123-0005-01-error.log
-D:\bookmystills\backend\src\logs\20260131-0000-01-error.log
-D:\bookmystills\backend\src\logs\20260201-0000-01-error.log
-D:\bookmystills\backend\src\logs\20260204-0008-01-error.log
-D:\bookmystills\backend\src\logs\20260209-0002-01-error.log
-D:\bookmystills\backend\src\logs\20260210-0817-01-error.log
+D:\bookmystills\backend\src\logs\20260301-0004-01-error.log
+D:\bookmystills\backend\src\logs\20260302-0306-01-error.log
+D:\bookmystills\backend\src\logs\20260303-0000-01-error.log
+D:\bookmystills\backend\src\logs\20260304-0000-01-error.log
+D:\bookmystills\backend\src\logs\20260305-0000-01-error.log
+D:\bookmystills\backend\src\logs\20260320-0822-01-error.log.gz
+D:\bookmystills\backend\src\logs\20260321-0014-01-error.log.gz

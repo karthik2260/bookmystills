@@ -6,7 +6,8 @@ import { emailTemplates } from '../../util/emailTemplates';
 import { sendEmail } from '../../util/sendEmail';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
-export class VendorPasswordService {
+import { IVendorPasswordService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorPassword.interface';
+export class VendorPasswordService implements IVendorPasswordService {
   private vendorRepository: IVendorRepository;
 
   constructor(vendorRepository: IVendorRepository) {
@@ -60,7 +61,7 @@ export class VendorPasswordService {
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
-      let updateSuccess = await this.vendorRepository.UpdatePassword(vendor._id, hashedPassword);
+      const updateSuccess = await this.vendorRepository.UpdatePassword(vendor._id, hashedPassword);
 
       if (!updateSuccess) {
         throw new CustomError('Failed to Update password', HTTP_statusCode.InternalServerError);

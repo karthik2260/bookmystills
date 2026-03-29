@@ -23,7 +23,7 @@ export const emailTemplates = {
   vendorAccepted: (vendorName: string) => `
       <div style="font-family: Arial, sans-serif; color: #333;">
         <h2 style="color: #5e9ca0;">Congratulations, ${vendorName}!</h2>
-        <p>Your vendor account for CaptureCrew has been accepted. You can now log in and start using our platform.</p>
+        <p>Your vendor account for bookmystills has been accepted. You can now log in and start using our platform.</p>
         <p>If you have any questions, please don't hesitate to contact our support team.</p>
         <br/>
         <p>Best Regards,<br/>bookmystills Team</p>
@@ -34,7 +34,7 @@ export const emailTemplates = {
   <div style="font-family: Arial, sans-serif; color: #333;">
     <h2 style="color: #5e9ca0;">Account Update</h2>
     <p>Dear ${vendorName},</p>
-    <p>We regret to inform you that your vendor account for CaptureCrew has been rejected.</p>
+    <p>We regret to inform you that your vendor account for bookmystills has been rejected.</p>
     <p><strong>Reason:</strong> ${reason || 'No reason provided'}</p>
     <p>If you have any questions or would like to appeal this decision, please contact our support team.</p>
     <br/>

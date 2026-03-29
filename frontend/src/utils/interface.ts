@@ -1,6 +1,7 @@
 import { VendorData } from "@/types/vendorTypes";
 import  { UserData } from "@/types/userTypes";
 import { Role } from "./enums";
+import { AxiosInstance } from "axios";
 
 
 
@@ -14,7 +15,16 @@ export interface IFormValues {
   email: string;
   password: string;
 };
+export interface CarouselNavigationProps {
+  setActiveIndex: (index: number) => void;
+  activeIndex: number;
+  length: number;
+}
 
+export interface CarouselArrowProps {
+  handlePrev?: () => void;
+  handleNext?: () => void;
+};
 
 export interface VendorProps {
   isVendor?: boolean,
@@ -27,6 +37,9 @@ export interface ValidationErrors {
   companyName: string;
   city: string,
   about: string,
+  password:string,
+  confirmPassword:string,
+  portfolioImages:string
 }
 
 export interface IUserDetails {
@@ -53,6 +66,14 @@ export interface ProfileFormData {
   updatedAt?: string;
 }
 
+
+export interface UnifiedCalendarProps {
+  isVendor?: boolean;
+  vendorDetails?: VendorData | null;
+ 
+  axiosInstance: AxiosInstance;
+}
+
 export interface IValidationErrors {
   name: string;
   contactinfo: string;
@@ -62,6 +83,37 @@ export interface IValidationErrors {
 export interface RevenueChartProps {
   role:Role
 }
+export interface BookingFormData {
+  name: string;
+  phone: string;
+  email: string;
+  venue: string;
+  fullAddress: string;
+  city: string;
+  landmark: string;
+  pincode: string;
+  serviceType: string;
+  noOfDays: number;
+  message: string;
+  selectedDate: string;
+  
+
+}
+export interface ValidationError {
+  inner?: Array<{ path: string; message: string }>;
+}
+
+export interface BookingModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  bookingForm: BookingFormData;
+  setBookingForm: React.Dispatch<React.SetStateAction<BookingFormData>>;
+  onSubmit: (e: React.FormEvent, formData?: BookingFormData) => Promise<void>;
+  selectedDate: string;
+ 
+  unavailableDates: string[];
+  onDateSelect: (date: Date) => void;
+};
 
 export interface VendorDetails {
   isOpen: boolean;
@@ -69,4 +121,14 @@ export interface VendorDetails {
   vendor: VendorData | null;
   onSave: (data: FormData) => Promise<void>
 
+}
+
+export interface IProfileFormData {
+  name: string;
+  email: string;
+  contactinfo: string;
+  image?: File | string;
+  isGoogleUser?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

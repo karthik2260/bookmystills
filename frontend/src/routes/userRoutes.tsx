@@ -11,6 +11,14 @@ import Home from "@/pages/user/home/Home";
 import VerifyEmail from "@/pages/common/verifyEmail";
 import ResetPassword from "@/pages/user/auth/ResetPassword";
 import UserProfile from "@/pages/user/profile/userProfile";
+import Posts from "@/pages/user/home/Posts";
+import VendorList from "@/pages/user/profile/vendorListing";
+import VendorPorfolio from "@/pages/user/vendorPortfolio";
+import ShowAvailabilty from "@/pages/user/bookings/ShowAvailability";
+
+
+
+
 const UserRoutes : React.FC = () => {
     return (
         <Routes>
@@ -26,7 +34,13 @@ const UserRoutes : React.FC = () => {
             <Route element={<UnifiedPrivateRoute routeType="user"/>}>
             <Route path={USER.HOME} element={<ErrorBoundary><Home/></ErrorBoundary>}/>
             <Route path={`${USER.PROFILE}`} element={<ErrorBoundary><UserProfile/></ErrorBoundary>}/>
-            
+             <Route path={`${USER.VENDORLIST}/*`} element={<ErrorBoundary><VendorList/></ErrorBoundary>} />
+        <Route path={`${USER.POST}/*`} element={<ErrorBoundary><Posts/></ErrorBoundary>}/>
+        <Route path={`${USER.PORTFOLIO}/:vendorId`} element ={<ErrorBoundary><VendorPorfolio/></ErrorBoundary>}/>
+                <Route path={`${USER.SERVICE_AVAILABILTY}/:vendorId`} element ={<ErrorBoundary><ShowAvailabilty/></ErrorBoundary>}/>
+
+
+
 
 
             </Route>

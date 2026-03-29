@@ -9,6 +9,11 @@ import TVScreen from "@/components/common/404";
 import VerifyEmailVendor from "@/pages/common/verifyVendorotp";
 import ResetPassword from "@/pages/user/auth/ResetPassword";
 import VendorProfile from "@/pages/vendor/profile/vendorProfile";
+import CreatePost from "../pages/vendor/posts/createPost";
+import Posts from "../pages/vendor/posts/posts";
+import AvailableDate from "@/pages/vendor/bookings/AvailableDate";
+
+
 export const VendorRoutes = () => {
     return (
     <ErrorBoundary>
@@ -23,6 +28,11 @@ export const VendorRoutes = () => {
             <Route  element={<UnifiedPrivateRoute routeType="vendor" />}>
           <Route path={`/dashboard`} element={<Dashboard />} />
           <Route path={`/profile/*`} element={<VendorProfile/>} />
+        <Route path={`/view-posts`} element={<Posts/>}/>
+          <Route path={`/add-post`} element={<CreatePost/>}/>
+          <Route path={`/dateAvailabilty`} element={<AvailableDate/>}/>
+
+
           </Route>
              <Route path="*" element={<TVScreen />} />
 

@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction  } from '@reduxjs/toolkit'
-import { VendorData } from "../../types/vendorTypes";
+import { AcceptanceStatus, VendorData } from "../../types/vendorTypes";
 
 export interface VendorState {
     vendorData : VendorData | null ;
@@ -25,6 +25,18 @@ const vendorSlice = createSlice({
                 state.vendorData.imageUrl = action.payload;
             }
         },
+
+
+    updateVendorStatus: (state, action: PayloadAction<{ 
+    isAccepted: AcceptanceStatus;        // ← AcceptanceStatus, not string
+    rejectionReason?: string | undefined // ← undefined, not null
+}>) => {
+    if (state.vendorData) {
+        state.vendorData.isAccepted = action.payload.isAccepted;
+        state.vendorData.rejectionReason = action.payload.rejectionReason ?? undefined; // ← ?? undefined
+    }
+},
+
         logout:(state)=>{
             state.vendorData = null;
             state.isVendorSignedIn =false
@@ -32,5 +44,5 @@ const vendorSlice = createSlice({
     }
 })
 
-export const {setVendorInfo,logout} = vendorSlice.actions;
+export const {setVendorInfo,logout,updateVendorStatus} = vendorSlice.actions;
 export default vendorSlice.reducer

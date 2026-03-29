@@ -1,21 +1,32 @@
 import { IUserRepository } from '../../interfaces/repositoryInterfaces/user.repository.interface';
 import { IUserService } from '../../interfaces/serviceInterfaces/user.Service.interface';
-import { ILoginResponse } from '../../interfaces/commonInterfaces';
 import { GoogleUserData } from '../../interfaces/commonInterfaces';
 import { UserDocument } from '../../models/userModel';
-import { LoginRequestDTO,SignupRequestDTO } from '../../dto/userRequest.dto';
 import { UserDTO } from '../../dto/userDTO';
 import { UserAuthService } from './UserAuthService';
 import { UserPasswordService } from './UserPasswordService';
 import { GoogleAuthService } from './GoogleAuthService';
 import { UserProfileService } from './UserProfileService';
+import { UserManagementService } from './UserManagementservice';
+import { BlockStatus } from '../../enums/commonEnums';
+import { IUserAuthService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserAuth.service.interface';
+import { IUserPasswordService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserPassword.service.interface';
+import { IGoogleAuthService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/GoogleAuth.service.interface';
+import { IUserProfileService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserProfile.service.interface';
+import { IUserManagementService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserManagement.service.interface';
+import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto';
+import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
+import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
+import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
+import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';
 
 class UserService implements IUserService {
   private userRepository: IUserRepository;
-  private authService: UserAuthService;
-  private passwordService: UserPasswordService;
-  private googleAuthService: GoogleAuthService;
-  private profileService: UserProfileService;
+  private authService: IUserAuthService;
+  private passwordService: IUserPasswordService;
+  private googleAuthService: IGoogleAuthService;
+  private profileService: IUserProfileService;
+  private managementService: IUserManagementService;
 
   constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
@@ -23,10 +34,10 @@ class UserService implements IUserService {
     this.passwordService = new UserPasswordService(userRepository);
     this.googleAuthService = new GoogleAuthService(userRepository);
     this.profileService = new UserProfileService(userRepository);
+    this.managementService = new UserManagementService(userRepository);
   }
 
-// here is used to deligate to user service auth 
-  signup = async (signupDto: SignupRequestDTO): Promise<UserDTO> => {
+  signup = async (signupDto: SignupRequestDTO): Promise<void> => {
     return this.authService.signup(signupDto);
   };
 
@@ -34,7 +45,9 @@ class UserService implements IUserService {
     return this.authService.resendNewOtp(email);
   };
 
-  login = async (loginDto: LoginRequestDTO): Promise<ILoginResponse> => {
+  login = async (
+    loginDto: LoginRequestDTO,
+  ): Promise<LoginResponseDTO & { refreshToken: string }> => {
     return this.authService.login(loginDto);
   };
 
@@ -42,8 +55,6 @@ class UserService implements IUserService {
     return this.authService.create_RefreshToken(refreshToken);
   };
 
-  // Delegate to UserPasswordService
-  
   handleForgotPassword = async (email: string): Promise<void> => {
     return this.passwordService.handleForgotPassword(email);
   };
@@ -64,16 +75,10 @@ class UserService implements IUserService {
     return this.passwordService.passwordCheckUser(currentPassword, newPassword, userId);
   };
 
-  // Delegate to GoogleAuthService
-  googleSignup = async ({email,name,googleId}:GoogleUserData): Promise<object> => {
-    return this.googleAuthService.googleSignup({email, name, googleId});
-  };
-
-  authenticateGoogleLogin = async (userData: GoogleUserData): Promise<ILoginResponse> => {
+  authenticateGoogleLogin = async (userData: GoogleUserData): Promise<GoogleAuthServiceResult> => {
     return this.googleAuthService.authenticateGoogleLogin(userData);
   };
 
-  // Delegate to UserProfileService
   getUserProfileService = async (userId: string): Promise<UserDocument> => {
     return this.profileService.getUserProfileService(userId);
   };
@@ -85,6 +90,19 @@ class UserService implements IUserService {
     files?: Express.Multer.File | null,
   ): Promise<UserDocument | null> => {
     return this.profileService.updateProfileService(name, contactinfo, userId, files);
+  };
+
+  getUsers = async (
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+  ): Promise<UserListServiceResult> => {
+    return this.managementService.getUsers(page, limit, search, status);
+  };
+
+  SUserBlockUnblock = async (userId: string): Promise<BlockStatus> => {
+    return this.managementService.SUserBlockUnblock(userId);
   };
 }
 

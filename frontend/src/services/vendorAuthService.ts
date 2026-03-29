@@ -1,14 +1,15 @@
 import { axiosInstanceVendor } from "@/config/api/axiosinstance";
 import { PasswordFormData } from "@/pages/common/changePassword";
-import { VendorData, VendorFormValues } from "@/types/vendorTypes";
+import { VendorData,  } from "@/types/vendorTypes";
 import { IFormValues } from "@/utils/interface";
 
 
-export const vendorSignup = (data:VendorFormValues) => {
-    return axiosInstanceVendor.post('/signup',data,{
-        withCredentials:true
-    })
-}
+export const vendorSignup = (data: FormData) => {
+  return axiosInstanceVendor.post("/signup", data, {
+    withCredentials: true,
+    // ✅ Don't set Content-Type at all — axios handles it automatically
+  });
+};
 
 
 
@@ -50,3 +51,5 @@ export const changeVendorPassword = (passwordData: PasswordFormData) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
+
+

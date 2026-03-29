@@ -1,8 +1,9 @@
-
 import axios, { AxiosInstance } from "axios";
 import Swal from "sweetalert2";
 import { CreateAxiosInstance } from "@/types/axiosTypes";
 const BASE_URL = import.meta.env.VITE_BASE_URL || '';
+console.log("BASE_URL:", BASE_URL);
+
 
 const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshTokenKey) => {
     const instance = axios.create({
@@ -34,13 +35,14 @@ const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshToke
                 
 
                 if (error.response?.status === 401) {
+                    // ✅ Token expired — refresh and retry original request
                     if (error.response.data.expired) {
                         try {
-                            const refreshResponse = await instance.post('/refresh-token',{},{withCredentials:true});
+                            const refreshResponse = await instance.post('/refresh-token', {}, { withCredentials: true });
                             const newToken = refreshResponse.data.token;                            
                             localStorage.setItem(tokenKey, newToken);                            
                             error.config.headers.Authorization = `Bearer ${newToken}`;
-                            return instance(error.config);
+                            return instance(error.config); // ✅ retry original request with new token
 
                         } catch (refreshError) {
                             localStorage.removeItem(tokenKey);
@@ -52,34 +54,30 @@ const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshToke
                                 confirmButtonText: 'Login',
                                 allowOutsideClick: false,
                             });
-                            if(result.isConfirmed){
-                                
-                                window.location.href = baseUrl.includes('/vendor') 
-                                    ? '/login' 
+                            if (result.isConfirmed) {
+                                // ✅ Fixed — correct redirects for each role
+                                window.location.href = baseUrl.includes('/vendor')
+                                    ? '/vendor/login'   // vendor → vendor login
                                     : baseUrl.includes('/admin')
-                                        ? '/admin'
-                                        : '/vendor/login';
+                                        ? '/admin/login' // admin → admin login
+                                        : '/login';      // user → user login
                             }
                             return Promise.reject(refreshError);
                         }
                     } else if (error.response.data.message === 'Session expired') {
-                        window.location.href = baseUrl.includes('/vendor') ? '/vendor/login' : '/login';
+                        // ✅ Fixed — correct redirects here too
+                        window.location.href = baseUrl.includes('/vendor')
+                            ? '/vendor/login'
+                            : baseUrl.includes('/admin')
+                                ? '/admin/login'
+                                : '/login';
                         return Promise.reject(error);
                     } 
-                    
-                }
-
-                if(error.response.status === 404){
-                    
-                    window.location.href = '/*';
-                    return Promise.reject(error);
                 }
             }
             return Promise.reject(error);
         }
     );
-   
-    
 
     return instance;
 };
@@ -116,7 +114,7 @@ axiosSessionInstanceV.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401 && error.response.data.message === 'Session expired') {
-            window.location.href = '/signup';
+            window.location.href = '/vendor/login';
         }
         return Promise.reject(error);
     }

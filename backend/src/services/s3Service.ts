@@ -56,10 +56,8 @@ export class S3Service {
     const imageBuffer: Buffer = file.buffer;
     const contentType: string = file.mimetype;
 
-    // ✅ Get proper file extension from mimetype
     const extension = this.getExtensionFromMimeType(contentType);
 
-    // ✅ Create unique filename with proper extension (no "-blob" issue)
     const uniqueFileName = `${uuidv4()}${extension}`;
 
     try {
@@ -93,7 +91,6 @@ export class S3Service {
     }
   }
 
-  // ✅ Helper method to get extension from mimetype
   private getExtensionFromMimeType(mimeType: string): string {
     const mimeToExt: { [key: string]: string } = {
       'image/jpeg': '.jpg',
@@ -105,7 +102,7 @@ export class S3Service {
       'image/bmp': '.bmp',
       'image/tiff': '.tiff',
     };
-    return mimeToExt[mimeType] || '.jpg'; // Default to .jpg if unknown
+    return mimeToExt[mimeType] || '.jpg';
   }
 }
 

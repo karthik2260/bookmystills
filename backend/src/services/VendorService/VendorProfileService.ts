@@ -3,26 +3,22 @@ import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { s3Service } from '../s3Service';
-import { VendorProfileResponseDTO,VendorUpdateProfileResponseDTO } from '../../dto/vendorDTO';
+import { VendorProfileResponseDTO, VendorUpdateProfileResponseDTO } from '../../dto/vendorDTO';
 import { VendorMapper } from '../../mapper/vendor.mapper';
-export class VendorProfileService {
+import { IVendorProfileService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorProfile.interface';
+export class VendorProfileService implements IVendorProfileService {
   private vendorRepository: IVendorRepository;
 
   constructor(vendorRepository: IVendorRepository) {
     this.vendorRepository = vendorRepository;
   }
 
-  getVendorProfileService = async (
-    vendorId: string
-  ): Promise<VendorProfileResponseDTO> => {
+  getVendorProfileService = async (vendorId: string): Promise<VendorProfileResponseDTO> => {
     try {
       const vendor = await this.vendorRepository.getById(vendorId);
 
       if (!vendor) {
-        throw new CustomError(
-          'Vendor not found',
-          HTTP_statusCode.InternalServerError
-        );
+        throw new CustomError('Vendor not found', HTTP_statusCode.InternalServerError);
       }
 
       // Generate signed image URL if image exists
@@ -30,7 +26,7 @@ export class VendorProfileService {
         try {
           const signedUrl = await s3Service.getFile(
             'bookmystills-karthik-gopakumar/vendor/photo/',
-            vendor.imageUrl
+            vendor.imageUrl,
           );
 
           vendor.imageUrl = signedUrl; // safe mutation
@@ -41,7 +37,6 @@ export class VendorProfileService {
 
       // ✅ Map to DTO here
       return VendorMapper.toVendorProfileResponse(vendor);
-
     } catch (error) {
       console.error('Error in getVendorProfileService:', error);
 
@@ -51,7 +46,7 @@ export class VendorProfileService {
 
       throw new CustomError(
         (error as Error).message || 'Failed to get profile details',
-        HTTP_statusCode.InternalServerError
+        HTTP_statusCode.InternalServerError,
       );
     }
   };
@@ -74,10 +69,8 @@ export class VendorProfileService {
       const updateData: any = {};
 
       if (name && name !== vendor.name) updateData.name = name;
-      if (contactinfo && contactinfo !== vendor.contactinfo)
-        updateData.contactinfo = contactinfo;
-      if (companyName && companyName !== vendor.companyName)
-        updateData.companyName = companyName;
+      if (contactinfo && contactinfo !== vendor.contactinfo) updateData.contactinfo = contactinfo;
+      if (companyName && companyName !== vendor.companyName) updateData.companyName = companyName;
       if (city && city !== vendor.city) updateData.city = city;
       if (about && about !== vendor.about) updateData.about = about;
 
@@ -109,10 +102,7 @@ export class VendorProfileService {
         );
       }
 
-      return VendorMapper.toUpdateProfileResponse(
-        freshVendor,
-        signedImageUrl
-      );
+      return VendorMapper.toUpdateProfileResponse(freshVendor, signedImageUrl);
     } catch (error) {
       console.error('Error in updateProfileService:', error);
       throw error;

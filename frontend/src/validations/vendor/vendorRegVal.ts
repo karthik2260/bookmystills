@@ -7,6 +7,8 @@ interface ValidationErrors {
     confirmPassword: string;
     companyName: string;
     about: string,
+    portfolioImages: string;
+     aadharImages: string;
 
 }
   
@@ -19,7 +21,8 @@ interface ValidationErrors {
     confirmPassword: string;
     companyName: string;
     about: string,
-    
+    portfolioImages: File[];
+     aadharImages: File[]
   }
 
   const safeTrim = (value?: string): string => {
@@ -37,6 +40,8 @@ export const validate = (values: ValidationValues): ValidationErrors => {
     confirmPassword: "",
     companyName: "",
     about: "",
+    portfolioImages: "",
+    aadharImages: ""
 
   };
 
@@ -72,6 +77,25 @@ export const validate = (values: ValidationValues): ValidationErrors => {
   } else if (values.confirmPassword !== values.password) {
     errors.confirmPassword = "Passwords do not match!";
   }
+
+  if (!values.portfolioImages || values.portfolioImages.length === 0) {
+    errors.portfolioImages = "Please upload sample photos";
+}
+else if ((values.portfolioImages?.length ?? 0) < 3) { 
+    errors.portfolioImages = "Upload at least 3 photos";
+}
+else if (values.portfolioImages.length > 5) {
+    errors.portfolioImages = "Maximum 5 photos allowed";
+}
+
+
+if (!values.aadharImages || values.aadharImages.length < 2) {
+  errors.aadharImages = "Both Aadhaar front and back images are required";
+} else if (values.aadharImages.length > 2) {
+  errors.aadharImages = "Only 2 images allowed (front and back)";
+} else {
+  errors.aadharImages = "";
+}
 
   return errors;
 };
@@ -124,49 +148,25 @@ export const validate = (values: ValidationValues): ValidationErrors => {
 
 
 
+    export const validateProfile = (values: Pick<ValidationValues,'name' | 'contactinfo'>): Pick<ValidationErrors, 'name' | 'contactinfo'> => {
+    const errors: Pick<ValidationErrors, 'name' | 'contactinfo'>= {
+      name: "",
+      contactinfo: "",
+    };
+    const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
+    if (!values.name.trim()) {
+      errors.name = 'Name is required';
+    } else if (!/^[A-Za-z\s]+$/i.test(values.name)) {
+      errors.name = 'Should not contain numbers or special characters!';
+    }
   
-export const validateProfile = (
-  values: Pick<
-    ValidationValues,
-    "name" | "contactinfo" | "companyName" | "city" | "about"
-  >
-): Pick<
-  ValidationErrors,
-  "name" | "contactinfo" | "companyName" | "city" | "about"
-> => {
-  const errors = {
-    name: "",
-    contactinfo: "",
-    companyName: "",
-    city: "",
-    about: "",
+    if (!values.contactinfo.trim()) {
+      errors.contactinfo = 'Phone is required';
+    } else if (!mobileRegex.test(values.contactinfo)) {
+      errors.contactinfo = 'Invalid mobile number';
+    }
+  
+  
+   
+    return errors;
   };
-
-  const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
-
-  if (!safeTrim(values.name)) {
-    errors.name = "Name is required";
-  }
-
-  if (!safeTrim(values.contactinfo)) {
-    errors.contactinfo = "Phone is required";
-  } else if (!mobileRegex.test(values.contactinfo!)) {
-    errors.contactinfo = "Invalid mobile number";
-  }
-
-  if (!safeTrim(values.companyName)) {
-    errors.companyName = "Company name is required";
-  }
-
-  if (!safeTrim(values.city)) {
-    errors.city = "City is required";
-  }
-
-  if (!safeTrim(values.about)) {
-    errors.about = "About is required";
-  }
-
-  return errors;
-};
-
-  

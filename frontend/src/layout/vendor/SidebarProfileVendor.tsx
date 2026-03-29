@@ -1,169 +1,205 @@
-import { VENDOR } from "@/config/constants/constants"
-import { Card, Typography, List, ListItem, ListItemPrefix, ListItemSuffix, Chip, IconButton, Tooltip } from "@material-tailwind/react";
-import {
-    UserCircleIcon, ShoppingBagIcon, CloudArrowUpIcon,
-    ChatBubbleLeftRightIcon, PowerIcon, CalendarIcon,
-    Bars3Icon, XMarkIcon, CubeIcon, StarIcon
-} from "@heroicons/react/24/solid";
-import { useState,useEffect,useMemo } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
-import { useDispatch } from "react-redux"
-import { logout } from "@/redux/slices/UserSlice"
-import { showToastMessage } from "@/validations/common/toast"
-import { FileBarChart, Wallet } from 'lucide-react';
+import { VENDOR } from "@/config/constants/constants";
+import { logout } from "@/redux/slices/VendorSlice";
 import { vendorLogout } from "@/services/vendorAuthService";
-
-
-const SidebarVendor = () => {
-const navigate = useNavigate()
-const [isCollapsed,setIsCollapsed] = useState(false)
-const dispatch = useDispatch()
-const [activeItem, setActiveItem] = useState('Profile');
-const [isMobile, setIsMobile] = useState(false);
-const location = useLocation()
-
-
+import { showToastMessage } from "@/validations/common/toast";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  UserCircle, Wallet, ShoppingBag, MessageCircle,
+  CloudUpload, Calendar, Package, Star, BarChart2, Power,
+} from "lucide-react";
 
 interface MenuItem {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ElementType;
   label: string;
   path: string | null;
-  badge: string | null;
+  badge?: string | null;
 }
 
+const SidebarVendor = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-            setIsCollapsed(window.innerWidth < 1024);
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-
-   const menuItems = useMemo(() => [
-        { icon: UserCircleIcon, label: 'Profile', path: VENDOR.PROFILE, badge: null },
-        { icon: Wallet, label: 'Wallet', path: VENDOR.WALLET, badge: null },
-        { icon: ShoppingBagIcon, label: 'Bookings', path: VENDOR.REQUEST_BOOKING, badge: null },
-        { icon: ChatBubbleLeftRightIcon, label: 'Chats', path: VENDOR.CHAT, badge: null },
-        { icon: CloudArrowUpIcon, label: 'Upload Contents', path: VENDOR.VIEW_POSTS, badge: null },
-        { icon: CalendarIcon, label: 'Slot Update', path: VENDOR.DATE_AVAILABILTY, badge: null },
-        { icon: CubeIcon, label: 'Packages', path: VENDOR.VIEW_PACKAGES, badge: null },
-        { icon: StarIcon, label: 'Reviews', path: VENDOR.REVIEW, badge: null },
-        { icon: FileBarChart, label: 'Stats', path: VENDOR.STATS, badge: null },
-        { icon: PowerIcon, label: 'Log Out', path: null, badge: null }
-    ], []);
-
-
-
-const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed)
-}
-
-
-
-
-const handleMenuClick = async (item: MenuItem) => {
-        if (item.label === 'Log Out') {
-            try {
-               await vendorLogout()
-                localStorage.removeItem('vendorToken');
-                localStorage.removeItem('vendorRefresh');
-                dispatch(logout());
-                navigate(VENDOR.LOGIN);
-                showToastMessage('Logged out successfully', 'success');
-            } catch (error) {
-                console.error('Logout Error', error);
-                showToastMessage('Error during logout', 'error');
-            }
-            return;
-        }
-
-        setActiveItem('');
-        navigate(item.path!);
-        if (isMobile) setIsCollapsed(true);
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth;
+      setIsMobile(w < 768);
+      setCollapsed(w < 1024);
     };
-   useEffect(() => {
-  const currentPath = location.pathname;
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
-  const active = menuItems.find(
-    (item) => item.path && currentPath.startsWith(item.path)
-  )?.label || 'Profile';
+  const menuItems: MenuItem[] = useMemo(() => [
+    { icon: UserCircle,    label: "Profile",          path: VENDOR.PROFILE },
+    { icon: Wallet,        label: "Wallet",            path: VENDOR.WALLET },
+    { icon: ShoppingBag,   label: "Bookings",          path: VENDOR.REQUEST_BOOKING },
+    { icon: MessageCircle, label: "Chats",             path: VENDOR.CHAT },
+    { icon: CloudUpload,   label: "Upload Contents",   path: VENDOR.VIEW_POSTS },
+    { icon: Calendar,      label: "Slot Update",       path: VENDOR.DATE_AVAILABILTY },
+    { icon: Package,       label: "Packages",          path: VENDOR.VIEW_PACKAGES },
+    { icon: Star,          label: "Reviews",           path: VENDOR.REVIEW },
+    { icon: BarChart2,     label: "Stats",             path: VENDOR.STATS },
+  ], []);
 
-  setActiveItem(active);
-}, [location.pathname, menuItems]);
+  const handleClick = async (item: MenuItem) => {
+    if (item.label === "Log Out") {
+      try {
+        await vendorLogout();
+        localStorage.removeItem("vendorToken");
+        localStorage.removeItem("vendorRefresh");
+        dispatch(logout());
+        navigate(VENDOR.LOGIN);
+        showToastMessage("Logged out successfully", "success");
+      } catch {
+        showToastMessage("Error during logout", "error");
+      }
+      return;
+    }
+    if (item.path) navigate(item.path);
+    if (isMobile) setCollapsed(true);
+  };
 
+  const isActive = (item: MenuItem) =>
+    item.path ? location.pathname.startsWith(item.path) : false;
 
+  return (
+    <aside style={{
+      display: "flex", flexDirection: "column", minHeight: "100vh",
+      width: collapsed ? "64px" : "220px",
+      background: "#ffffff", borderRight: "1px solid #e5e7eb",
+      transition: "width 0.25s ease", overflow: "hidden", flexShrink: 0,
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+    }}>
 
-    return (
-        <Card className={`min-h-screen ${isCollapsed ? 'w-20' : 'w-64'} p-4 shadow-xl shadow-blue-gray-900/5 transition-all duration-300`}
-            
+      {/* Header */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        justifyContent: collapsed ? "center" : "space-between",
+        padding: collapsed ? "20px 0" : "20px 16px",
+        borderBottom: "1px solid #f3f4f6", minHeight: "64px",
+      }}>
+        {!collapsed && (
+          <Link to={VENDOR.DASHBOARD} style={{
+            fontSize: "15px", fontWeight: 600, color: "#111827",
+            textDecoration: "none", letterSpacing: "-0.01em", whiteSpace: "nowrap",
+          }}>
+            bookmystills
+          </Link>
+        )}
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          style={{
+            background: "transparent", border: "none", cursor: "pointer",
+            padding: "6px", borderRadius: "6px", color: "#9ca3af",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "background 0.15s ease, color 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "#f3f4f6";
+            (e.currentTarget as HTMLElement).style.color = "#374151";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+            (e.currentTarget as HTMLElement).style.color = "#9ca3af";
+          }}
         >
-            <div className="mb-2 flex items-center justify-between p-4">
-                {!isCollapsed && (
-                    <Link to={`${VENDOR.DASHBOARD}`}>
-                        <Typography variant="h5" color="blue-gray"
-                         
-                        >
-                            bookmystills
-                        </Typography>
-                    </Link>
-                )}
-                <IconButton variant="text" size="sm" onClick={toggleSidebar}
-                   
-                >
-                    {isCollapsed ? <Bars3Icon className="h-5 w-5" /> : <XMarkIcon className="h-5 w-5" />}
-                </IconButton>
-            </div>
-            <List
-                
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            {collapsed
+              ? <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              : <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            }
+          </svg>
+        </button>
+      </div>
+
+      {/* Nav Items */}
+      <nav style={{
+        flex: 1, padding: "12px 8px",
+        display: "flex", flexDirection: "column", gap: "2px",
+      }}>
+        {menuItems.map((item) => {
+          const active = isActive(item);
+          return (
+            <div
+              key={item.label}
+              title={collapsed ? item.label : undefined}
+              onClick={() => handleClick(item)}
+              style={{
+                display: "flex", alignItems: "center", gap: "10px",
+                padding: collapsed ? "10px 0" : "10px 12px",
+                justifyContent: collapsed ? "center" : "flex-start",
+                borderRadius: "8px", cursor: "pointer",
+                background: active ? "#eff6ff" : "transparent",
+                color: active ? "#2563eb" : "#6b7280",
+                fontWeight: active ? 500 : 400, fontSize: "14px",
+                transition: "all 0.15s ease", whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => {
+                if (!active) {
+                  (e.currentTarget as HTMLElement).style.background = "#f9fafb";
+                  (e.currentTarget as HTMLElement).style.color = "#111827";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  (e.currentTarget as HTMLElement).style.background = "transparent";
+                  (e.currentTarget as HTMLElement).style.color = "#6b7280";
+                }
+              }}
             >
-                {menuItems.map((item) => (
-                    isCollapsed ? (
-                        <Tooltip
-                            key={item.label}
-                            content={item.label}
-                            placement="top"
-                            className="bg-white px-4 py-3 text-black shadow-xl shadow-black/10"
-                        >
-                            <ListItem
-                                className={`${activeItem === item.label ? 'bg-blue-50' : ''} justify-center hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
-                                onClick={() => handleMenuClick(item)}
-                              
-                            >
-                                <ListItemPrefix  >
-                                    <item.icon className="h-5 w-5 mr-0" />
-                                </ListItemPrefix>
-                            </ListItem>
-                        </Tooltip>
-                    ) : (
-                        <ListItem
-                            key={item.label}
-                            className={`${activeItem === item.label ? 'bg-blue-50' : ''} hover:bg-blue-gray-50 focus:bg-blue-gray-50 active:bg-blue-gray-50`}
-                            onClick={() => handleMenuClick(item)}
-                           
-                        >
-                            <ListItemPrefix >
-                                <item.icon className={`h-5 w-5 ${isCollapsed ? 'mr-0' : 'mr-3'}`} />
-                            </ListItemPrefix>
-                            {item.label}
-                            {item.badge && (
-                                <ListItemSuffix  >
-                                    <Chip value={item.badge} size="sm" className="rounded-full bg-black text-white" />
-                                </ListItemSuffix>
-                            )}
-                        </ListItem>
-                    )
-                ))}
-            </List>
+              <item.icon style={{ width: "18px", height: "18px", flexShrink: 0, color: "inherit" }} />
+              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.badge && (
+                <span style={{
+                  marginLeft: "auto", fontSize: "11px", fontWeight: 500,
+                  background: "#dbeafe", color: "#1d4ed8",
+                  padding: "2px 7px", borderRadius: "20px",
+                }}>
+                  {item.badge}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </nav>
 
-        </Card>
-    );
+      {/* Divider */}
+      <div style={{ height: "1px", background: "#f3f4f6", margin: "0 8px" }} />
 
-}
+      {/* Logout */}
+      <div style={{ padding: "12px 8px" }}>
+        <div
+          title={collapsed ? "Log Out" : undefined}
+          onClick={() => handleClick({ icon: Power, label: "Log Out", path: null })}
+          style={{
+            display: "flex", alignItems: "center", gap: "10px",
+            padding: collapsed ? "10px 0" : "10px 12px",
+            justifyContent: collapsed ? "center" : "flex-start",
+            borderRadius: "8px", cursor: "pointer",
+            color: "#9ca3af", fontSize: "14px", fontWeight: 400,
+            transition: "all 0.15s ease", whiteSpace: "nowrap",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "#fef2f2";
+            (e.currentTarget as HTMLElement).style.color = "#ef4444";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+            (e.currentTarget as HTMLElement).style.color = "#9ca3af";
+          }}
+        >
+          <Power style={{ width: "18px", height: "18px", flexShrink: 0, color: "inherit" }} />
+          {!collapsed && <span>Log Out</span>}
+        </div>
+      </div>
+    </aside>
+  );
+};
 
-export default SidebarVendor
+export default SidebarVendor;

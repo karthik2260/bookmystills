@@ -1,5 +1,4 @@
-import mongoose, { Model, Types } from 'mongoose';
-import { UserDocument } from '../models/userModel';
+import mongoose, {  Types } from 'mongoose';
 import {
   AcceptanceStatus,
   AuthRole,
@@ -12,7 +11,7 @@ import {
   ServiceProvided,
   TransactionType,
 } from '../enums/commonEnums';
-import { UserDTO } from '../dto/userDTO';
+import { PostDocument } from '../models/postModel';
 
 export interface User {
   email: string;
@@ -30,6 +29,10 @@ export interface User {
   refreshToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  loginCount: number;
+  loginMonth: number;
 }
 
 export interface IDecodedData {
@@ -37,6 +40,27 @@ export interface IDecodedData {
   email: string;
   picture?: string;
   sub: string;
+}
+
+export interface Post {
+  caption: string;
+  imageUrl?: string[];
+  serviceType: ServiceProvided;
+  status?: PostStatus;
+  likesCount?: number;
+  location?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  vendor_id: mongoose.Types.ObjectId;
+  reportCount: number;
+  blockReason?: string;
+}
+
+export interface VendorDetailsWithAll {
+  vendor: Omit<Vendor, 'password'>;
+  posts: PostDocument[];
+  imageUrl?: string;
+  aadharImages?: string[];
 }
 
 export interface IUserSession {
@@ -48,14 +72,6 @@ export interface IUserSession {
   otpSetTimestamp: number;
   otpExpiry: number;
   resendTimer: number;
-}
-
-export interface ILoginResponse {
-  user: UserDTO;
-  message: string;
-  isNewUser: boolean;
-  token: string;
-  refreshToken: string;
 }
 
 export interface GoogleUserData {
@@ -116,6 +132,7 @@ export interface Vendor {
   posts?: Types.ObjectId[];
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  portfolioImages?: string[];
 }
 
 //BookingReq
@@ -272,6 +289,8 @@ export interface VendorSession {
   otpCode: string | undefined;
   otpExpiry: number;
   resendTimer: number;
+  portfolioImages?: string[];
+  aadharImages?: string[];
 }
 
 export interface AdminLoginResponse {
@@ -281,11 +300,10 @@ export interface AdminLoginResponse {
   message: string;
 }
 
-
 export interface AuthRequest extends Request {
-  user ?: {
-    _id : string;
-    role:AuthRole;
-    email?:string
-  }
+  user?: {
+    _id: string;
+    role: AuthRole;
+    email?: string;
+  };
 }
