@@ -1,0 +1,101 @@
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
+import { Vendor } from '../interfaces/commonInterfaces';
+import { AcceptanceStatus } from '../enums/commonEnums';
+
+export interface VendorDocument extends Vendor, Document {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  password?: string;
+  name: string;
+  companyName: string;
+  city: string;
+  about: string;
+  contactinfo: string;
+  isActive: boolean;
+  isVerified: boolean;
+  isAccepted: AcceptanceStatus;
+  logo: string;
+  imageUrl: string;
+  totalBooking: number;
+  bookedDates: string[];
+  postCount: number;
+  refreshToken: string;
+  totalRating: number;
+  walletBalance: number;
+  posts?: Types.ObjectId[];
+  reportCount?: number;
+  blockReason: string;
+  aadharImages: string[];
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  rejectionReason?: string | null;
+  createdAt: Date;
+  portfolioImages: string[];
+  updatedAt: Date;
+  reappliedAt?: Date | null;
+  reapplyCount: number;
+}
+
+export type VendorModel = Model<VendorDocument>;
+
+const VendorSchema = new Schema<VendorDocument>(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    name: { type: String, required: true },
+    companyName: { type: String, required: true },
+    city: { type: String, required: true },
+    about: { type: String },
+    contactinfo: { type: String, required: true, unique: true },
+    isActive: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: true },
+    isAccepted: {
+      type: String,
+      enum: Object.values(AcceptanceStatus),
+      default: AcceptanceStatus.Requested,
+    },
+    logo: { type: String, default: '' },
+    imageUrl: { type: String, default: '' },
+    totalBooking: { type: Number },
+    bookedDates: { type: [String] },
+    postCount: {
+      type: Number,
+      default: 0,
+    },
+    posts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Post',
+      },
+    ],
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
+
+    totalRating: { type: Number, default: 0 },
+    reportCount: {
+      type: Number,
+      default: 0,
+    },
+    blockReason: {
+      type: String,
+    },
+    refreshToken: { type: String },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
+
+    rejectionReason: { type: String, default: null },
+    portfolioImages: { type: [String], default: [] },
+    aadharImages: { type: [String], default: [] },
+    reappliedAt: { type: Date, default: null },
+    reapplyCount: { type: Number, default: 0 },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
+);
+
+export default mongoose.model<VendorDocument, VendorModel>('Vendor', VendorSchema);

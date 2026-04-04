@@ -1,0 +1,60 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": "latest",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "rules": {
+    /* 🔥 TypeScript */
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-empty-object-type": "warn",
+    "@typescript-eslint/no-namespace": "warn",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+
+    /* 🔥 General JS */
+    "no-useless-catch": "warn",
+    "no-empty": "warn",
+    "no-console": "warn",
+    "no-debugger": "error",
+
+    /* 🔥 React */
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+
+    /* 🔥 Hooks */
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    /* 🔥 Prettier */
+    "prettier/prettier": "warn"
+  }
+}

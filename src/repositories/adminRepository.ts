@@ -1,0 +1,43 @@
+import Admin, { AdminDocument } from '../models/adminModel';
+import User from '../models/userModel';
+import Vendor from '../models/vendorModel';
+import { BaseRepository } from './baseRepository';
+import { IAdminRepository } from '../interfaces/repositoryInterfaces/admin.Repository.interface';
+
+class AdminRepository extends BaseRepository<AdminDocument> implements IAdminRepository {
+  constructor() {
+    super(Admin);
+  }
+
+  async findByEmail(email: string): Promise<AdminDocument | null> {
+    return await Admin.findOne({ email });
+  }
+  async getTotalVendors(): Promise<number> {
+    return await Vendor.countDocuments({
+      isActive: true,
+      isVerified: true,
+      isAccepted: 'accepted',
+    });
+  }
+
+  async getTotalUsers(): Promise<number> {
+    return await User.countDocuments();
+  }
+
+  async getDashboardStats(): Promise<{
+    totalVendors: number;
+    totalUsers: number;
+  }> {
+    const [totalVendors, totalUsers] = await Promise.all([
+      this.getTotalVendors(),
+      this.getTotalUsers(),
+    ]);
+
+    return {
+      totalVendors,
+      totalUsers,
+    };
+  }
+}
+
+export default AdminRepository;
