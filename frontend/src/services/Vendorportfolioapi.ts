@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/config/api/axiosinstance";
-import type { PostData} from "@/types/postTypes";
+import type { PostData } from "@/types/postTypes";
 import { PostStatus } from "@/types/postTypes";
 import type { VendorData } from "@/types/vendorTypes";
 export interface FetchPortfolioResult {

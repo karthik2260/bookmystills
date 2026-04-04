@@ -26,12 +26,8 @@ import { useNavigate } from "react-router-dom";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 import { USER } from "../../config/constants/constants";
-import type {
-  VendorData} from "../../types/vendorTypes";
-import {
-  AcceptanceStatus,
-  VendorResponse,
-} from "../../types/vendorTypes";
+import type { VendorData } from "../../types/vendorTypes";
+import { AcceptanceStatus, VendorResponse } from "../../types/vendorTypes";
 import Loader from "../common/Loader";
 
 import { fetchVendors } from "@/services/serviceapi";

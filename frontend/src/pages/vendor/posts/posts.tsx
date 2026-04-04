@@ -20,12 +20,8 @@ import { useNavigate } from "react-router-dom";
 
 import { VENDOR } from "../../../config/constants/constants";
 import SidebarVendor from "../../../layout/vendor/SidebarProfileVendor";
-import type {
-  PostData} from "../../../types/postTypes";
-import {
-  PostStatus,
-  ServiceProvided,
-} from "../../../types/postTypes";
+import type { PostData } from "../../../types/postTypes";
+import { PostStatus, ServiceProvided } from "../../../types/postTypes";
 import { showToastMessage } from "../../../validations/common/toast";
 
 import CreatePost from "./createPost";

@@ -8,10 +8,9 @@ import { PostCard } from "../../components/user/PostCard";
 import { PostModal } from "../../components/user/PostModal";
 import Footer from "../../layout/user/footer";
 import UserNavbar from "../../layout/user/navbar";
-import type { PostData} from "../../types/postTypes";
+import type { PostData } from "../../types/postTypes";
 import { ServiceProvided } from "../../types/postTypes";
 import type { VendorData } from "../../types/vendorTypes";
-
 
 import { ServiceTabs } from "@/components/common/ServiceTabs";
 import { fetchVendorPortfolioApi } from "@/services/Vendorportfolioapi";

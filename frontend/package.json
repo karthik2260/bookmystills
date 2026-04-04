@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-     "lint": "eslint . --max-warnings 0",
-  "lint:fix": "eslint . --fix",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "start:backend": "ts-node-dev src/app.ts",
     "start:frontend": "vite"

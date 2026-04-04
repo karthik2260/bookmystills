@@ -15,7 +15,6 @@ import { USER, VENDOR } from "../../../config/constants/constants";
 import { useLoginUser } from "../../../hooks/user/useLoginUser";
 import { showToastMessage } from "../../../validations/common/toast";
 
-
 const client_id = import.meta.env.VITE_CLIENT_ID || "";
 
 const UserLogin: React.FC = () => {

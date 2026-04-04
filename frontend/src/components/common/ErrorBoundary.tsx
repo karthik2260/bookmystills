@@ -1,5 +1,10 @@
 import React from "react";
-import { Link, useLocation , useRouteError, isRouteErrorResponse } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useRouteError,
+  isRouteErrorResponse,
+} from "react-router-dom";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;

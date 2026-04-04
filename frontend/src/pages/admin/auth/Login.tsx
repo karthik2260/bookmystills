@@ -13,7 +13,6 @@ import type AdminRootState from "@/redux/rootstate/AdminState";
 import { setAdminInfo } from "@/redux/slices/AdminSlice";
 import { adminLoginService } from "@/services/adminAuthService";
 
-
 interface FormValues {
   email: string;
   password: string;

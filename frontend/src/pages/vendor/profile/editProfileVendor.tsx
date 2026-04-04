@@ -23,7 +23,6 @@ import type {
   VendorDetails,
 } from "@/utils/interface";
 
-
 const EditProfileModalVendor: React.FC<VendorDetails> = ({
   vendor,
   isOpen,

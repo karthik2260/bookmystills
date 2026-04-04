@@ -9,9 +9,11 @@ import { showToastMessage } from "../../validations/common/toast";
 
 import type VendorRootState from "@/redux/rootstate/VendorState";
 import { vendorSignup } from "@/services/vendorAuthService";
-import type { VendorFormErrorValues, VendorFormValues } from "@/types/vendorTypes";
+import type {
+  VendorFormErrorValues,
+  VendorFormValues,
+} from "@/types/vendorTypes";
 import { validate } from "@/validations/vendor/vendorRegVal";
-
 
 const images = [
   "/images/vendorimage1.jpg",

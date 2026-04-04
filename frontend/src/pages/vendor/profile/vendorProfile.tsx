@@ -28,9 +28,7 @@ import { showToastMessage } from "../../../validations/common/toast";
 
 import EditProfileModalVendor from "./editProfileVendor";
 
-import type {
-  PasswordFormData,
-} from "@/pages/common/changePassword";
+import type { PasswordFormData } from "@/pages/common/changePassword";
 import ChangePasswordModal from "@/pages/common/changePassword";
 import { setVendorInfo } from "@/redux/slices/VendorSlice";
 import {
@@ -38,7 +36,6 @@ import {
   getVendorProfile,
   updateVendorProfile,
 } from "@/services/vendorAuthService";
-
 
 function VendorProfile() {
   const [vendor, setVendor] = useState<vendorProfileData | null>(null);

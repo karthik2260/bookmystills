@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-import type { PostData} from "../../types/postTypes";
+import type { PostData } from "../../types/postTypes";
 import { PostStatus, ServiceProvided } from "../../types/postTypes";
 
 // Helper function to count total valid images

@@ -16,7 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import { USER, VENDOR } from "../../../config/constants/constants";
-import type { ErrorResponse} from "../../../hooks/user/useLoginUser";
+import type { ErrorResponse } from "../../../hooks/user/useLoginUser";
 import { useLoginUser } from "../../../hooks/user/useLoginUser";
 import type VendorRootState from "../../../redux/rootstate/VendorState";
 import {
@@ -26,7 +26,6 @@ import {
 import { loginValidationSchema } from "../../../validations/common/loginValidate";
 import { showToastMessage } from "../../../validations/common/toast";
 import { validateEmail } from "../../../validations/user/userVal";
-
 
 import {
   vendorForgotPassword,
@@ -113,34 +112,36 @@ const VendorLogin = () => {
   const formik = useFormik({
     initialValues,
     validationSchema: loginValidationSchema,
-   onSubmit: async (values) => {
-  try {
-    const response = await vendorLogin(values);
-    const token = response.data.token;
-    localStorage.setItem("vendorToken", token);
+    onSubmit: async (values) => {
+      try {
+        const response = await vendorLogin(values);
+        const token = response.data.token;
+        localStorage.setItem("vendorToken", token);
 
-    dispatch(setVendorInfo(response.data.vendor));
+        dispatch(setVendorInfo(response.data.vendor));
 
-    if (response.data.vendor.isAccepted) {
-      dispatch(updateVendorStatus({
-        isAccepted: response.data.vendor.isAccepted,
-        rejectionReason: response.data.vendor.rejectionReason,
-      }));
-    }
+        if (response.data.vendor.isAccepted) {
+          dispatch(
+            updateVendorStatus({
+              isAccepted: response.data.vendor.isAccepted,
+              rejectionReason: response.data.vendor.rejectionReason,
+            }),
+          );
+        }
 
-    showToastMessage(response.data.message, "success");
-    navigate(VENDOR.DASHBOARD);
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToastMessage(
-        error.response?.data?.message || "Login failed",
-        "error",
-      );
-    } else {
-      showToastMessage("Unexpected error occurred", "error");
-    }
-  }
-},
+        showToastMessage(response.data.message, "success");
+        navigate(VENDOR.DASHBOARD);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          showToastMessage(
+            error.response?.data?.message || "Login failed",
+            "error",
+          );
+        } else {
+          showToastMessage("Unexpected error occurred", "error");
+        }
+      }
+    },
   });
 
   return (

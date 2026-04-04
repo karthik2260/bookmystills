@@ -1,7 +1,7 @@
 import { Pagination } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 
-import type { PostData} from "../../types/postTypes";
+import type { PostData } from "../../types/postTypes";
 import { ServiceProvided, PostStatus } from "../../types/postTypes";
 import { ServiceTabs } from "../common/ServiceTabs";
 

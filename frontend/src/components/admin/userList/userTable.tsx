@@ -5,10 +5,9 @@ import { showToastMessage } from "../../../validations/common/toast";
 import type {
   ColumnDef,
   FetchParams,
-  TabConfig} from "../dashboard/GenericTable";
-import {
-  GenericTable
+  TabConfig,
 } from "../dashboard/GenericTable";
+import { GenericTable } from "../dashboard/GenericTable";
 
 import {
   blockUnblockUserService,
@@ -26,7 +25,6 @@ const USER_TABS: TabConfig[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function UserTable() {
-
   // ── Block / Unblock ────────────────────────────────────────────────────────
   // NOTE: Because GenericTable owns the rows state internally, block/unblock
   // does an optimistic local update via the column's closure.  If you need to

@@ -9,7 +9,6 @@ import { USER, VENDOR } from "../../../config/constants/constants";
 import { showToastMessage } from "../../../validations/common/toast";
 import { validatePassword } from "../../../validations/user/userVal";
 
-
 import { resetPassword, validateResetToken } from "@/services/userAuthService";
 import type { ResetFormValues } from "@/utils/interface";
 

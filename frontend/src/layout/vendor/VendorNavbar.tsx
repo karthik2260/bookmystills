@@ -32,7 +32,6 @@ import { showToastMessage } from "../../validations/common/toast";
 import type VendorRootState from "@/redux/rootstate/VendorState";
 import { vendorLogout } from "@/services/vendorAuthService";
 
-
 const NAV_LINKS = [
   { label: "Home", href: VENDOR.DASHBOARD },
   { label: "Profile", href: VENDOR.PROFILE },

@@ -21,8 +21,6 @@ const Dashboard = () => {
     console.log("isAccepted value:", vendorData?.isAccepted);
   }, [vendorData]);
 
- 
-
   const isAccepted = vendorData?.isAccepted;
 
   const isLocked =

@@ -1,6 +1,6 @@
 import { axiosInstanceVendor } from "@/config/api/axiosinstance";
 import type { PasswordFormData } from "@/pages/common/changePassword";
-import type {  vendorProfileData } from "@/types/vendorTypes";
+import type { vendorProfileData } from "@/types/vendorTypes";
 import type { IFormValues } from "@/utils/interface";
 
 export const vendorSignup = (data: FormData) => {
@@ -24,14 +24,16 @@ export const vendorForgotPassword = (email: string) => {
 
 export const getVendorProfile = () => {
   const token = localStorage.getItem("vendorToken");
-  return axiosInstanceVendor.get<vendorProfileData>("/profile", { // ✅ VendorProfileData
+  return axiosInstanceVendor.get<vendorProfileData>("/profile", {
+    // ✅ VendorProfileData
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export const updateVendorProfile = (updates: FormData) => {
   const token = localStorage.getItem("vendorToken");
-  return axiosInstanceVendor.put<vendorProfileData>("/profile", updates, { // ✅ VendorProfileData not VendorData
+  return axiosInstanceVendor.put<vendorProfileData>("/profile", updates, {
+    // ✅ VendorProfileData not VendorData
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",

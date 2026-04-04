@@ -1,32 +1,25 @@
-import  { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import Swal from "sweetalert2";
 
 import { logout } from "../../../redux/slices/VendorSlice";
-import type {
-  VendorData} from "../../../types/vendorTypes";
-import {
-  AcceptanceStatus,
-  
-} from "../../../types/vendorTypes";
+import type { VendorData } from "../../../types/vendorTypes";
+import { AcceptanceStatus } from "../../../types/vendorTypes";
 import { showToastMessage } from "../../../validations/common/toast";
 import type {
   ColumnDef,
   FetchParams,
-  TabConfig} from "../dashboard/GenericTable";
-import {
-  GenericTable
+  TabConfig,
 } from "../dashboard/GenericTable";
+import { GenericTable } from "../dashboard/GenericTable";
 
 import VendorDetailsModal from "./viewdetails";
-
 
 import {
   blockUnblockVendorService,
   fetchVendorsApi,
   verifyVendorService,
 } from "@/services/adminAuthService";
-
 
 const VENDOR_TABS: TabConfig[] = [
   { label: "All", value: "all" },

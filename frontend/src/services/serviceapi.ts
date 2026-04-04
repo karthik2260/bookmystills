@@ -1,7 +1,7 @@
 import type { VendorResponse } from "../types/vendorTypes";
 
 import { axiosInstance } from "@/config/api/axiosinstance";
-import type { PostData} from "@/types/postTypes";
+import type { PostData } from "@/types/postTypes";
 import { PostStatus } from "@/types/postTypes";
 
 export const fetchVendors = async (

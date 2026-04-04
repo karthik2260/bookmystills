@@ -28,15 +28,9 @@ import Loader from "../../../components/common/Loader";
 import Sidebar from "../../../layout/user/Sidebar";
 import { showToastMessage } from "../../../validations/common/toast";
 
-
-
 import EditProfileModal from "./editProfile";
 
-
-
-import type {
-  PasswordFormData,
-} from "@/pages/common/changePassword";
+import type { PasswordFormData } from "@/pages/common/changePassword";
 import ChangePasswordModal from "@/pages/common/changePassword";
 import type UserRootState from "@/redux/rootstate/UserState";
 import { setProfileData, setUserInfo } from "@/redux/slices/UserSlice";
@@ -95,23 +89,23 @@ const UserProfile = () => {
   };
 
   const handleSaveProfile = useCallback(
-  async (updates: FormData) => {
-    try {
-      const token = localStorage.getItem("userToken");
-      if (!token) {
-        showToastMessage("Authentication required", "error");
-        return;
+    async (updates: FormData) => {
+      try {
+        const token = localStorage.getItem("userToken");
+        if (!token) {
+          showToastMessage("Authentication required", "error");
+          return;
+        }
+        const updatedProfile = await updateProfileService(updates, token); // ✅ get response
+        dispatch(setProfileData(updatedProfile)); // ✅ use response directly, no re-fetch
+        showToastMessage("Profile updated successfully", "success");
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        showToastMessage("Error updating profile", "error");
       }
-      const updatedProfile = await updateProfileService(updates, token); // ✅ get response
-      dispatch(setProfileData(updatedProfile)); // ✅ use response directly, no re-fetch
-      showToastMessage("Profile updated successfully", "success");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showToastMessage("Error updating profile", "error");
-    }
-  },
-  [dispatch], 
-);
+    },
+    [dispatch],
+  );
 
   if (!profileData) {
     return (

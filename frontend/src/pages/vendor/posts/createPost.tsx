@@ -23,13 +23,8 @@ import { showToastMessage } from "../../../validations/common/toast";
 
 import { axiosInstanceVendor } from "@/config/api/axiosinstance";
 import { submitPostApi } from "@/services/vendorserviceapi";
-import type {
-  PostFormData,
-  PostData} from "@/types/postTypes";
-import {
-  ServiceProvided,
-  PostStatus
-} from "@/types/postTypes";
+import type { PostFormData, PostData } from "@/types/postTypes";
+import { ServiceProvided, PostStatus } from "@/types/postTypes";
 import { postValidationSchema } from "@/validations/vendor/postValidationSchema";
 
 interface CreatePostProps {

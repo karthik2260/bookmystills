@@ -6,7 +6,8 @@ const TVScreen: React.FC = () => {
     <a
       target="_blank"
       href="https://codepen.io/uiswarup/pen/XWGGyWQ"
-      className="min-h-screen flex justify-center mt-12" rel="noreferrer"
+      className="min-h-screen flex justify-center mt-12"
+      rel="noreferrer"
     >
       <div className="container">
         <div className="row ">

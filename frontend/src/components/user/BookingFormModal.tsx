@@ -14,15 +14,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import type { FC} from "react";
+import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import type { BookingModalProps, ValidationError } from "@/utils/interface";
-import type {
-  BookingFormData} from "@/validations/user/bookingValidation";
-import {
-  useBookingValidation,
-} from "@/validations/user/bookingValidation";
+import type { BookingFormData } from "@/validations/user/bookingValidation";
+import { useBookingValidation } from "@/validations/user/bookingValidation";
 export const BookingModal: FC<BookingModalProps> = ({
   isOpen,
   onOpenChange,

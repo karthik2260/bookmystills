@@ -10,7 +10,6 @@ import type { VendorData } from "../../types/vendorTypes";
 import { AcceptanceStatus } from "../../types/vendorTypes";
 import { showToastMessage } from "../../validations/common/toast";
 
-
 import {
   fetchVendorsApi,
   blockUnblockVendorApi,

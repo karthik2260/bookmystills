@@ -1,7 +1,7 @@
 import type { PostData } from "./postTypes";
 
 export interface VendorData {
- id: string;
+  id: string;
   name: string;
   email: string;
   imageUrl: string;

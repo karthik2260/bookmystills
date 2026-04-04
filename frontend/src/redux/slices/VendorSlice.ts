@@ -1,7 +1,11 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createSlice } from "@reduxjs/toolkit";
 
-import type { AcceptanceStatus,  VendorData, vendorProfileData } from "../../types/vendorTypes";
+import type {
+  AcceptanceStatus,
+  VendorData,
+  vendorProfileData,
+} from "../../types/vendorTypes";
 
 export interface VendorState {
   vendorData: VendorData | null;
@@ -35,17 +39,22 @@ const vendorSlice = createSlice({
     ) => {
       if (state.vendorData) {
         state.vendorData.isAccepted = action.payload.isAccepted;
-        state.vendorData.rejectionReason = action.payload.rejectionReason ?? undefined;
+        state.vendorData.rejectionReason =
+          action.payload.rejectionReason ?? undefined;
       }
     },
     logout: (state) => {
       state.vendorData = null;
       state.isVendorSignedIn = false;
-      state.vendorProfileData = null; 
+      state.vendorProfileData = null;
     },
   },
 });
 
-export const { setVendorInfo, setVendorProfileData, logout, updateVendorStatus } =
-  vendorSlice.actions;
+export const {
+  setVendorInfo,
+  setVendorProfileData,
+  logout,
+  updateVendorStatus,
+} = vendorSlice.actions;
 export default vendorSlice.reducer;

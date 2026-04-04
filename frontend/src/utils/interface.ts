@@ -5,7 +5,6 @@ import type { Role } from "./enums";
 import type { UserData } from "@/types/userTypes";
 import type { VendorData } from "@/types/vendorTypes";
 
-
 export interface ResetFormValues {
   password: string;
   confirmPassword: string;

@@ -17,7 +17,6 @@ import { useUserSignUp } from "../../hooks/user/useUserSignup";
 import { showToastMessage } from "../../validations/common/toast";
 import { validatePassword } from "../../validations/user/userVal";
 
-
 interface PasswordChangeDetails {
   isOpen: boolean;
   onClose: () => void;

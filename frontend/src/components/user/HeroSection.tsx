@@ -10,10 +10,11 @@ import { showToastMessage } from "../../validations/common/toast";
 
 import HeroBanner from "./HeroBanner";
 
-
-
 import { getVendors } from "@/services/userAuthService";
-import type { CarouselArrowProps, CarouselNavigationProps } from "@/utils/interface";
+import type {
+  CarouselArrowProps,
+  CarouselNavigationProps,
+} from "@/utils/interface";
 import { CATEGORIES, services } from "@/utils/utils";
 
 import "react-lazy-load-image-component/src/effects/blur.css";

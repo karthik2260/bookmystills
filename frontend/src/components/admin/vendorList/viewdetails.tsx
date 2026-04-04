@@ -16,7 +16,6 @@ import React, { useState } from "react";
 import type { VendorData } from "../../../types/vendorTypes";
 import { AcceptanceStatus } from "../../../types/vendorTypes";
 
-
 interface VendorDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
