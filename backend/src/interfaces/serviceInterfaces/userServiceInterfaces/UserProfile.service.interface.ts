@@ -5,7 +5,7 @@ export interface IUserProfileService {
   updateProfileService(
     name?: string,
     contactinfo?: string,
-    userId?: any,
+    userId?: string,
     files?: Express.Multer.File | null,
   ): Promise<ProfileUserDTO>;
 }

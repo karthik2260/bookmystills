@@ -1,22 +1,28 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { AcceptanceStatus, VendorData } from '../../types/vendorTypes';
-import Swal from 'sweetalert2';
-import { showToastMessage } from '../../validations/common/toast';
-import { ADMIN } from '../../config/constants/constants';
-import { logout } from '../../redux/slices/VendorSlice';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+
+import { ADMIN } from "../../config/constants/constants";
+import { logout } from "../../redux/slices/VendorSlice";
+import type { VendorData } from "../../types/vendorTypes";
+import { AcceptanceStatus } from "../../types/vendorTypes";
+import { showToastMessage } from "../../validations/common/toast";
 
 
-
-import { fetchVendorsApi,blockUnblockVendorApi,verifyVendorApi } from '@/services/vendorapi';
+import {
+  fetchVendorsApi,
+  blockUnblockVendorApi,
+  verifyVendorApi,
+} from "@/services/vendorapi";
 const useVendor = () => {
   const [vendors, setVendors] = useState<VendorData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<VendorData | null>(null);
   const dispatch = useDispatch();
@@ -33,7 +39,7 @@ const useVendor = () => {
       setVendors(result.vendors);
       setTotalPages(result.totalPages);
     } catch (error) {
-      console.error('Error fetching details:', error);
+      console.error("Error fetching details:", error);
     } finally {
       setIsLoading(false);
     }
@@ -63,33 +69,36 @@ const useVendor = () => {
     setCurrentPage(1);
   };
 
-  const handleBlockUnblock = async (vendorId: string, currentStatus: boolean) => {
-    const action = currentStatus ? 'block' : 'unblock';
+  const handleBlockUnblock = async (
+    vendorId: string,
+    currentStatus: boolean,
+  ) => {
+    const action = currentStatus ? "block" : "unblock";
     const result = await Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: `Do you want to ${action} this vendor?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: currentStatus ? '#d33' : '#3085d6',
-      cancelButtonColor: '#6c757d',
+      confirmButtonColor: currentStatus ? "#d33" : "#3085d6",
+      cancelButtonColor: "#6c757d",
       confirmButtonText: `Yes, ${action} vendor!`,
     });
 
     if (result.isConfirmed) {
       try {
         const data = await blockUnblockVendorApi(vendorId);
-        showToastMessage(data.message, 'success');
-        Swal.fire('Success!', data.message, 'success');
+        showToastMessage(data.message, "success");
+        Swal.fire("Success!", data.message, "success");
 
-        if (data.processHandle === 'block') {
+        if (data.processHandle === "block") {
           dispatch(logout());
           navigate(`${ADMIN.LOGIN}`);
         } else {
           fetchData();
         }
       } catch (error) {
-        Swal.fire('Error', 'Failed to update vendor status', 'error');
-        console.error('Error while blocking/unblocking vendor', error);
+        Swal.fire("Error", "Failed to update vendor status", "error");
+        console.error("Error while blocking/unblocking vendor", error);
       }
     }
   };
@@ -97,14 +106,14 @@ const useVendor = () => {
   const handleVerifyVendor = useCallback(async (vendorId: string) => {
     setIsLoading(true);
     const result = await Swal.fire({
-      title: 'Verify Vendor',
-      text: 'Do you want to accept or reject this vendor?',
-      icon: 'question',
+      title: "Verify Vendor",
+      text: "Do you want to accept or reject this vendor?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Accept',
-      cancelButtonText: 'Reject',
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Accept",
+      cancelButtonText: "Reject",
     });
 
     let status: AcceptanceStatus;
@@ -119,17 +128,21 @@ const useVendor = () => {
 
     try {
       const data = await verifyVendorApi(vendorId, status);
-      showToastMessage(data.message, 'success');
+      showToastMessage(data.message, "success");
 
-      setVendors(prevVendors =>
-        prevVendors.map(vendor =>
+      setVendors((prevVendors) =>
+        prevVendors.map((vendor) =>
           vendor._id === vendorId
-            ? { ...vendor, isAccepted: status, isActive: status === AcceptanceStatus.Accepted }
-            : vendor
-        )
+            ? {
+                ...vendor,
+                isAccepted: status,
+                isActive: status === AcceptanceStatus.Accepted,
+              }
+            : vendor,
+        ),
       );
 
-      setSelectedVendor(prevVendor => {
+      setSelectedVendor((prevVendor) => {
         if (prevVendor && prevVendor._id === vendorId) {
           return {
             ...prevVendor,
@@ -139,10 +152,9 @@ const useVendor = () => {
         }
         return prevVendor;
       });
-
     } catch (error) {
-      console.error('Error verifying vendor:', error);
-      showToastMessage('Failed to verify vendor', 'error');
+      console.error("Error verifying vendor:", error);
+      showToastMessage("Failed to verify vendor", "error");
     } finally {
       setIsLoading(false);
     }

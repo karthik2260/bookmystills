@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { ENV } from './env';
 dotenv.config();
 
 export const corsOption = {
@@ -9,5 +10,5 @@ export const corsOption = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   credentials: true,
-  maxAge: 86400, // Cache preflight requests for 24 hours
+  maxAge: ENV.CORS_MAX_AGE,
 };

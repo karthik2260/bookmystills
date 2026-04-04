@@ -53,7 +53,6 @@ export class UserPasswordService implements IUserPasswordService {
       const user = await this.userRepository.findByToken(token);
 
       console.log('👤 User found:', user ? 'YES' : 'NO');
-      
 
       if (!user) {
         throw new CustomError('Invalid token', HTTP_statusCode.BadRequest); // Change to 400
@@ -125,10 +124,10 @@ export class UserPasswordService implements IUserPasswordService {
   passwordCheckUser = async (
     currentPassword: string,
     newPassword: string,
-    userId: any,
+    userId: string,
   ): Promise<void> => {
     try {
-      const user = await this.userRepository.getById(userId.toString());
+      const user = await this.userRepository.getById(userId);
       if (!user) {
         throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound);
       }
@@ -161,13 +160,10 @@ export class UserPasswordService implements IUserPasswordService {
       );
     } catch (error) {
       console.error('Error in updating password:', error);
-      if (error instanceof CustomError) {
-        throw error;
-      }
+      if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to changing password.', HTTP_statusCode.InternalServerError);
     }
   };
-
   private async scheduleTokenCleanup(
     userId: mongoose.Types.ObjectId,
     expiryTime: Date,

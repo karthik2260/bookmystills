@@ -1,12 +1,17 @@
-import { axiosInstance, axiosSessionInstanceV } from '@/config/api/axiosinstance';
+import {
+  axiosInstance,
+  axiosSessionInstanceV,
+} from "@/config/api/axiosinstance";
 
 export interface VerifyVendorOtpResult {
   message: string;
   vendor?: unknown;
 }
 
-export const verifyVendorOtpApi = async (otp: string): Promise<VerifyVendorOtpResult> => {
-  const response = await axiosSessionInstanceV.post('/verify-email', { otp });
+export const verifyVendorOtpApi = async (
+  otp: string,
+): Promise<VerifyVendorOtpResult> => {
+  const response = await axiosSessionInstanceV.post("/verify-email", { otp });
   return {
     message: response.data.message,
     vendor: response.data.vendor,
@@ -20,7 +25,7 @@ export interface ResendVendorOtpResult {
 }
 
 export const resendVendorOtpApi = async (): Promise<ResendVendorOtpResult> => {
-  const response = await axiosInstance.get('/resendOtp');
+  const response = await axiosInstance.get("/resendOtp");
   return {
     message: response.data.message,
     otpExpiry: response.data.otpExpiry,

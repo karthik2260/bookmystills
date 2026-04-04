@@ -1,10 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { handleError } from '../util/handleError';
 import { CustomError } from '../error/customError';
 import { AuthenticatedRequest } from '../types/vendorTypes';
 import mongoose from 'mongoose';
 import { AuthenticatedRequestt } from '../types/userType';
-import { AuthRequest } from '../types/adminTypes';
 import { IPostService } from '../interfaces/serviceInterfaces/post.Service.interface';
 import HTTP_statusCode from '../enums/httpStatusCode';
 import Messages from '../enums/errorMessages';
@@ -79,7 +78,6 @@ class PostController {
       if (!req.user?._id) {
         throw new CustomError(Messages.VENDOR_NOT_FOUND, HTTP_statusCode.Unauthorized);
       }
-      const userId = new mongoose.Types.ObjectId(req.user._id);
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 3;
 

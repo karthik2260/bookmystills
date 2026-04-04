@@ -1,5 +1,5 @@
-import { AcceptanceStatus,VendorData } from '@/types/vendorTypes';
-import { axiosInstanceAdmin } from '@/config/api/axiosinstance';
+import { axiosInstanceAdmin } from "@/config/api/axiosinstance";
+import type { AcceptanceStatus, VendorData } from "@/types/vendorTypes";
 export interface FetchVendorsParams {
   page: number;
   search: string;
@@ -11,13 +11,15 @@ export interface FetchVendorsResult {
   totalPages: number;
 }
 
-export const fetchVendorsApi = async (params: FetchVendorsParams): Promise<FetchVendorsResult> => {
-  const response = await axiosInstanceAdmin.get('/vendors', {
+export const fetchVendorsApi = async (
+  params: FetchVendorsParams,
+): Promise<FetchVendorsResult> => {
+  const response = await axiosInstanceAdmin.get("/vendors", {
     params: {
       page: params.page,
       limit: 6,
       search: params.search,
-      status: params.activeTab !== 'all' ? params.activeTab : undefined,
+      status: params.activeTab !== "all" ? params.activeTab : undefined,
     },
   });
 
@@ -32,8 +34,12 @@ export interface BlockUnblockResult {
   processHandle: string;
 }
 
-export const blockUnblockVendorApi = async (vendorId: string): Promise<BlockUnblockResult> => {
-  const response = await axiosInstanceAdmin.patch(`/vendorblock-unblock?vendorId=${vendorId}`);
+export const blockUnblockVendorApi = async (
+  vendorId: string,
+): Promise<BlockUnblockResult> => {
+  const response = await axiosInstanceAdmin.patch(
+    `/vendorblock-unblock?vendorId=${vendorId}`,
+  );
   return {
     message: response.data.message,
     processHandle: response.data.processHandle,
@@ -46,9 +52,11 @@ export interface VerifyVendorResult {
 
 export const verifyVendorApi = async (
   vendorId: string,
-  status: AcceptanceStatus
+  status: AcceptanceStatus,
 ): Promise<VerifyVendorResult> => {
-  const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, { status });
+  const response = await axiosInstanceAdmin.put(`/vendors/${vendorId}/status`, {
+    status,
+  });
   return {
     message: response.data.message,
   };

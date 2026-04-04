@@ -1,21 +1,39 @@
-import React, { useCallback, useState } from 'react';
-import Swal from 'sweetalert2';
-import { useDispatch } from 'react-redux';
-import { showToastMessage } from '../../../validations/common/toast';
-import { AcceptanceStatus, VendorData, VendorResponse } from '../../../types/vendorTypes';
-import VendorDetailsModal from './viewdetails';
-import { logout } from '../../../redux/slices/VendorSlice';
-import { blockUnblockVendorService, fetchVendorsApi, verifyVendorService } from '@/services/adminAuthService';
-import { GenericTable,ColumnDef,FetchParams,TabConfig } from '../dashboard/GenericTable';
+import  { useCallback, useState } from "react";
+import { useDispatch } from "react-redux";
+import Swal from "sweetalert2";
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
+import { logout } from "../../../redux/slices/VendorSlice";
+import type {
+  VendorData} from "../../../types/vendorTypes";
+import {
+  AcceptanceStatus,
+  
+} from "../../../types/vendorTypes";
+import { showToastMessage } from "../../../validations/common/toast";
+import type {
+  ColumnDef,
+  FetchParams,
+  TabConfig} from "../dashboard/GenericTable";
+import {
+  GenericTable
+} from "../dashboard/GenericTable";
+
+import VendorDetailsModal from "./viewdetails";
+
+
+import {
+  blockUnblockVendorService,
+  fetchVendorsApi,
+  verifyVendorService,
+} from "@/services/adminAuthService";
+
 
 const VENDOR_TABS: TabConfig[] = [
-  { label: 'All',       value: 'all'       },
-  { label: 'Accepted',  value: 'accepted'  },
-  { label: 'Pending',   value: 'requested' },
-  { label: 'Rejected',  value: 'rejected'  },
-  { label: 'Reapplied', value: 'reapplied' },
+  { label: "All", value: "all" },
+  { label: "Accepted", value: "accepted" },
+  { label: "Pending", value: "requested" },
+  { label: "Rejected", value: "rejected" },
+  { label: "Reapplied", value: "reapplied" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -76,102 +94,115 @@ export function VendorTable() {
 
   const handleBlockUnblock = useCallback(
     async (vendorId: string, currentStatus: boolean) => {
-      const action = currentStatus ? 'block' : 'unblock';
+      const action = currentStatus ? "block" : "unblock";
       const result = await Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: `Do you want to ${action} this vendor?`,
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: currentStatus ? '#d33' : '#3085d6',
-        cancelButtonColor: '#6c757d',
+        confirmButtonColor: currentStatus ? "#d33" : "#3085d6",
+        cancelButtonColor: "#6c757d",
         confirmButtonText: `Yes, ${action} vendor!`,
       });
 
       if (result.isConfirmed) {
         try {
           const response = await blockUnblockVendorService(vendorId);
-          showToastMessage(response.message, 'success');
-          Swal.fire('Success!', response.message, 'success');
-          if (response.processHandle === 'block') {
+          showToastMessage(response.message, "success");
+          Swal.fire("Success!", response.message, "success");
+          if (response.processHandle === "block") {
             dispatch(logout());
           }
         } catch (error) {
-          Swal.fire('Error', 'Failed to update vendor status', 'error');
-          console.error('Error while blocking/unblocking vendor', error);
+          Swal.fire("Error", "Failed to update vendor status", "error");
+          console.error("Error while blocking/unblocking vendor", error);
         }
       }
     },
-    [dispatch]
+    [dispatch],
   );
 
   // ── Verify / review ────────────────────────────────────────────────────────
 
- const handleVerifyVendor = useCallback(
-  async (vendorId: string, isReapplied = false) => {
-    let status: AcceptanceStatus;
-    let rejectionReason: string | undefined;
+  const handleVerifyVendor = useCallback(
+    async (vendorId: string, isReapplied = false) => {
+      let status: AcceptanceStatus;
+      let rejectionReason: string | undefined;
 
-    const result = await Swal.fire({
-      title: isReapplied ? 'Review Reapplication' : 'Verify Vendor',
-      text: isReapplied
-        ? 'This vendor has reapplied. Do you want to accept or reject?'
-        : 'Do you want to accept or reject this vendor?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#1a1a2e',
-      cancelButtonColor: '#e53e3e',
-      confirmButtonText: 'Accept',
-      cancelButtonText: 'Reject',
-    });
-
-    if (result.isConfirmed) {
-      status = AcceptanceStatus.Accepted;
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      status = AcceptanceStatus.Rejected;
-      const reasonResult = await Swal.fire({
-        title: 'Enter Rejection Reason',
-        input: 'text',
-        inputPlaceholder: 'Enter reason (optional)',
+      const result = await Swal.fire({
+        title: isReapplied ? "Review Reapplication" : "Verify Vendor",
+        text: isReapplied
+          ? "This vendor has reapplied. Do you want to accept or reject?"
+          : "Do you want to accept or reject this vendor?",
+        icon: "question",
         showCancelButton: true,
-        confirmButtonText: 'Submit',
-        cancelButtonText: 'Cancel',
+        confirmButtonColor: "#1a1a2e",
+        cancelButtonColor: "#e53e3e",
+        confirmButtonText: "Accept",
+        cancelButtonText: "Reject",
       });
-      if (reasonResult.isConfirmed) {
-        rejectionReason = reasonResult.value || 'No reason provided';
+
+      if (result.isConfirmed) {
+        status = AcceptanceStatus.Accepted;
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        status = AcceptanceStatus.Rejected;
+        const reasonResult = await Swal.fire({
+          title: "Enter Rejection Reason",
+          input: "text",
+          inputPlaceholder: "Enter reason (optional)",
+          showCancelButton: true,
+          confirmButtonText: "Submit",
+          cancelButtonText: "Cancel",
+        });
+        if (reasonResult.isConfirmed) {
+          rejectionReason = reasonResult.value || "No reason provided";
+        } else {
+          return;
+        }
       } else {
         return;
       }
-    } else {
-      return;
-    }
 
-    try {
-      const response = await verifyVendorService(vendorId, {
-        status,
-        rejectionReason,
-      });
-      showToastMessage(response.message, 'success');
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Error', 'Failed to update vendor status', 'error');
-    }
-  },
-  []
-);
+      try {
+        const response = await verifyVendorService(vendorId, {
+          status,
+          rejectionReason,
+        });
+        showToastMessage(response.message, "success");
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Failed to update vendor status", "error");
+      }
+    },
+    [],
+  );
 
   // ── Verify column cell ─────────────────────────────────────────────────────
 
   const renderVerifyCell = useCallback(
     (vendor: VendorData) => {
-      if (!vendor.isAccepted || vendor.isAccepted === AcceptanceStatus.Pending) {
+      if (
+        !vendor.isAccepted ||
+        vendor.isAccepted === AcceptanceStatus.Pending
+      ) {
         return (
           <button
-            onClick={() => handleVerifyVendor(vendor._id, false)}
+            onClick={() => handleVerifyVendor(vendor.id, false)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all duration-150 shadow-sm"
-            style={{ background: 'linear-gradient(135deg, #1a1a2e, #0f3460)' }}
+            style={{ background: "linear-gradient(135deg, #1a1a2e, #0f3460)" }}
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Verify
           </button>
@@ -181,11 +212,21 @@ export function VendorTable() {
       if (vendor.isAccepted === AcceptanceStatus.Reapplied) {
         return (
           <button
-            onClick={() => handleVerifyVendor(vendor._id, true)}
+            onClick={() => handleVerifyVendor(vendor.id, true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-150 shadow-sm"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Review
           </button>
@@ -197,24 +238,27 @@ export function VendorTable() {
           <span
             className={`text-xs font-semibold ${
               vendor.isAccepted === AcceptanceStatus.Accepted
-                ? 'text-emerald-600'
-                : 'text-red-500'
+                ? "text-emerald-600"
+                : "text-red-500"
             }`}
           >
-            {vendor.isAccepted === AcceptanceStatus.Accepted ? '✓ Accepted' : '✗ Rejected'}
+            {vendor.isAccepted === AcceptanceStatus.Accepted
+              ? "✓ Accepted"
+              : "✗ Rejected"}
           </span>
-          {vendor.isAccepted === AcceptanceStatus.Rejected && vendor.rejectionReason && (
-            <span
-              className="text-xs text-gray-400 max-w-[130px] truncate"
-              title={vendor.rejectionReason}
-            >
-              {vendor.rejectionReason}
-            </span>
-          )}
+          {vendor.isAccepted === AcceptanceStatus.Rejected &&
+            vendor.rejectionReason && (
+              <span
+                className="text-xs text-gray-400 max-w-[130px] truncate"
+                title={vendor.rejectionReason}
+              >
+                {vendor.rejectionReason}
+              </span>
+            )}
         </div>
       );
     },
-    [handleVerifyVendor]
+    [handleVerifyVendor],
   );
 
   // ── Column definitions ─────────────────────────────────────────────────────
@@ -222,64 +266,70 @@ export function VendorTable() {
   const columns: ColumnDef<VendorData>[] = [
     // ── Vendor info ──────────────────────────────────────────────────────────
     {
-      header: 'Vendor',
+      header: "Vendor",
       render: (vendor) => (
         <div className="flex items-center gap-3">
           <div className="relative flex-shrink-0">
             <img
-              src={vendor?.imageUrl || '/images/user.png'}
+              src={vendor?.imageUrl || "/images/user.png"}
               alt={vendor.name}
               className="h-9 w-9 rounded-xl object-cover border border-gray-100"
             />
             <span
               className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                vendor.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+                vendor.isActive ? "bg-emerald-500" : "bg-gray-300"
               }`}
             />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">{vendor.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{vendor.companyName || 'No company'}</p>
+            <p className="text-sm font-semibold text-gray-900 leading-tight">
+              {vendor.name}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {vendor.companyName || "No company"}
+            </p>
           </div>
         </div>
       ),
     },
     // ── Mobile ───────────────────────────────────────────────────────────────
     {
-      header: 'Mobile',
+      header: "Mobile",
       render: (vendor) => (
-        <span className="text-sm text-gray-600">{vendor.contactinfo || '—'}</span>
+        <span className="text-sm text-gray-600">
+          {vendor.contactinfo || "—"}
+        </span>
       ),
     },
     // ── Joined ───────────────────────────────────────────────────────────────
     {
-      header: 'Joined',
+      header: "Joined",
       render: (vendor) => (
         <span className="text-sm text-gray-600">
-          {new Date(vendor.createdAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: '2-digit',
+          {new Date(vendor.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "2-digit",
           })}
         </span>
       ),
     },
     // ── Status badge ─────────────────────────────────────────────────────────
     {
-      header: 'Status',
+      header: "Status",
       render: (vendor) => <StatusBadge vendor={vendor} />,
     },
     // ── Report count ─────────────────────────────────────────────────────────
     {
-      header: 'Reports',
+      header: "Reports",
       render: (vendor) => (
         <span
           className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
             (vendor.reportCount ?? 0) > 10
-              ? 'bg-red-100 text-red-700'
+              ? "bg-red-100 text-red-700"
               : (vendor.reportCount ?? 0) > 1
-              ? 'bg-amber-100 text-amber-700'
-              : 'bg-gray-100 text-gray-500'
+                ? "bg-amber-100 text-amber-700"
+                : "bg-gray-100 text-gray-500"
           }`}
         >
           {vendor.reportCount ?? 0}
@@ -288,7 +338,7 @@ export function VendorTable() {
     },
     // ── Block toggle ─────────────────────────────────────────────────────────
     {
-      header: 'Block',
+      header: "Block",
       render: (vendor) => (
         <button
           onClick={() => handleBlockUnblock(vendor._id, vendor.isActive)}
@@ -298,12 +348,12 @@ export function VendorTable() {
             vendor.isAccepted === AcceptanceStatus.Reapplied
           }
           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
-            vendor.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+            vendor.isActive ? "bg-emerald-500" : "bg-gray-300"
           }`}
         >
           <span
             className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
-              vendor.isActive ? 'translate-x-4.5' : 'translate-x-0.5'
+              vendor.isActive ? "translate-x-4.5" : "translate-x-0.5"
             }`}
           />
         </button>
@@ -311,7 +361,7 @@ export function VendorTable() {
     },
     // ── View details ─────────────────────────────────────────────────────────
     {
-      header: 'Details',
+      header: "Details",
       render: (vendor) => (
         <button
           onClick={() => openModal(vendor)}
@@ -319,38 +369,51 @@ export function VendorTable() {
                      bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300
                      transition-all duration-150 shadow-sm"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
           </svg>
           View
         </button>
       ),
     },
     {
-      header: 'Verify',
+      header: "Verify",
       render: renderVerifyCell,
     },
   ];
 
+  const fetchVendors = async (params: FetchParams) => {
+    const response = await fetchVendorsApi(params);
 
- const fetchVendors = async (params: FetchParams) => {
-  const response = await fetchVendorsApi(params);
+    const transformedVendors: VendorData[] = response.vendors.map(
+      (vendor: VendorData & { _doc?: VendorData }) => {
+        const base = vendor._doc ? vendor._doc : vendor;
+        return {
+          ...base,
+          imageUrl: vendor.imageUrl ?? base.imageUrl,
+          portfolioImages: vendor.portfolioImages ?? base.portfolioImages ?? [],
+        };
+      },
+    );
 
-  const transformedVendors: VendorData[] = response.vendors.map(
-    (vendor: VendorData & { _doc?: VendorData }) => {
-      const base = vendor._doc ? vendor._doc : vendor;
-      return {
-        ...base,
-        imageUrl: vendor.imageUrl ?? base.imageUrl,
-        portfolioImages: vendor.portfolioImages ?? base.portfolioImages ?? [],
-      };
-    }
-  );
-
-  return { data: transformedVendors, totalPages: response.totalPages };
-};
-
+    return { data: transformedVendors, totalPages: response.totalPages };
+  };
 
   return (
     <>

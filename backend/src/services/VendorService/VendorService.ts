@@ -1,29 +1,21 @@
 import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.Repository.interface';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
-import { AcceptanceStatus, BlockStatus, ServiceProvided } from '../../enums/commonEnums';
-import jwt from 'jsonwebtoken';
+import { AcceptanceStatus, BlockStatus } from '../../enums/commonEnums';
 import {
-  CustomizationOption,
   FindAllVendorsResult,
   IVendorLoginResponse,
   VendorDetailsWithAll,
   VendorSession,
 } from '../../interfaces/commonInterfaces';
-import {
-  VendorLoginRequestDTO,
-  VendorProfileResponseDTO,
-  VendorSignUpRequestDTO,
-  VendorSignupResponseDTO,
-  VendorUpdateProfileResponseDTO,
-} from '../../dto/vendorDTO';
+import { VendorLoginRequestDTO, VendorSignupResponseDTO } from '../../dto/vendorDTO';
 import { VendorAuthService } from './VendorAuthService';
 import { VendorPasswordService } from './VendorPasswordService';
 import { VendorProfileService } from './VendorProfileService';
 import { VendorManagementService } from './VendorManagementService';
-import mongoose from 'mongoose';
 import { VendorAvailabilityService } from './VendorAvailabilityService';
-import { VendorDocument } from '../../models/vendorModel';
-
+import { VendorSignUpRequestDTO } from '../../dto/vendor/auth/request/vendor.signup.request.dto';
+import { VendorProfileResponseDTO } from '../../dto/vendor/profile/vendor.profile.response.dto';
+import { VendorReapplyRequestDTO } from '../../dto/vendor/reapply/vendor.reapply.request.dto';
 class VendorService implements IVendorService {
   private vendorRepository: IVendorRepository;
   private authService: VendorAuthService;
@@ -45,7 +37,7 @@ class VendorService implements IVendorService {
     return this.authService.registerVendor(data);
   };
 
-  signup = async (data: VendorSignUpRequestDTO): Promise<{ vendor: VendorSignupResponseDTO }> => {
+  signup = async (data: VendorSession): Promise<void> => {
     return this.authService.signup(data);
   };
 
@@ -72,7 +64,7 @@ class VendorService implements IVendorService {
   passwordCheckVendor = async (
     currentPassword: string,
     newPassword: string,
-    vendorId: any,
+    vendorId: string,
   ): Promise<void> => {
     return this.passwordService.passwordCheckVendor(currentPassword, newPassword, vendorId);
   };
@@ -88,8 +80,8 @@ class VendorService implements IVendorService {
     city: string,
     about: string,
     files: Express.Multer.File | null,
-    vendorId: any,
-  ): Promise<VendorUpdateProfileResponseDTO> => {
+    vendorId: string,
+  ): Promise<VendorProfileResponseDTO> => {
     return this.profileService.updateProfileService(
       name,
       contactinfo,
@@ -137,7 +129,7 @@ class VendorService implements IVendorService {
     return this.availabilityService.addDates(dates, vendorId);
   };
 
-  showDates = async (vendorId: string): Promise<VendorDocument | null> => {
+  showDates = async (vendorId: string): Promise<string[]> => {
     return this.availabilityService.showDates(vendorId);
   };
 
@@ -151,39 +143,9 @@ class VendorService implements IVendorService {
     return this.availabilityService.removeDates(dates, vendorId);
   };
 
-  reapplyVendor = async (
-    vendorId: string,
-    files?: {
-      portfolioImages?: Express.Multer.File[];
-      aadharFront?: Express.Multer.File[];
-      aadharBack?: Express.Multer.File[];
-    },
-  ) => {
-    return this.authService.reapplyVendor(vendorId, files);
+  reapplyVendor = async (data: VendorReapplyRequestDTO) => {
+    return this.authService.reapplyVendor(data);
   };
-}
-
-function toTitleCase(city: string): string {
-  return city
-    .toLowerCase()
-    .split(' ')
-    .map((word) => {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-}
-
-function isTokenExpiringSoon(token: string): boolean {
-  try {
-    const decoded = jwt.decode(token) as { exp: number };
-    const expirationTime = decoded.exp * 1000;
-    const currentTime = Date.now();
-    const timeUntilExpiration = expirationTime - currentTime;
-
-    return timeUntilExpiration < 7 * 24 * 60 * 60 * 1000;
-  } catch (error) {
-    return true;
-  }
 }
 
 export default VendorService;

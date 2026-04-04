@@ -8,6 +8,7 @@ import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { AdminLoginRequestDTO } from '../../dto/adminDTO';
 import { AuthRequest } from '../../types/authRequest';
+import { ENV } from '../../config/env';
 dotenv.config();
 
 class AdminAuthController {
@@ -16,7 +17,7 @@ class AdminAuthController {
   constructor(adminService: IAdminService) {
     this.adminService = adminService;
   }
-  adminLogin = async (req: Request<{}, {}, AdminLoginRequestDTO>, res: Response): Promise<void> => {
+  adminLogin = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const adminloginreq: AdminLoginRequestDTO = req.body;
       const { email, password } = adminloginreq;
@@ -32,9 +33,9 @@ class AdminAuthController {
 
       res.cookie('jwtTokenAdmin', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: Number(process.env.COOKIE_MAX_AGE),
+        maxAge: ENV.COOKIE_MAX_AGE,
       });
       res.status(HTTP_statusCode.OK).json({ refreshToken, token, adminData, message });
     } catch (error) {
@@ -46,7 +47,7 @@ class AdminAuthController {
     try {
       res.clearCookie('jwtTokenAdmin', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
       });
       res.status(HTTP_statusCode.OK).json({ message: 'Admin logout Successfully...' });

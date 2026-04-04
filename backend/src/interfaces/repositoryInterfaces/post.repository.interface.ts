@@ -44,7 +44,7 @@ export interface IPostRepository {
     page: number,
     search?: string,
   ): Promise<{
-    posts: Array<PostDocument | Record<string, any>>;
+    posts: Array<Partial<PostDocument>>;
     total: number;
     totalPages: number;
     currentPage: number;

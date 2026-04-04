@@ -1,12 +1,14 @@
-import { UnifiedCalendar } from '@/components/vendor/AvailabilityCalendar';
-import Footer from '../../../layout/user/footer';
-import { useCallback, useEffect, useState } from 'react';
-import { VendorData } from '@/types/vendorTypes';
-import { showToastMessage } from '@/validations/common/toast';
-import { useNavigate } from 'react-router-dom';
-import { VENDOR } from '@/config/constants/constants';
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-import { fetchVendorProfileApi } from '@/services/Availabledateapi';
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import Footer from "../../../layout/user/footer";
+
+import { UnifiedCalendar } from "@/components/vendor/AvailabilityCalendar";
+import { axiosInstanceVendor } from "@/config/api/axiosinstance";
+import { VENDOR } from "@/config/constants/constants";
+import { fetchVendorProfileApi } from "@/services/Availabledateapi";
+import type { VendorData } from "@/types/vendorTypes";
+import { showToastMessage } from "@/validations/common/toast";
 const AvailableDate = () => {
   const [vendor, setVendor] = useState<VendorData | undefined>(undefined);
   const navigate = useNavigate();
@@ -16,11 +18,11 @@ const AvailableDate = () => {
       const data = await fetchVendorProfileApi();
       setVendor(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
       if (error instanceof Error) {
-        showToastMessage(error.message || 'Error loading profile', 'error');
+        showToastMessage(error.message || "Error loading profile", "error");
       } else {
-        showToastMessage('An unknown error occurred', 'error');
+        showToastMessage("An unknown error occurred", "error");
       }
       navigate(VENDOR.LOGIN);
     }
@@ -32,7 +34,11 @@ const AvailableDate = () => {
 
   return (
     <>
-      <UnifiedCalendar isVendor={true} vendorDetails={vendor} axiosInstance={axiosInstanceVendor} />
+      <UnifiedCalendar
+        isVendor={true}
+        vendorDetails={vendor}
+        axiosInstance={axiosInstanceVendor}
+      />
       <Footer />
     </>
   );

@@ -1,59 +1,40 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import VendorRootState from '@/redux/rootstate/VendorState';
-import DynamicBackground from '@/components/common/DynamicBackground';
-import Footer from '../../../layout/user/footer';
-import VendorNavbar from '../../../layout/vendor/VendorNavbar';
-import HeroBannerVendor from './HeroBannerVendor';
-import MainSectionVendor from './MainSectionVendor';
-import RejectionBanner from '@/components/vendor/RejectionBanner';
-import { updateVendorStatus } from '@/redux/slices/VendorSlice';
-import { AcceptanceStatus } from '@/types/vendorTypes';
-import { fetchVendorStatusApi } from '@/services/vendorserviceapi';
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+
+import Footer from "../../../layout/user/footer";
+import VendorNavbar from "../../../layout/vendor/VendorNavbar";
+
+import HeroBannerVendor from "./HeroBannerVendor";
+import MainSectionVendor from "./MainSectionVendor";
+
+import DynamicBackground from "@/components/common/DynamicBackground";
+import RejectionBanner from "@/components/vendor/RejectionBanner";
+import type VendorRootState from "@/redux/rootstate/VendorState";
+
 const Dashboard = () => {
-  const vendorData = useSelector((state: VendorRootState) => state.vendor.vendorData);
-  const dispatch = useDispatch();
+  const vendorData = useSelector(
+    (state: VendorRootState) => state.vendor.vendorData,
+  );
 
   useEffect(() => {
-    console.log('Current vendor Redux state:', vendorData);
-    console.log('isAccepted value:', vendorData?.isAccepted);
+    console.log("Current vendor Redux state:", vendorData);
+    console.log("isAccepted value:", vendorData?.isAccepted);
   }, [vendorData]);
 
-  useEffect(() => {
-    const fetchFreshStatus = async () => {
-      try {
-        const freshVendor = await fetchVendorStatusApi();
-
-        console.log('Fresh isAccepted from API:', freshVendor?.isAccepted);
-
-        if (freshVendor?.isAccepted) {
-          dispatch(
-            updateVendorStatus({
-              isAccepted: freshVendor.isAccepted as AcceptanceStatus,
-              rejectionReason: freshVendor.rejectionReason ?? undefined,
-            })
-          );
-        }
-      } catch (error) {
-        console.error('Failed to fetch fresh vendor status:', error);
-      }
-    };
-
-    fetchFreshStatus();
-  }, [dispatch]);
+ 
 
   const isAccepted = vendorData?.isAccepted;
 
   const isLocked =
-    isAccepted === 'requested' ||
-    isAccepted === 'rejected' ||
-    isAccepted === 'reapplied';
+    isAccepted === "requested" ||
+    isAccepted === "rejected" ||
+    isAccepted === "reapplied";
 
   return (
     <>
       <VendorNavbar />
 
-      {isAccepted && isAccepted !== 'accepted' && (
+      {isAccepted && isAccepted !== "accepted" && (
         <RejectionBanner
           isAccepted={isAccepted}
           rejectionReason={vendorData?.rejectionReason}
@@ -69,7 +50,8 @@ const Dashboard = () => {
             Dashboard Locked
           </h2>
           <p className="text-sm text-gray-500 max-w-sm">
-            Your dashboard features will be unlocked once your account is verified by our admin team.
+            Your dashboard features will be unlocked once your account is
+            verified by our admin team.
           </p>
         </div>
       ) : (

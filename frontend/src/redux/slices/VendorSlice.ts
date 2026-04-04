@@ -1,48 +1,51 @@
-import {createSlice, PayloadAction  } from '@reduxjs/toolkit'
-import { AcceptanceStatus, VendorData } from "../../types/vendorTypes";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+
+import type { AcceptanceStatus,  VendorData, vendorProfileData } from "../../types/vendorTypes";
 
 export interface VendorState {
-    vendorData : VendorData | null ;
-    isVendorSignedIn : boolean
+  vendorData: VendorData | null;
+  isVendorSignedIn: boolean;
+  vendorProfileData: vendorProfileData | null; // ✅ add this
 }
 
-const initialState : VendorState = {
-    vendorData : null,
-    isVendorSignedIn : false
-}
-
+const initialState: VendorState = {
+  vendorData: null,
+  isVendorSignedIn: false,
+  vendorProfileData: null, // ✅ add this
+};
 
 const vendorSlice = createSlice({
-    name : 'vendor',
-    initialState,
-    reducers :{
-        setVendorInfo:(state,action:PayloadAction<VendorData>)=>{
-            state.vendorData = action.payload;
-            state.isVendorSignedIn = true
-        },
-        updateUserImage: (state, action: PayloadAction<string>) => {
-            if (state.vendorData) {
-                state.vendorData.imageUrl = action.payload;
-            }
-        },
-
-
-    updateVendorStatus: (state, action: PayloadAction<{ 
-    isAccepted: AcceptanceStatus;        // ← AcceptanceStatus, not string
-    rejectionReason?: string | undefined // ← undefined, not null
-}>) => {
-    if (state.vendorData) {
+  name: "vendor",
+  initialState,
+  reducers: {
+    setVendorInfo: (state, action: PayloadAction<VendorData>) => {
+      state.vendorData = action.payload;
+      state.isVendorSignedIn = true;
+    },
+    setVendorProfileData: (state, action: PayloadAction<vendorProfileData>) => {
+      state.vendorProfileData = action.payload; // ✅ add this
+    },
+    updateVendorStatus: (
+      state,
+      action: PayloadAction<{
+        isAccepted: AcceptanceStatus;
+        rejectionReason?: string | undefined;
+      }>,
+    ) => {
+      if (state.vendorData) {
         state.vendorData.isAccepted = action.payload.isAccepted;
-        state.vendorData.rejectionReason = action.payload.rejectionReason ?? undefined; // ← ?? undefined
-    }
-},
+        state.vendorData.rejectionReason = action.payload.rejectionReason ?? undefined;
+      }
+    },
+    logout: (state) => {
+      state.vendorData = null;
+      state.isVendorSignedIn = false;
+      state.vendorProfileData = null; 
+    },
+  },
+});
 
-        logout:(state)=>{
-            state.vendorData = null;
-            state.isVendorSignedIn =false
-        }
-    }
-})
-
-export const {setVendorInfo,logout,updateVendorStatus} = vendorSlice.actions;
-export default vendorSlice.reducer
+export const { setVendorInfo, setVendorProfileData, logout, updateVendorStatus } =
+  vendorSlice.actions;
+export default vendorSlice.reducer;

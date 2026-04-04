@@ -1,5 +1,5 @@
 // File: interfaces/serviceInterfaces/vendorProfile.service.interface.ts
-import { VendorProfileResponseDTO, VendorUpdateProfileResponseDTO } from '../../../dto/vendorDTO';
+import { VendorProfileResponseDTO } from '../../../dto/vendor/profile/vendor.profile.response.dto';
 export interface IVendorProfileService {
   /**
    * Get vendor profile by vendor ID
@@ -27,5 +27,5 @@ export interface IVendorProfileService {
     about: string,
     files: Express.Multer.File | null,
     vendorId: string,
-  ): Promise<VendorUpdateProfileResponseDTO>;
+  ): Promise<VendorProfileResponseDTO>;
 }

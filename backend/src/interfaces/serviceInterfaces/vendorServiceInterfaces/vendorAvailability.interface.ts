@@ -1,6 +1,5 @@
 // File: interfaces/serviceInterfaces/vendorAvailability.service.interface.ts
 
-import { VendorDocument } from '../../../models/vendorModel';
 export interface IVendorAvailabilityService {
   addDates(
     dates: string[],
@@ -12,7 +11,7 @@ export interface IVendorAvailabilityService {
     alreadyBookedDates: string[];
   }>;
 
-  showDates(vendorId: string): Promise<VendorDocument | null>;
+  showDates(vendorId: string): Promise<string[]>;
 
   removeDates(
     dates: string[],

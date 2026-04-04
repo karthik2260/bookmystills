@@ -48,6 +48,8 @@ export class S3Service {
       const url = await getSignedUrl(this.s3Client, getCommand, { expiresIn: 604800 });
       return url;
     } catch (error) {
+      console.log(error);
+
       throw new Error('Failed to generate signedUrl');
     }
   }

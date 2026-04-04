@@ -25,7 +25,14 @@ export const postValidationSchema = yup.object().shape({
     .oneOf(Object.values(PostStatus), 'Invalid status'),
 });
 
-export const validatePostInput = async (data: any) => {
+interface PostInputData {
+  caption: string;
+  location: string;
+  serviceType: ServiceProvided;
+  status: PostStatus;
+}
+
+export const validatePostInput = async (data: PostInputData) => {
   try {
     const validatedData = await postValidationSchema.validate(data, {
       abortEarly: false,

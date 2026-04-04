@@ -1,13 +1,15 @@
-import { axiosInstanceVendor } from '@/config/api/axiosinstance';
-import { AcceptanceStatus } from '@/types/vendorTypes';
+import { axiosInstanceVendor } from "@/config/api/axiosinstance";
+import type { AcceptanceStatus } from "@/types/vendorTypes";
 
 export interface VendorProfileStatusResult {
   isAccepted?: AcceptanceStatus;
   rejectionReason?: string;
 }
 
-export const fetchVendorProfileStatusApi = async (token: string): Promise<VendorProfileStatusResult> => {
-  const response = await axiosInstanceVendor.get('/profile', {
+export const fetchVendorProfileStatusApi = async (
+  token: string,
+): Promise<VendorProfileStatusResult> => {
+  const response = await axiosInstanceVendor.get("/profile", {
     headers: { Authorization: `Bearer ${token}` },
   });
   const vendor = response.data?.vendor ?? response.data;

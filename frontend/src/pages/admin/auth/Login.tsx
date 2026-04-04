@@ -1,22 +1,25 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { ADMIN } from '../../../config/constants/constants';
+import axios from "axios";
 import { useFormik } from "formik";
-import { loginValidationSchema } from '../../../validations/common/loginValidate';
-import { showToastMessage } from '../../../validations/common/toast';
-import AdminRootState from '@/redux/rootstate/AdminState';
-import { Eye, EyeOff } from 'lucide-react';
-import { setAdminInfo } from '@/redux/slices/AdminSlice';
-import { adminLoginService } from '@/services/adminAuthService';
-import axios from 'axios';
+import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import { ADMIN } from "../../../config/constants/constants";
+import { loginValidationSchema } from "../../../validations/common/loginValidate";
+import { showToastMessage } from "../../../validations/common/toast";
+
+import type AdminRootState from "@/redux/rootstate/AdminState";
+import { setAdminInfo } from "@/redux/slices/AdminSlice";
+import { adminLoginService } from "@/services/adminAuthService";
+
 
 interface FormValues {
   email: string;
   password: string;
 }
 
-const initialValues: FormValues = { email: '', password: '' };
+const initialValues: FormValues = { email: "", password: "" };
 
 const Login = () => {
   const admin = useSelector((state: AdminRootState) => state.admin.adminData);
@@ -37,34 +40,34 @@ const Login = () => {
       setIsSubmitting(true);
       try {
         const data = await adminLoginService(values);
-        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem("adminToken", data.token);
         dispatch(setAdminInfo(data.adminData));
-        showToastMessage(data.message, 'success');
+        showToastMessage(data.message, "success");
         navigate(`/admin${ADMIN.DASHBOARD}`);
       } catch (error) {
-        let errorMessage = 'An error occurred during login';
+        let errorMessage = "An error occurred during login";
         if (axios.isAxiosError(error)) {
           errorMessage = error.response?.data?.message || errorMessage;
         }
-        showToastMessage(errorMessage, 'error');
+        showToastMessage(errorMessage, "error");
       } finally {
         setIsSubmitting(false);
       }
-    }
+    },
   });
 
   return (
     <div className="min-h-screen bg-[#f5f5f3] flex items-center justify-center p-4">
-
       {/* Card */}
       <div className="w-full max-w-sm">
-
         {/* Logo mark */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center mb-3">
             <div className="w-5 h-5 rounded-sm bg-white" />
           </div>
-          <h1 className="text-sm font-bold text-gray-900 tracking-widest uppercase">Bookmystills</h1>
+          <h1 className="text-sm font-bold text-gray-900 tracking-widest uppercase">
+            Bookmystills
+          </h1>
           <p className="text-xs text-gray-400 mt-0.5">Admin Console</p>
         </div>
 
@@ -72,14 +75,18 @@ const Login = () => {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900">Sign in</h2>
-            <p className="text-sm text-gray-400 mt-0.5">Enter your credentials to continue</p>
+            <p className="text-sm text-gray-400 mt-0.5">
+              Enter your credentials to continue
+            </p>
           </div>
 
           <form onSubmit={formik.handleSubmit} className="space-y-4">
-
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider"
+              >
                 Email
               </label>
               <input
@@ -93,18 +100,23 @@ const Login = () => {
                 autoComplete="email"
                 className={`w-full px-3.5 py-2.5 text-sm bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-150 ${
                   formik.touched.email && formik.errors.email
-                    ? 'border-red-300 focus:ring-red-500/20'
-                    : 'border-gray-200 focus:ring-gray-900/10 focus:border-gray-400'
+                    ? "border-red-300 focus:ring-red-500/20"
+                    : "border-gray-200 focus:ring-gray-900/10 focus:border-gray-400"
                 }`}
               />
               {formik.touched.email && formik.errors.email && (
-                <p className="text-xs text-red-500 mt-1.5">{formik.errors.email}</p>
+                <p className="text-xs text-red-500 mt-1.5">
+                  {formik.errors.email}
+                </p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider"
+              >
                 Password
               </label>
               <div className="relative">
@@ -119,8 +131,8 @@ const Login = () => {
                   autoComplete="current-password"
                   className={`w-full px-3.5 py-2.5 pr-10 text-sm bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-150 ${
                     formik.touched.password && formik.errors.password
-                      ? 'border-red-300 focus:ring-red-500/20'
-                      : 'border-gray-200 focus:ring-gray-900/10 focus:border-gray-400'
+                      ? "border-red-300 focus:ring-red-500/20"
+                      : "border-gray-200 focus:ring-gray-900/10 focus:border-gray-400"
                   }`}
                 />
                 <button
@@ -132,7 +144,9 @@ const Login = () => {
                 </button>
               </div>
               {formik.touched.password && formik.errors.password && (
-                <p className="text-xs text-red-500 mt-1.5">{formik.errors.password}</p>
+                <p className="text-xs text-red-500 mt-1.5">
+                  {formik.errors.password}
+                </p>
               )}
             </div>
 
@@ -141,7 +155,7 @@ const Login = () => {
               type="submit"
               disabled={isSubmitting}
               className="w-full mt-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ background: isSubmitting ? '#555' : '#0f0f0f' }}
+              style={{ background: isSubmitting ? "#555" : "#0f0f0f" }}
             >
               {isSubmitting ? (
                 <>
@@ -149,7 +163,7 @@ const Login = () => {
                   Signing in...
                 </>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </form>

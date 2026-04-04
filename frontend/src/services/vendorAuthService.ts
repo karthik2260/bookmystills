@@ -1,8 +1,7 @@
 import { axiosInstanceVendor } from "@/config/api/axiosinstance";
-import { PasswordFormData } from "@/pages/common/changePassword";
-import { VendorData,  } from "@/types/vendorTypes";
-import { IFormValues } from "@/utils/interface";
-
+import type { PasswordFormData } from "@/pages/common/changePassword";
+import type {  vendorProfileData } from "@/types/vendorTypes";
+import type { IFormValues } from "@/utils/interface";
 
 export const vendorSignup = (data: FormData) => {
   return axiosInstanceVendor.post("/signup", data, {
@@ -11,33 +10,28 @@ export const vendorSignup = (data: FormData) => {
   });
 };
 
-
-
 export const vendorLogout = () => {
-    return axiosInstanceVendor.post("/logout")
-}
+  return axiosInstanceVendor.post("/logout");
+};
 
+export const vendorLogin = (data: IFormValues) => {
+  return axiosInstanceVendor.post("/login", data);
+};
 
-export const vendorLogin = (data:IFormValues) => {
-    return axiosInstanceVendor.post("/login",data)
-}
-
-
-export const vendorForgotPassword = (email:string) => {
-    return axiosInstanceVendor.post("/forgot-password",{email})
-}
-
+export const vendorForgotPassword = (email: string) => {
+  return axiosInstanceVendor.post("/forgot-password", { email });
+};
 
 export const getVendorProfile = () => {
   const token = localStorage.getItem("vendorToken");
-  return axiosInstanceVendor.get<VendorData>("/profile", {
+  return axiosInstanceVendor.get<vendorProfileData>("/profile", { // ✅ VendorProfileData
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export const updateVendorProfile = (updates: FormData) => {
   const token = localStorage.getItem("vendorToken");
-  return axiosInstanceVendor.put<VendorData>("/profile", updates, {
+  return axiosInstanceVendor.put<vendorProfileData>("/profile", updates, { // ✅ VendorProfileData not VendorData
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
@@ -51,5 +45,3 @@ export const changeVendorPassword = (passwordData: PasswordFormData) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
-
-

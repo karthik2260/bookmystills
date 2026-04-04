@@ -123,10 +123,10 @@ export class VendorPasswordService implements IVendorPasswordService {
   passwordCheckVendor = async (
     currentPassword: string,
     newPassword: string,
-    vendorId: any,
+    vendorId: string,
   ): Promise<void> => {
     try {
-      const vendor = await this.vendorRepository.getById(vendorId.toString());
+      const vendor = await this.vendorRepository.getById(vendorId);
       if (!vendor) {
         throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound);
       }

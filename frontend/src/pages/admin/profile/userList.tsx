@@ -1,16 +1,13 @@
-import {  UserTable } from "@/components/admin/userList/userTable"
-
-
-
+import { UserTable } from "@/components/admin/userList/userTable";
 
 const UserList = () => {
-    return (
-        <>
-        <div className="p-4">
- <UserTable/>
-        </div>
-        </>
-    )
-}
+  return (
+    <>
+      <div className="p-4">
+        <UserTable />
+      </div>
+    </>
+  );
+};
 
-export default UserList
+export default UserList;

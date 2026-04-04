@@ -1,77 +1,64 @@
-import { axiosInstance, axiosInstanceAdmin, axiosInstanceVendor } from "@/config/api/axiosinstance";
-import { PasswordFormData } from "@/pages/common/changePassword";
-import { UserData, UserFormValues } from "@/types/userTypes";
-import { VendorData } from "@/types/vendorTypes";
+import {
+  axiosInstance,
+  axiosInstanceAdmin,
+  axiosInstanceVendor,
+} from "@/config/api/axiosinstance";
+import type { PasswordFormData } from "@/pages/common/changePassword";
+import type { UserData, UserFormValues } from "@/types/userTypes";
+import type { VendorData } from "@/types/vendorTypes";
 
-
-export const loginUser = (data:{email:string;password:string}) => {
-    return axiosInstance.post('/login',data)
-}
-
-
-export const forgotPassword = (email:string) => {
-    return axiosInstance.post('/forgot-password',{email})
-}
-
-export const googleAuth = (credential: string) => {
-  return axiosInstance.post('/google/auth', { credential });
+export const loginUser = (data: { email: string; password: string }) => {
+  return axiosInstance.post("/login", data);
 };
 
+export const forgotPassword = (email: string) => {
+  return axiosInstance.post("/forgot-password", { email });
+};
 
-export const signupUser = (data:UserFormValues) => {
-    return axiosInstance.post('/signup',data)
-}
+export const googleAuth = (credential: string) => {
+  return axiosInstance.post("/google/auth", { credential });
+};
 
-
-
+export const signupUser = (data: UserFormValues) => {
+  return axiosInstance.post("/signup", data);
+};
 
 export const logoutUser = () => {
-    return axiosInstance.post('/logout')
-}
+  return axiosInstance.post("/logout");
+};
 
-
-export const validateResetToken = (
-  token: string,
-  isVendor: boolean
-) => {
+export const validateResetToken = (token: string, isVendor: boolean) => {
   const client = isVendor ? axiosInstanceVendor : axiosInstance;
   return client.get(`/validate-reset-token/${token}`);
 };
 
-
 export const resetPassword = (
-    token:string,
-    data:{password:string; confirmPassword:string},
-    isVendor:boolean
+  token: string,
+  data: { password: string; confirmPassword: string },
+  isVendor: boolean,
 ) => {
-    const client = isVendor ? axiosInstanceVendor : axiosInstance;
-    return client.post(`/reset-password/${token}`,data, {
-        withCredentials:true,
-    })
-}
+  const client = isVendor ? axiosInstanceVendor : axiosInstance;
+  return client.post(`/reset-password/${token}`, data, {
+    withCredentials: true,
+  });
+};
 
 export const changePasswordService = async (
   passwordData: PasswordFormData,
-  token: string
+  token: string,
 ) => {
-  const response = await axiosInstance.put(
-    "/change-password",
-    passwordData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await axiosInstance.put("/change-password", passwordData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   return response.data;
 };
 
-
-
 export const updateProfileService = async (
   updates: FormData,
-  token: string
+  token: string,
 ) => {
   const response = await axiosInstance.put("/profile", updates, {
     headers: {
@@ -83,7 +70,6 @@ export const updateProfileService = async (
   return response.data;
 };
 
-
 interface VendorResponse {
   vendors: VendorData[];
 }
@@ -91,12 +77,10 @@ interface VendorResponse {
 export const getVendors = async (limit: number = 5): Promise<VendorData[]> => {
   const response = await axiosInstance.get<VendorResponse>("/vendors", {
     params: { limit },
-  }); 
+  });
 
   return response.data.vendors;
 };
-
-
 
 interface GetUsersParams {
   page?: number;
@@ -111,18 +95,14 @@ interface GetUsersResponse {
 }
 
 export const getUsersService = async (
-  params: GetUsersParams
+  params: GetUsersParams,
 ): Promise<GetUsersResponse> => {
-  const response = await axiosInstanceAdmin.get<GetUsersResponse>(
-    "/users",
-    {
-      params,
-    }
-  );
+  const response = await axiosInstanceAdmin.get<GetUsersResponse>("/users", {
+    params,
+  });
 
   return response.data;
 };
-
 
 export const blockUnblockUserService = async (userId: string) => {
   const response = await axiosInstanceAdmin.patch(
@@ -130,7 +110,7 @@ export const blockUnblockUserService = async (userId: string) => {
     {},
     {
       params: { userId },
-    }
+    },
   );
 
   return response.data;

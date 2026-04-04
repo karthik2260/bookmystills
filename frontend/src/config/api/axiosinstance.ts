@@ -1,121 +1,156 @@
-import axios, { AxiosInstance } from "axios";
+import type { AxiosInstance } from "axios";
+import axios from "axios";
 import Swal from "sweetalert2";
-import { CreateAxiosInstance } from "@/types/axiosTypes";
-const BASE_URL = import.meta.env.VITE_BASE_URL || '';
+
+import type { CreateAxiosInstance } from "@/types/axiosTypes";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "";
 console.log("BASE_URL:", BASE_URL);
 
+const createAxiosInstance: CreateAxiosInstance = (
+  baseUrl,
+  tokenKey,
+  refreshTokenKey,
+) => {
+  const instance = axios.create({
+    baseURL: baseUrl,
+    withCredentials: true,
+  });
 
-const createAxiosInstance: CreateAxiosInstance = (baseUrl, tokenKey, refreshTokenKey) => {
-    const instance = axios.create({
-        baseURL: baseUrl,
-        withCredentials: true,
-    });
-    
+  instance.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem(tokenKey);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error),
+  );
 
-    instance.interceptors.request.use(
-        (config) => {
-            const token = localStorage.getItem(tokenKey);
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => Promise.reject(error)
-    );
-
-    instance.interceptors.response.use(
-        (response) => response,        
-        async (error) => {
-            if (error.response) {
-                if (error.response.status === 403 && error.response.data.message === 'Blocked by Admin') {
-                    localStorage.removeItem(tokenKey);
-                    localStorage.removeItem(refreshTokenKey);
-                    return Promise.reject(error);
-                }
-                
-
-                if (error.response?.status === 401) {
-                    // ✅ Token expired — refresh and retry original request
-                    if (error.response.data.expired) {
-                        try {
-                            const refreshResponse = await instance.post('/refresh-token', {}, { withCredentials: true });
-                            const newToken = refreshResponse.data.token;                            
-                            localStorage.setItem(tokenKey, newToken);                            
-                            error.config.headers.Authorization = `Bearer ${newToken}`;
-                            return instance(error.config); // ✅ retry original request with new token
-
-                        } catch (refreshError) {
-                            localStorage.removeItem(tokenKey);
-                            localStorage.removeItem(refreshTokenKey);
-                            const result = await Swal.fire({
-                                title: 'Session Expired',
-                                text: 'Your session has expired. Please login again to continue.',
-                                icon: 'warning',
-                                confirmButtonText: 'Login',
-                                allowOutsideClick: false,
-                            });
-                            if (result.isConfirmed) {
-                                // ✅ Fixed — correct redirects for each role
-                                window.location.href = baseUrl.includes('/vendor')
-                                    ? '/vendor/login'   // vendor → vendor login
-                                    : baseUrl.includes('/admin')
-                                        ? '/admin/login' // admin → admin login
-                                        : '/login';      // user → user login
-                            }
-                            return Promise.reject(refreshError);
-                        }
-                    } else if (error.response.data.message === 'Session expired') {
-                        // ✅ Fixed — correct redirects here too
-                        window.location.href = baseUrl.includes('/vendor')
-                            ? '/vendor/login'
-                            : baseUrl.includes('/admin')
-                                ? '/admin/login'
-                                : '/login';
-                        return Promise.reject(error);
-                    } 
-                }
-            }
-            return Promise.reject(error);
+  instance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      if (error.response) {
+        if (
+          error.response.status === 403 &&
+          error.response.data.message === "Blocked by Admin"
+        ) {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(refreshTokenKey);
+          return Promise.reject(error);
         }
-    );
 
-    return instance;
+        if (error.response?.status === 401) {
+          // ✅ Token expired — refresh and retry original request
+          if (error.response.data.expired) {
+            try {
+              const refreshResponse = await instance.post(
+                "/refresh-token",
+                {},
+                { withCredentials: true },
+              );
+              const newToken = refreshResponse.data.token;
+              localStorage.setItem(tokenKey, newToken);
+              error.config.headers.Authorization = `Bearer ${newToken}`;
+              return instance(error.config); // ✅ retry original request with new token
+            } catch (refreshError) {
+              localStorage.removeItem(tokenKey);
+              localStorage.removeItem(refreshTokenKey);
+              const result = await Swal.fire({
+                title: "Session Expired",
+                text: "Your session has expired. Please login again to continue.",
+                icon: "warning",
+                confirmButtonText: "Login",
+                allowOutsideClick: false,
+              });
+              if (result.isConfirmed) {
+                // ✅ Fixed — correct redirects for each role
+                window.location.href = baseUrl.includes("/vendor")
+                  ? "/vendor/login" // vendor → vendor login
+                  : baseUrl.includes("/admin")
+                    ? "/admin/login" // admin → admin login
+                    : "/login"; // user → user login
+              }
+              return Promise.reject(refreshError);
+            }
+          } else if (error.response.data.message === "Session expired") {
+            // ✅ Fixed — correct redirects here too
+            window.location.href = baseUrl.includes("/vendor")
+              ? "/vendor/login"
+              : baseUrl.includes("/admin")
+                ? "/admin/login"
+                : "/login";
+            return Promise.reject(error);
+          }
+        }
+      }
+      return Promise.reject(error);
+    },
+  );
+
+  return instance;
 };
 
-export const axiosInstance = createAxiosInstance(`${BASE_URL}/api/user`, 'userToken', 'userRefresh');
-export const axiosInstanceAdmin = createAxiosInstance(`${BASE_URL}/api/admin`, 'adminToken', 'adminRefresh');
-export const axiosInstanceVendor = createAxiosInstance(`${BASE_URL}/api/vendor`, 'vendorToken', 'vendorRefresh');
-export const axiosInstanceChat = createAxiosInstance(`${BASE_URL}/api/conversations`, 'userToken', 'userRefresh');
-export const axiosInstanceMessage = createAxiosInstance(`${BASE_URL}/api/messages`, 'userToken', 'userRefresh');
-
+export const axiosInstance = createAxiosInstance(
+  `${BASE_URL}/api/user`,
+  "userToken",
+  "userRefresh",
+);
+export const axiosInstanceAdmin = createAxiosInstance(
+  `${BASE_URL}/api/admin`,
+  "adminToken",
+  "adminRefresh",
+);
+export const axiosInstanceVendor = createAxiosInstance(
+  `${BASE_URL}/api/vendor`,
+  "vendorToken",
+  "vendorRefresh",
+);
+export const axiosInstanceChat = createAxiosInstance(
+  `${BASE_URL}/api/conversations`,
+  "userToken",
+  "userRefresh",
+);
+export const axiosInstanceMessage = createAxiosInstance(
+  `${BASE_URL}/api/messages`,
+  "userToken",
+  "userRefresh",
+);
 
 export const axiosSessionInstance: AxiosInstance = axios.create({
-    baseURL: `${BASE_URL}/api/user`,
-    withCredentials: true,
+  baseURL: `${BASE_URL}/api/user`,
+  withCredentials: true,
 });
 
 axiosSessionInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401 && error.response.data.message === 'Session expired') {
-            window.location.href = '/signup';
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      error.response.data.message === "Session expired"
+    ) {
+      window.location.href = "/signup";
     }
+    return Promise.reject(error);
+  },
 );
 
-
 export const axiosSessionInstanceV: AxiosInstance = axios.create({
-    baseURL: `${BASE_URL}/api/vendor`,
-    withCredentials: true,
+  baseURL: `${BASE_URL}/api/vendor`,
+  withCredentials: true,
 });
 
 axiosSessionInstanceV.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401 && error.response.data.message === 'Session expired') {
-            window.location.href = '/vendor/login';
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      error.response.data.message === "Session expired"
+    ) {
+      window.location.href = "/vendor/login";
     }
+    return Promise.reject(error);
+  },
 );

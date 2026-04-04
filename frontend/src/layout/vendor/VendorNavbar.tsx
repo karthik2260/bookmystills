@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Navbar,
   NavbarBrand,
@@ -13,26 +12,39 @@ import {
   DropdownItem,
   Avatar,
 } from "@nextui-org/react";
-import { LogOut, User, ChevronDown, Aperture, ArrowUpRight, MessageCircle } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../redux/slices/VendorSlice';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { VENDOR } from '../../config/constants/constants';
-import { showToastMessage } from '../../validations/common/toast';
-import VendorRootState from '@/redux/rootstate/VendorState';
-import { vendorLogout } from '@/services/vendorAuthService';
-import axios from 'axios';
+import axios from "axios";
+import {
+  LogOut,
+  User,
+  ChevronDown,
+  Aperture,
+  ArrowUpRight,
+  MessageCircle,
+} from "lucide-react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { VENDOR } from "../../config/constants/constants";
+import { logout } from "../../redux/slices/VendorSlice";
+import { showToastMessage } from "../../validations/common/toast";
+
+import type VendorRootState from "@/redux/rootstate/VendorState";
+import { vendorLogout } from "@/services/vendorAuthService";
+
 
 const NAV_LINKS = [
-  { label: 'Home',            href: VENDOR.DASHBOARD },
-  { label: 'Profile',         href: VENDOR.PROFILE },
-  { label: 'Contents',        href: VENDOR.VIEW_POSTS },
-  { label: 'Reviews',         href: VENDOR.REVIEW },
-  { label: 'Booking Request', href: VENDOR.REQUEST_BOOKING },
+  { label: "Home", href: VENDOR.DASHBOARD },
+  { label: "Profile", href: VENDOR.PROFILE },
+  { label: "Contents", href: VENDOR.VIEW_POSTS },
+  { label: "Reviews", href: VENDOR.REVIEW },
+  { label: "Booking Request", href: VENDOR.REQUEST_BOOKING },
 ];
 
 export default function VendorNavbar() {
-  const vendor = useSelector((state: VendorRootState) => state.vendor.vendorData);
+  const vendor = useSelector(
+    (state: VendorRootState) => state.vendor.vendorData,
+  );
   const [isLoading, setIsLoading] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
@@ -40,28 +52,30 @@ export default function VendorNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Lock all links except Home if vendor is not accepted
-  const isLocked = vendor?.isAccepted !== 'accepted';
+  const isLocked = vendor?.isAccepted !== "accepted";
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = async () => {
     setIsLoading(true);
     try {
       await vendorLogout();
-      localStorage.removeItem('vendorToken');
+      localStorage.removeItem("vendorToken");
       dispatch(logout());
       navigate(VENDOR.LOGIN);
-      showToastMessage('Logged out successfully', 'success');
+      showToastMessage("Logged out successfully", "success");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        showToastMessage(error.response?.data?.message || 'Logout failed', 'error');
+        showToastMessage(
+          error.response?.data?.message || "Logout failed",
+          "error",
+        );
       } else {
-        showToastMessage('Unexpected error during logout', 'error');
+        showToastMessage("Unexpected error during logout", "error");
       }
     } finally {
       setIsLoading(false);
@@ -69,15 +83,19 @@ export default function VendorNavbar() {
   };
 
   const handleProfileClick = () => {
+    if (isLocked) {
+      handleLockedClick();
+      return;
+    }
     try {
       navigate(VENDOR.PROFILE);
     } catch {
-      showToastMessage('Error loading profile', 'error');
+      showToastMessage("Error loading profile", "error");
     }
   };
 
   const handleLockedClick = () => {
-    showToastMessage('Complete verification to access this feature', 'error');
+    showToastMessage("Complete verification to access this feature", "error");
   };
 
   const isActive = (href: string) => location.pathname === href;
@@ -242,6 +260,16 @@ export default function VendorNavbar() {
           color: var(--accent) !important;
           opacity: 1;
         }
+        .vn-dd-locked {
+          font-family: 'Figtree', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: var(--ink3);
+          border-radius: 10px;
+          padding: 9px 12px;
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
 
         .vn-mobile {
           background: #ffffff !important;
@@ -290,14 +318,14 @@ export default function VendorNavbar() {
       <Navbar
         onMenuOpenChange={setIsMenuOpen}
         isMenuOpen={isMenuOpen}
-        className={`vn-nav ${scrolled ? 'scrolled' : ''}`}
+        className={`vn-nav ${scrolled ? "scrolled" : ""}`}
         maxWidth="xl"
         height="64px"
       >
         {/* Mobile toggle */}
         <NavbarContent className="sm:hidden" justify="start">
           <NavbarMenuToggle
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             className="text-black/40 hover:text-black/70 transition-colors"
           />
         </NavbarContent>
@@ -308,20 +336,21 @@ export default function VendorNavbar() {
             <Aperture className="w-4 h-4 text-white" strokeWidth={1.75} />
           </div>
           <span className="vn-brand">
-            BookMystills<span className="vn-brand-dot" />
+            BookMystills
+            <span className="vn-brand-dot" />
           </span>
         </NavbarBrand>
 
         {/* Desktop links */}
         <NavbarContent className="hidden sm:flex gap-8" justify="center">
           {NAV_LINKS.map(({ label, href }) => {
-            const isHome = label === 'Home';
-            const locked = isLocked && !isHome;
+            // ✅ FIX: Only "Home" is exempt from locking. Profile is now locked too.
+            const isUnlocked = label === "Home";
+            const locked = isLocked && !isUnlocked;
 
             return (
               <NavbarItem key={label}>
                 {locked ? (
-                  // 🔒 Locked — grayed out, shows toast on click
                   <button
                     onClick={handleLockedClick}
                     className="vn-link-locked"
@@ -331,8 +360,10 @@ export default function VendorNavbar() {
                     <span>{label}</span>
                   </button>
                 ) : (
-                  // ✅ Normal clickable link
-                  <a href={href} className={`vn-link ${isActive(href) ? 'active' : ''}`}>
+                  <a
+                    href={href}
+                    className={`vn-link ${isActive(href) ? "active" : ""}`}
+                  >
                     {isActive(href) && <span className="vn-active-badge" />}
                     {label}
                   </a>
@@ -344,15 +375,20 @@ export default function VendorNavbar() {
 
         {/* Right — chat icon + pill dropdown */}
         <NavbarContent justify="end" className="gap-3">
-
           {/* Chat icon */}
           <NavbarItem>
             <button
-              onClick={() => isLocked ? handleLockedClick() : navigate(VENDOR.CHAT)}
-              className={`flex items-center justify-center w-9 h-9 rounded-full border border-black/08 bg-[#f7f7f5] hover:bg-white hover:border-black/20 hover:shadow-sm transition-all ${isLocked ? 'opacity-40 cursor-not-allowed' : ''}`}
+              onClick={() =>
+                isLocked ? handleLockedClick() : navigate(VENDOR.CHAT)
+              }
+              className={`flex items-center justify-center w-9 h-9 rounded-full border border-black/08 bg-[#f7f7f5] hover:bg-white hover:border-black/20 hover:shadow-sm transition-all ${isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
               aria-label="Chat"
             >
-              <MessageCircle size={16} strokeWidth={2} className="text-[#6b6b6b]" />
+              <MessageCircle
+                size={16}
+                strokeWidth={2}
+                className="text-[#6b6b6b]"
+              />
             </button>
           </NavbarItem>
 
@@ -362,54 +398,69 @@ export default function VendorNavbar() {
               <button className="vn-pill">
                 <Avatar
                   size="sm"
-                  src={vendor?.imageUrl || '/images/user.png'}
+                  src={vendor?.imageUrl || "/images/user.png"}
                   classNames={{
-                    base: 'w-[27px] h-[27px] border-[1.5px] border-black/10',
+                    base: "w-[27px] h-[27px] border-[1.5px] border-black/10",
                   }}
                 />
                 <span className="vn-pill-name hidden sm:block">
-                  {vendor?.name?.split(' ')[0] || 'Account'}
+                  {vendor?.name?.split(" ")[0] || "Account"}
                 </span>
-                <ChevronDown size={12} strokeWidth={2.5} className="text-black/25 hidden sm:block" />
+                <ChevronDown
+                  size={12}
+                  strokeWidth={2.5}
+                  className="text-black/25 hidden sm:block"
+                />
               </button>
             </DropdownTrigger>
 
-            <DropdownMenu aria-label="Vendor menu" classNames={{ base: 'vn-panel' }}>
-
+            <DropdownMenu
+              aria-label="Vendor menu"
+              classNames={{ base: "vn-panel" }}
+            >
               {/* User tile */}
               <DropdownItem
-                key="info" isReadOnly textValue="vendor info"
+                key="info"
+                isReadOnly
+                textValue="vendor info"
                 className="p-0 mb-1 opacity-100 cursor-default data-[hover=true]:bg-transparent"
               >
                 <div className="vn-user-tile flex items-center gap-3">
                   <Avatar
                     size="sm"
-                    src={vendor?.imageUrl || '/images/user.png'}
-                    classNames={{ base: 'w-9 h-9 shrink-0 border border-black/10' }}
+                    src={vendor?.imageUrl || "/images/user.png"}
+                    classNames={{
+                      base: "w-9 h-9 shrink-0 border border-black/10",
+                    }}
                   />
                   <div className="min-w-0">
                     <p className="text-[#0f0f0f] text-[0.82rem] font-semibold leading-snug truncate">
-                      {vendor?.name || 'My Account'}
+                      {vendor?.name || "My Account"}
                     </p>
                     <p className="text-[#b0b0b0] text-[0.69rem] mt-0.5 truncate">
-                      {vendor?.email || ''}
+                      {vendor?.email || ""}
                     </p>
                   </div>
                 </div>
               </DropdownItem>
 
+              {/* ✅ FIX: View Profile is now locked when vendor is not accepted */}
               <DropdownItem
                 key="profile"
-                className="vn-dd"
-                startContent={<User size={13} strokeWidth={2} className="text-black/35" />}
+                className={isLocked ? "vn-dd-locked" : "vn-dd"}
+                startContent={
+                  <User size={13} strokeWidth={2} className="text-black/35" />
+                }
                 onPress={handleProfileClick}
                 textValue="Profile"
               >
-                View Profile
+                {isLocked ? "🔒 View Profile" : "View Profile"}
               </DropdownItem>
 
               <DropdownItem
-                key="sep" isReadOnly textValue="-"
+                key="sep"
+                isReadOnly
+                textValue="-"
                 className="h-px bg-black/[0.06] p-0 min-h-0 my-1 rounded-none"
               />
 
@@ -420,7 +471,7 @@ export default function VendorNavbar() {
                 onPress={handleLogout}
                 textValue="Sign Out"
               >
-                {isLoading ? 'Signing out…' : 'Sign Out'}
+                {isLoading ? "Signing out…" : "Sign Out"}
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -429,13 +480,13 @@ export default function VendorNavbar() {
         {/* Mobile full-screen menu */}
         <NavbarMenu className="vn-mobile pt-6 px-6 pb-10">
           {NAV_LINKS.map(({ label, href }) => {
-            const isHome = label === 'Home';
-            const locked = isLocked && !isHome;
+            // ✅ FIX: Only "Home" is exempt from locking. Profile is now locked too.
+            const isUnlocked = label === "Home";
+            const locked = isLocked && !isUnlocked;
 
             return (
               <NavbarMenuItem key={label}>
                 {locked ? (
-                  // 🔒 Locked mobile link
                   <button
                     onClick={() => {
                       handleLockedClick();
@@ -447,16 +498,17 @@ export default function VendorNavbar() {
                     <ArrowUpRight size={18} className="text-black/15" />
                   </button>
                 ) : (
-                  // ✅ Normal mobile link
                   <a
                     href={href}
-                    className={`vn-mlink ${isActive(href) ? 'active' : ''}`}
+                    className={`vn-mlink ${isActive(href) ? "active" : ""}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span>{label}</span>
                     <ArrowUpRight
                       size={18}
-                      className={isActive(href) ? 'text-[#e8441a]' : 'text-black/15'}
+                      className={
+                        isActive(href) ? "text-[#e8441a]" : "text-black/15"
+                      }
                     />
                   </a>
                 )}
@@ -470,24 +522,28 @@ export default function VendorNavbar() {
               <div className="flex items-center gap-3">
                 <Avatar
                   size="sm"
-                  src={vendor?.imageUrl || '/images/user.png'}
-                  classNames={{ base: 'border border-black/10' }}
+                  src={vendor?.imageUrl || "/images/user.png"}
+                  classNames={{ base: "border border-black/10" }}
                 />
                 <div>
-                  <p className="text-[#0f0f0f] text-[0.82rem] font-medium">{vendor?.name || 'My Account'}</p>
-                  <p className="text-[#b0b0b0] text-[0.68rem]">{vendor?.email || ''}</p>
+                  <p className="text-[#0f0f0f] text-[0.82rem] font-medium">
+                    {vendor?.name || "My Account"}
+                  </p>
+                  <p className="text-[#b0b0b0] text-[0.68rem]">
+                    {vendor?.email || ""}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={handleLogout}
                 className="text-[#e8441a] text-[0.68rem] uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity font-semibold"
               >
-                {isLoading ? '…' : 'Sign out'}
+                {isLoading ? "…" : "Sign out"}
               </button>
             </div>
           </NavbarMenuItem>
         </NavbarMenu>
       </Navbar>
-    </>   
+    </>
   );
 }

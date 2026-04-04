@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { handleError } from '../../util/handleError';
 import { AuthenticatedRequestt } from '../../types/userType';
 import HTTP_statusCode from '../../enums/httpStatusCode';
@@ -59,7 +59,7 @@ class VendorProfileController {
         city,
         about,
         req.file || null,
-        vendorId,
+        vendorId.toString(),
       );
       res.status(201).json(vendor);
     } catch (error) {

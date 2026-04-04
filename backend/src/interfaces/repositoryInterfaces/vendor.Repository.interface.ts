@@ -8,7 +8,10 @@ export interface IVendorRepository {
   findByEmail(email: string): Promise<VendorDocument | null>;
   update(id: string, data: Partial<VendorDocument>): Promise<VendorDocument | null>;
   findByToken(resetPasswordToken: string): Promise<VendorDocument | null>;
-  UpdatePassword(vendorId: mongoose.Types.ObjectId, hashedPassword: string): Promise<boolean>;
+  UpdatePassword(
+    vendorId: string | mongoose.Types.ObjectId,
+    hashedPassword: string,
+  ): Promise<boolean>;
   findAllVendors(
     page: number,
     limit: number,

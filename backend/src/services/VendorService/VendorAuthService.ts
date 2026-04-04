@@ -13,15 +13,12 @@ import { createAccessToken, createRefreshToken } from '../../config/jwt.config';
 import generateOTP from '../../util/generateOtp';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { s3Service } from '../s3Service';
-import {
-  VendorLoginRequestDTO,
-  VendorSignUpRequestDTO,
-  VendorSignupResponseDTO,
-} from '../../dto/vendorDTO';
-import { VendorMapper } from '../../mapper/vendor.mapper';
 import { sendEmail } from '../../util/sendEmail';
 import { IVendorAuthService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorAuth.interface';
-
+import { VendorMapper } from '../../mapper/vendor/vendor.mapper';
+import { VendorSignUpRequestDTO } from '../../dto/vendor/auth/request/vendor.signup.request.dto';
+import { VendorReapplyRequestDTO } from '../../dto/vendor/reapply/vendor.reapply.request.dto';
+import { VendorLoginRequestDTO } from '../../dto/vendor/auth/request/vendor.logi.requestDTO';
 export class VendorAuthService implements IVendorAuthService {
   private vendorRepository: IVendorRepository;
 
@@ -95,7 +92,7 @@ export class VendorAuthService implements IVendorAuthService {
       aadharImages: aadharImageKeys,
     };
   };
-  signup = async (data: VendorSignUpRequestDTO): Promise<{ vendor: VendorSignupResponseDTO }> => {
+  signup = async (data: VendorSession): Promise<void> => {
     try {
       const existingVendor = await this.vendorRepository.findByEmail(data.email);
       if (existingVendor) throw new CustomError('Vendor already exists', 409);
@@ -103,7 +100,7 @@ export class VendorAuthService implements IVendorAuthService {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
-      const newVendor = await this.vendorRepository.create({
+      await this.vendorRepository.create({
         email: data.email,
         password: hashedPassword,
         name: data.name,
@@ -117,16 +114,12 @@ export class VendorAuthService implements IVendorAuthService {
         isVerified: false,
         isAccepted: AcceptanceStatus.Requested,
       });
-
-      const vendorDto = VendorMapper.toSignupResponseDTO(newVendor);
-      return { vendor: vendorDto };
     } catch (error) {
       console.error('Error in Signup', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to create a New Vendor', HTTP_statusCode.InternalServerError);
     }
   };
-
   login = async (loginDto: VendorLoginRequestDTO): Promise<IVendorLoginResponse> => {
     try {
       const existingVendor = await this.vendorRepository.findByEmail(loginDto.email);
@@ -141,16 +134,14 @@ export class VendorAuthService implements IVendorAuthService {
       if (
         existingVendor.isActive === false &&
         existingVendor.isAccepted === AcceptanceStatus.Accepted
-      ) {
+      )
         throw new CustomError('Account is Blocked by Admin', HTTP_statusCode.NoAccess);
-      }
 
-      if (existingVendor.isAccepted === AcceptanceStatus.Requested) {
+      if (existingVendor.isAccepted === AcceptanceStatus.Requested)
         throw new CustomError(
           'Your account is pending admin verification',
           HTTP_statusCode.NoAccess,
         );
-      }
 
       const token = createAccessToken(existingVendor._id.toString(), AuthRole.VENDOR);
 
@@ -161,28 +152,22 @@ export class VendorAuthService implements IVendorAuthService {
         await existingVendor.save();
       }
 
-      let vendorWithSignedUrl = existingVendor.toObject();
       if (existingVendor.imageUrl) {
         try {
-          const signedImageUrl = await s3Service.getFile(
+          existingVendor.imageUrl = await s3Service.getFile(
             'bookmystills-karthik-gopakumar/vendor/photo/',
             existingVendor.imageUrl,
           );
-          vendorWithSignedUrl = { ...vendorWithSignedUrl, imageUrl: signedImageUrl };
         } catch (error) {
           console.error('Error generating signed URL during login:', error);
         }
       }
-      console.log('Login vendor isAccepted:', existingVendor.isAccepted);
-
-      const vendorDto = VendorMapper.toLoginResponseDTO(vendorWithSignedUrl);
-      console.log('DTO isAccepted:', vendorDto.isAccepted);
 
       return {
         token,
         refreshToken,
         isNewVendor: false,
-        vendor: vendorDto,
+        vendor: VendorMapper.toLoginResponseDTO(existingVendor),
         message: 'Successfully logged in...',
       };
     } catch (error) {
@@ -216,14 +201,11 @@ export class VendorAuthService implements IVendorAuthService {
   };
 
   reapplyVendor = async (
-    vendorId: string,
-    files?: {
-      portfolioImages?: Express.Multer.File[];
-      aadharFront?: Express.Multer.File[];
-      aadharBack?: Express.Multer.File[];
-    },
+    data: VendorReapplyRequestDTO,
   ): Promise<{ success: boolean; message: string }> => {
     try {
+      const { vendorId, files } = data;
+
       const vendor = await this.vendorRepository.getById(vendorId);
 
       if (!vendor) {
@@ -281,10 +263,10 @@ export class VendorAuthService implements IVendorAuthService {
         adminEmail,
         `Vendor Reapplication - ${vendor.name}`,
         `
-        <h2>Vendor Reapplication Received</h2>
-        <p><strong>${vendor.name}</strong> (${vendor.email}) has reapplied.</p>
-        <p>Reapply attempt: ${vendor.reapplyCount} of 3</p>
-        <p>Please review their updated documents in the admin panel.</p>
+      <h2>Vendor Reapplication Received</h2>
+      <p><strong>${vendor.name}</strong> (${vendor.email}) has reapplied.</p>
+      <p>Reapply attempt: ${vendor.reapplyCount} of 3</p>
+      <p>Please review their updated documents in the admin panel.</p>
       `,
       );
 
@@ -309,6 +291,7 @@ function isTokenExpiringSoon(token: string): boolean {
 
     return timeUntilExpiration < 7 * 24 * 60 * 60 * 1000;
   } catch (error) {
+    console.log(error);
     return true;
   }
 }

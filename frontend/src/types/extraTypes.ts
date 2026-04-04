@@ -1,14 +1,13 @@
-import { ReactNode } from "react";
-
+import type { ReactNode } from "react";
 
 export interface DynamicBackgroundProps {
   filepath: string;
-  type?: 'video' | 'image';
+  type?: "video" | "image";
   height?: string;
   width?: string;
   imageData?: string | null;
   className?: string;
-  text?:string;
+  text?: string;
   textClassName?: string;
 }
 

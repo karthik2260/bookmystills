@@ -1,25 +1,13 @@
 import SidebarVendor from "@/layout/vendor/SidebarProfileVendor";
 import { Role } from "@/utils/enums";
-import { RevenueChartProps } from "@/utils/interface";
+import type { RevenueChartProps } from "@/utils/interface";
 
+const RevenueChart: React.FC<RevenueChartProps> = ({ role }) => {
+  return (
+    <div className="flex">
+      <div>{role === Role.Vendor && <SidebarVendor />}</div>
+    </div>
+  );
+};
 
-
-
-const RevenueChart : React.FC<RevenueChartProps> = ({role}) => {
-
-
-
-
-
-
-    return (
-          
-            <div className="flex">
-              <div>
-      {role === Role.Vendor && <SidebarVendor />}
-      </div>
-          </div>
-    )
-}
-
-export default RevenueChart
+export default RevenueChart;

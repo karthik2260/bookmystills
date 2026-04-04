@@ -10,18 +10,18 @@ import { handleError } from '../../util/handleError';
 import jwt from 'jsonwebtoken';
 import { AuthenticatedRequestt } from '../../types/userType';
 import Jwt from 'jsonwebtoken';
-
+import bcrypt from 'bcrypt';
 import { SendOtpResponseDTO } from '../../dto/user/auth/response/sendotp.response.dto';
 import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto';
 import { VerifyOtpRequestDTO } from '../../dto/user/auth/request/verify.otp.request.dto';
 import { VerifyOtpResponseDTO } from '../../dto/user/auth/response/verify.otp.response.dto';
 import { ResendOtpResponseDTO } from '../../dto/user/auth/response/resend.otp.response.dto';
-import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
 import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
 import { RefreshTokenResponseDTO } from '../../dto/user/auth/response/refreshtoken.dto';
 import { ForgotPasswordResponseDTO } from '../../dto/user/auth/response/user.forgotpassword.dto';
 import { PasswordResetResponseDTO } from '../../dto/user/auth/response/passwordreset.response.dto';
 import { ENV } from '../../config/env';
+import logger from '../../config/logger';
 
 declare module 'express-session' {
   interface Session {
@@ -39,61 +39,67 @@ class UserAuthController {
   UserSignup = async (req: Request, res: Response): Promise<void> => {
     try {
       const signupDto = new SignupRequestDTO(req.body);
-
-      const { email, password, name, contactinfo } = signupDto;
+      const { email, name, password, contactinfo } = signupDto;
 
       const otpCode = await generateOTP(email);
-      if (otpCode !== undefined) {
-        const otpSetTimestamp = Date.now();
-        const userData: IUserSession = {
-          email,
-          password,
-          name,
-          contactinfo,
-          otpCode,
-          otpSetTimestamp,
-         otpExpiry: otpSetTimestamp + ENV.OTP_EXPIRY_TIME,
-  resendTimer: otpSetTimestamp + ENV.RESEND_COOLDOWN,
-        };
-
-        req.session.user = userData;
-        req.session.save((err) => {
-          if (err)
-            throw new CustomError(Messages.SAVE_SESSION, HTTP_statusCode.InternalServerError);
-
-          const response = new SendOtpResponseDTO({
-            message: Messages.OTP_SENT,
-            otpExpiry: userData.otpExpiry,
-            resendAvailableAt: userData.resendTimer,
-          });
-          res.status(HTTP_statusCode.OK).json(response);
-        });
-      } else {
+      if (!otpCode) {
         throw new CustomError(Messages.GENERATE_OTP, HTTP_statusCode.InternalServerError);
       }
+
+      const otpSetTimestamp = Date.now();
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const userData: IUserSession = {
+        email,
+        name,
+        password: hashedPassword,
+        contactinfo,
+        otpCode,
+        otpSetTimestamp,
+        otpExpiry: otpSetTimestamp + ENV.OTP_EXPIRY_TIME,
+        resendTimer: otpSetTimestamp + ENV.RESEND_COOLDOWN,
+      };
+
+      req.session.user = userData;
+
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err)
+            reject(new CustomError(Messages.SAVE_SESSION, HTTP_statusCode.InternalServerError));
+          else resolve();
+        });
+      });
+
+      const response = new SendOtpResponseDTO({
+        message: Messages.OTP_SENT,
+        otpExpiry: userData.otpExpiry,
+        resendAvailableAt: userData.resendTimer,
+      });
+
+      res.status(HTTP_statusCode.OK).json(response);
     } catch (error) {
       handleError(res, error, 'UserSignup');
     }
   };
 
-  Login = async (req: Request, res: Response) => {
+  Login = async (req: Request, res: Response): Promise<void> => {
     try {
       const loginDto = new LoginRequestDTO(req.body);
+
       const serviceResponse = await this.userService.login(loginDto);
 
       res.cookie('refreshToken', serviceResponse.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+        maxAge: ENV.COOKIE_MAX_AGE,
       });
 
-      const response = new LoginResponseDTO({
+      res.status(HTTP_statusCode.OK).json({
         token: serviceResponse.token,
         user: serviceResponse.user,
         message: serviceResponse.message,
       });
-      res.status(HTTP_statusCode.OK).json(response);
     } catch (error) {
       handleError(res, error, 'Login');
     }
@@ -103,10 +109,11 @@ class UserAuthController {
     try {
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: ENV.NODE_ENV === 'production',
+        sameSite: ENV.NODE_ENV === 'production' ? 'strict' : 'lax',
+        path: '/',
       });
-      res.status(HTTP_statusCode.OK).json({ message: 'User logout Successfully...' });
+      res.status(HTTP_statusCode.OK).json({ message: 'User logged out successfully' });
     } catch (error) {
       handleError(res, error, 'UserLogout');
     }
@@ -138,7 +145,7 @@ class UserAuthController {
 
       delete req.session.user;
       req.session.save((err) => {
-        if (err) console.error('Error saving session after clearing user data:', err);
+        if (err) logger.error('Error saving session after clearing user data:', err);
       });
 
       const response = new VerifyOtpResponseDTO(Messages.ACCOUNT_CREATED);
@@ -166,8 +173,8 @@ class UserAuthController {
         ...userData,
         otpCode: newOtp,
         otpSetTimestamp: currentTime,
-        otpExpiry: currentTime + ENV.OTP_EXPIRY_TIME,
-  resendTimer: currentTime + ENV.RESEND_COOLDOWN,
+        otpExpiry: currentTime + OTP_EXPIRY_TIME,
+        resendTimer: currentTime + RESEND_COOLDOWN,
       };
 
       const response = new ResendOtpResponseDTO({
@@ -270,7 +277,7 @@ class UserAuthController {
         return;
       }
 
-      await this.userService.passwordCheckUser(currentPassword, newPassword, userId);
+      await this.userService.passwordCheckUser(currentPassword, newPassword, userId.toString());
       res.status(HTTP_statusCode.OK).json({ message: 'Password reset successfully.' });
     } catch (error) {
       handleError(res, error, 'changePassword');

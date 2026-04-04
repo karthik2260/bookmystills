@@ -1,8 +1,6 @@
 import { IUserRepository } from '../../interfaces/repositoryInterfaces/user.repository.interface';
 import { IUserService } from '../../interfaces/serviceInterfaces/user.Service.interface';
 import { GoogleUserData } from '../../interfaces/commonInterfaces';
-import { UserDocument } from '../../models/userModel';
-import { UserDTO } from '../../dto/userDTO';
 import { UserAuthService } from './UserAuthService';
 import { UserPasswordService } from './UserPasswordService';
 import { GoogleAuthService } from './GoogleAuthService';
@@ -19,6 +17,7 @@ import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
 import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
 import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
 import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';
+import { ProfileUserDTO } from '../../dto/user/profile/profile.user.dto';
 
 class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -70,7 +69,7 @@ class UserService implements IUserService {
   passwordCheckUser = async (
     currentPassword: string,
     newPassword: string,
-    userId: any,
+    userId: string,
   ): Promise<void> => {
     return this.passwordService.passwordCheckUser(currentPassword, newPassword, userId);
   };
@@ -79,16 +78,16 @@ class UserService implements IUserService {
     return this.googleAuthService.authenticateGoogleLogin(userData);
   };
 
-  getUserProfileService = async (userId: string): Promise<UserDocument> => {
+  getUserProfileService = async (userId: string): Promise<ProfileUserDTO> => {
     return this.profileService.getUserProfileService(userId);
   };
 
   updateProfileService = async (
     name?: string,
     contactinfo?: string,
-    userId?: any,
+    userId?: string,
     files?: Express.Multer.File | null,
-  ): Promise<UserDocument | null> => {
+  ): Promise<ProfileUserDTO | null> => {
     return this.profileService.updateProfileService(name, contactinfo, userId, files);
   };
 

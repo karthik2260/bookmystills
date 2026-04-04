@@ -1,21 +1,15 @@
 import express from 'express';
 import VendorRepository from '../repositories/vendorRepository';
-import UserRepository from '../repositories/userRepository';
-import UserService from '../services/UserService/userService';
 import VendorService from '../services/VendorService/VendorService';
 import multer from 'multer';
 import { authenticateToken } from '../middlewares/authenticate';
 import { authorizeRole } from '../middlewares/authorizeRole';
 import { AuthRole } from '../enums/commonEnums';
 import VendorAuthController from '../controllers/VendorController/VendorAuthController';
-import UserAuthController from '../controllers/UserControllers/UserAuthController';
-import UserProfileController from '../controllers/UserControllers/UserProfileController';
 import VendorProfileController from '../controllers/VendorController/VendorProfileController';
 import PostController from '../controllers/postController';
-import { PostCreationService } from '../services/postService/postCreationService';
 import PostService from '../services/postService/postService';
 import PostRepository from '../repositories/postRepository';
-import { VendorAvailabilityService } from '../services/VendorService/VendorAvailabilityService';
 import VendorAvailabilityController from '../controllers/VendorController/VendorAvailabilityController';
 
 const storage = multer.memoryStorage();
@@ -23,14 +17,11 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
-const userRepository = new UserRepository();
-const userService = new UserService(userRepository);
 const postRepository = new PostRepository();
 const vendorRepository = new VendorRepository();
 const vendorService = new VendorService(vendorRepository);
 const vendorAuthController = new VendorAuthController(vendorService);
 const vendorProfileController = new VendorProfileController(vendorService);
-const userControllerr = new UserProfileController(userService, vendorService);
 const postService = new PostService(postRepository, vendorRepository);
 const postController = new PostController(postService);
 const vendorAvailablilityController = new VendorAvailabilityController(vendorService);

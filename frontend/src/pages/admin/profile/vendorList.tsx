@@ -1,20 +1,13 @@
-import {  VendorTable } from "@/components/admin/vendorList/vendortable"
-
-
+import { VendorTable } from "@/components/admin/vendorList/vendortable";
 
 const VendorList = () => {
-    return (
-        <>
-        <div className="p-4">
-            <VendorTable/>
+  return (
+    <>
+      <div className="p-4">
+        <VendorTable />
+      </div>
+    </>
+  );
+};
 
-        </div>
-        
-        </>
-    )
-
-
-    
-}
-
-export default VendorList
+export default VendorList;

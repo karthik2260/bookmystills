@@ -1,18 +1,17 @@
-
-import UserNavbar from '@/layout/user/navbar'
-import HeroBanner from '@/components/user/HeroBanner'
-import Footer from '@/layout/user/footer'
-import ListedVendors from '@/components/user/ListedVendors'
+import HeroBanner from "@/components/user/HeroBanner";
+import ListedVendors from "@/components/user/ListedVendors";
+import Footer from "@/layout/user/footer";
+import UserNavbar from "@/layout/user/navbar";
 
 const VendorList = () => {
   return (
     <>
-    <UserNavbar/>
-    <HeroBanner/>
-    <ListedVendors/>
-    <Footer/>
+      <UserNavbar />
+      <HeroBanner />
+      <ListedVendors />
+      <Footer />
     </>
-  )
-}
+  );
+};
 
-export default VendorList
+export default VendorList;

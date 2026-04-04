@@ -1,5 +1,3 @@
-import { ADMIN } from "@/config/constants/constants"
-import { showToastMessage } from "@/validations/common/toast"
 import {
   LayoutDashboard,
   Users,
@@ -10,73 +8,88 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
-import { useDispatch } from "react-redux"
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { logout } from "@/redux/slices/AdminSlice"
-import { adminLogoutService } from "@/services/adminAuthService"
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+
+import { ADMIN } from "@/config/constants/constants";
+import { logout } from "@/redux/slices/AdminSlice";
+import { adminLogoutService } from "@/services/adminAuthService";
+import { showToastMessage } from "@/validations/common/toast";
 
 interface MenuItem {
-  icon: React.ElementType
-  label: string
-  path: string | null
-  badge?: number
+  icon: React.ElementType;
+  label: string;
+  path: string | null;
+  badge?: number;
 }
 
 const Layout: React.FC = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const location = useLocation()
-  const [isMobile, setIsMobile] = useState(false)
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const [isMobile, setIsMobile] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const menuItems: MenuItem[] = useMemo(() => [
-    { icon: LayoutDashboard, label: "Dashboard", path: `/admin${ADMIN.DASHBOARD}` },
-    { icon: Users, label: "Users", path: `/admin${ADMIN.USERS}` },
-    { icon: Store, label: "Vendors", path: `/admin${ADMIN.VENDORS}` },
-    { icon: FileText, label: "Posts", path: "/admin/view-all-posts" },
-    { icon: ShoppingBag, label: "Bookings", path: `/admin${ADMIN.ALLBOOKINGS}` },
-    { icon: Flag, label: "Reports", path: `/admin${ADMIN.REPORT}` },
-  ], [])
+  const menuItems: MenuItem[] = useMemo(
+    () => [
+      {
+        icon: LayoutDashboard,
+        label: "Dashboard",
+        path: `/admin${ADMIN.DASHBOARD}`,
+      },
+      { icon: Users, label: "Users", path: `/admin${ADMIN.USERS}` },
+      { icon: Store, label: "Vendors", path: `/admin${ADMIN.VENDORS}` },
+      { icon: FileText, label: "Posts", path: "/admin/view-all-posts" },
+      {
+        icon: ShoppingBag,
+        label: "Bookings",
+        path: `/admin${ADMIN.ALLBOOKINGS}`,
+      },
+      { icon: Flag, label: "Reports", path: `/admin${ADMIN.REPORT}` },
+    ],
+    [],
+  );
 
   const activeItem = useMemo(() => {
-    const currentPath = location.pathname
-    const found = menuItems.find(item => item.path && currentPath.includes(item.path))
-    return found ? found.label : "Dashboard"
-  }, [location.pathname, menuItems])
+    const currentPath = location.pathname;
+    const found = menuItems.find(
+      (item) => item.path && currentPath.includes(item.path),
+    );
+    return found ? found.label : "Dashboard";
+  }, [location.pathname, menuItems]);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-      setIsCollapsed(window.innerWidth < 1024)
-    }
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+      setIsMobile(window.innerWidth < 768);
+      setIsCollapsed(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleMenuClick = async (item: MenuItem) => {
-    if (item.path) navigate(item.path)
-    if (isMobile) setIsCollapsed(true)
-  }
+    if (item.path) navigate(item.path);
+    if (isMobile) setIsCollapsed(true);
+  };
 
   const handleLogout = async () => {
     try {
       await adminLogoutService();
-      localStorage.removeItem("adminToken")
-      localStorage.removeItem("adminRefresh")
-      dispatch(logout())
-      navigate(`/admin${ADMIN.LOGIN}`)
-      showToastMessage("Logged out successfully", "success")
-    } catch  {
-      showToastMessage("Error during logout", "error")
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminRefresh");
+      dispatch(logout());
+      navigate(`/admin${ADMIN.LOGIN}`);
+      showToastMessage("Logged out successfully", "success");
+    } catch {
+      showToastMessage("Error during logout", "error");
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-
       {/* Sidebar */}
       <aside
         className={`fixed left-0 top-0 h-full z-30 flex flex-col transition-all duration-300 ease-in-out ${
@@ -85,14 +98,21 @@ const Layout: React.FC = () => {
         style={{ background: "#0f0f0f" }}
       >
         {/* Logo */}
-        <div className={`flex items-center h-16 px-4 border-b border-white/5 flex-shrink-0 ${isCollapsed ? "justify-center" : "justify-between"}`}>
+        <div
+          className={`flex items-center h-16 px-4 border-b border-white/5 flex-shrink-0 ${isCollapsed ? "justify-center" : "justify-between"}`}
+        >
           {!isCollapsed && (
-            <Link to={`/admin${ADMIN.DASHBOARD}`} className="flex items-center gap-2.5">
+            <Link
+              to={`/admin${ADMIN.DASHBOARD}`}
+              className="flex items-center gap-2.5"
+            >
               {/* Logo mark */}
               <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
                 <div className="w-3.5 h-3.5 rounded-sm bg-black" />
               </div>
-              <span className="text-white font-bold text-sm tracking-wide">bookmystills</span>
+              <span className="text-white font-bold text-sm tracking-wide">
+                bookmystills
+              </span>
             </Link>
           )}
 
@@ -131,9 +151,11 @@ const Layout: React.FC = () => {
         )}
 
         {/* Nav Items */}
-        <nav className={`flex-1 px-2 ${isCollapsed ? "mt-3" : "mt-1"} space-y-0.5 overflow-y-auto`}>
+        <nav
+          className={`flex-1 px-2 ${isCollapsed ? "mt-3" : "mt-1"} space-y-0.5 overflow-y-auto`}
+        >
           {menuItems.map((item) => {
-            const isActive = activeItem === item.label
+            const isActive = activeItem === item.label;
             return (
               <button
                 key={item.label}
@@ -145,10 +167,14 @@ const Layout: React.FC = () => {
                     : "text-white/50 hover:text-white hover:bg-white/5"
                 } ${isCollapsed ? "justify-center" : ""}`}
               >
-                <item.icon className={`flex-shrink-0 h-4 w-4 ${isActive ? "text-black" : "text-white/40 group-hover:text-white"}`} />
-                
+                <item.icon
+                  className={`flex-shrink-0 h-4 w-4 ${isActive ? "text-black" : "text-white/40 group-hover:text-white"}`}
+                />
+
                 {!isCollapsed && (
-                  <span className={`text-sm font-medium flex-1 text-left ${isActive ? "text-black" : ""}`}>
+                  <span
+                    className={`text-sm font-medium flex-1 text-left ${isActive ? "text-black" : ""}`}
+                  >
                     {item.label}
                   </span>
                 )}
@@ -166,7 +192,7 @@ const Layout: React.FC = () => {
                   </div>
                 )}
               </button>
-            )
+            );
           })}
         </nav>
 
@@ -205,7 +231,9 @@ const Layout: React.FC = () => {
         {/* Top bar */}
         <div className="sticky top-0 z-20 h-16 bg-white border-b border-gray-100 flex items-center px-6 shadow-sm">
           <div>
-            <h1 className="text-sm font-semibold text-gray-900">{activeItem}</h1>
+            <h1 className="text-sm font-semibold text-gray-900">
+              {activeItem}
+            </h1>
             <p className="text-xs text-gray-400">Admin Panel</p>
           </div>
         </div>
@@ -215,7 +243,7 @@ const Layout: React.FC = () => {
         </div>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

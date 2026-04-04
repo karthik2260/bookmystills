@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 import { Post } from '../interfaces/commonInterfaces';
 import { PostStatus, ServiceProvided } from '../enums/commonEnums';
 

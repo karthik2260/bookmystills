@@ -1,6 +1,6 @@
-import type {ToastOptions}  from "react-toastify";
-import {toast} from "react-toastify"
-import 'react-toastify/dist/ReactToastify.css';
+import type { ToastOptions } from "react-toastify";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const toastStyles = `
 .Toastify__toast {
@@ -39,7 +39,10 @@ const toastStyles = `
 const styleSheet = document.createElement("style");
 styleSheet.innerText = toastStyles;
 document.head.appendChild(styleSheet);
-export const showToastMessage = (message: string, type: 'success' | 'error') => {
+export const showToastMessage = (
+  message: string,
+  type: "success" | "error",
+) => {
   const options: ToastOptions = {
     position: "top-right",
     autoClose: 1500,
@@ -51,22 +54,20 @@ export const showToastMessage = (message: string, type: 'success' | 'error') => 
     pauseOnHover: true,
     theme: "dark",
     style: {
-      fontSize: '14px',
-      padding: '2px 15px',
-      minHeight: '45px',
-      display: 'flex',
-      alignItems: 'center',
-      backgroundColor: '#1a1a1a',
-      color: '#ffffff',
-      border: '2px solid #000000',
+      fontSize: "14px",
+      padding: "2px 15px",
+      minHeight: "45px",
+      display: "flex",
+      alignItems: "center",
+      backgroundColor: "#1a1a1a",
+      color: "#ffffff",
+      border: "2px solid #000000",
     },
   };
 
-  if (type === 'error') {
+  if (type === "error") {
     toast.error(message, options);
   } else {
     toast.success(message, options);
   }
 };
-
-;

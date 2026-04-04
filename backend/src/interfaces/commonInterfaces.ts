@@ -1,4 +1,4 @@
-import mongoose, {  Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import {
   AcceptanceStatus,
   AuthRole,
@@ -12,6 +12,7 @@ import {
   TransactionType,
 } from '../enums/commonEnums';
 import { PostDocument } from '../models/postModel';
+import { AdminLoginResponseDTO } from '../dto/admin/auth/response/admin.response.dto';
 
 export interface User {
   email: string;
@@ -65,8 +66,8 @@ export interface VendorDetailsWithAll {
 
 export interface IUserSession {
   email: string;
-  password: string;
   name: string;
+  password: string;
   contactinfo: string;
   otpCode: string;
   otpSetTimestamp: number;
@@ -293,11 +294,8 @@ export interface VendorSession {
   aadharImages?: string[];
 }
 
-export interface AdminLoginResponse {
-  token: string;
+export interface AdminLoginServiceResult extends AdminLoginResponseDTO {
   refreshToken: string;
-  adminData: object;
-  message: string;
 }
 
 export interface AuthRequest extends Request {

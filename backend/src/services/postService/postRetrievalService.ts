@@ -2,7 +2,6 @@ import { CustomError } from '../../error/customError';
 import { s3Service } from '../s3Service';
 import { PostDocument } from '../../models/postModel';
 import mongoose from 'mongoose';
-import { ObjectId } from 'mongodb';
 import { IPostRepository } from '../../interfaces/repositoryInterfaces/post.repository.interface';
 import { Vendor } from '../../interfaces/commonInterfaces';
 import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.Repository.interface';
@@ -173,20 +172,16 @@ export class PostRetrievalService {
         throw new CustomError('Wrong VendorId', HTTP_statusCode.NotFound);
       }
 
-      let processedVendorDetails = vendorDetails;
-
+      // ✅ process post images
       const postWithSignedUrls = await this.processPostImages(result.vendorPosts);
 
+      // ✅ mutate vendor imageUrl directly
       if (vendorDetails?.imageUrl) {
         try {
-          const imageUrl = await s3Service.getFile(
+          vendorDetails.imageUrl = await s3Service.getFile(
             'bookmystills-karthik-gopakumar/vendor/photo/',
-            vendorDetails?.imageUrl,
+            vendorDetails.imageUrl,
           );
-          processedVendorDetails = {
-            ...vendorDetails.toObject(),
-            imageUrl: imageUrl,
-          };
         } catch (error) {
           console.error('Error generating signed URL:', error);
         }
@@ -194,17 +189,14 @@ export class PostRetrievalService {
 
       return {
         posts: postWithSignedUrls,
-
-        vendor: processedVendorDetails,
+        vendor: vendorDetails,
         totalPages: result.totalPages,
         total: result.total,
         currentPage: result.currentPage,
       };
     } catch (error) {
       console.error('Error in getting single VendorId posts:', error);
-      if (error instanceof CustomError) {
-        throw error;
-      }
+      if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to fetch VendorId Posts', HTTP_statusCode.InternalServerError);
     }
   };
@@ -214,7 +206,7 @@ export class PostRetrievalService {
     page: number,
     search: string,
   ): Promise<{
-    posts: Array<PostDocument | Record<string, any>>;
+    posts: Partial<PostDocument>[];
     total: number;
     totalPages: number;
     currentPage: number;

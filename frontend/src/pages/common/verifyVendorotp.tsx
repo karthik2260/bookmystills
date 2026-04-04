@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
-import * as Yup from 'yup';
-import axios from 'axios';
-import { showToastMessage } from '../../validations/common/toast';
-import { VENDOR } from '../../config/constants/constants';
-import { Sparkles, ShieldCheck, Clock } from 'lucide-react';
-import { verifyVendorOtpApi,resendVendorOtpApi } from '@/services/Verifyemailvendorapi';
+import axios from "axios";
+import type { FormikHelpers } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Sparkles, ShieldCheck, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+
+import { VENDOR } from "../../config/constants/constants";
+import { showToastMessage } from "../../validations/common/toast";
+
+import {
+  verifyVendorOtpApi,
+  resendVendorOtpApi,
+} from "@/services/Verifyemailvendorapi";
 const images = [
-  '/images/login.webp',
-  '/images/event1.jpg',
-  '/images/event2.jpg'
+  "/images/login.webp",
+  "/images/event1.jpg",
+  "/images/event2.jpg",
 ];
 
 interface FormValues {
@@ -19,10 +25,10 @@ interface FormValues {
 
 const validationSchema = Yup.object().shape({
   otp: Yup.string()
-    .required('OTP is required')
-    .matches(/^[0-9]+$/, 'Must be only digits')
-    .min(4, 'Must be exactly 4 digits')
-    .max(4, 'Must be exactly 4 digits')
+    .required("OTP is required")
+    .matches(/^[0-9]+$/, "Must be only digits")
+    .min(4, "Must be exactly 4 digits")
+    .max(4, "Must be exactly 4 digits"),
 });
 
 const VerifyEmailVendor = () => {
@@ -40,9 +46,9 @@ const VerifyEmailVendor = () => {
   }, []);
 
   useEffect(() => {
-    const otpData = localStorage.getItem('otpData');
+    const otpData = localStorage.getItem("otpData");
     if (!otpData) {
-      navigate('/vendor/signup');
+      navigate("/vendor/signup");
       return;
     }
 
@@ -74,26 +80,32 @@ const VerifyEmailVendor = () => {
 
   const handleVerify = async (
     values: FormValues,
-    { setSubmitting, setFieldError }: FormikHelpers<FormValues>
+    { setSubmitting, setFieldError }: FormikHelpers<FormValues>,
   ) => {
     setIsLoading(true);
     try {
       const data = await verifyVendorOtpApi(values.otp);
-      showToastMessage(data.message, 'success');
+      showToastMessage(data.message, "success");
       if (data.vendor) {
-        localStorage.removeItem('otpData');
+        localStorage.removeItem("otpData");
         navigate(`${VENDOR.LOGIN}`);
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || 'Invalid OTP';
-        setFieldError('otp', errorMessage);
-        showToastMessage(errorMessage, 'error');
-        if (error.response?.status === 400 && errorMessage === 'Session expired. Please sign up again.') {
-          setTimeout(() => navigate('/signup'), 2000);
+        const errorMessage = error.response?.data?.message || "Invalid OTP";
+        setFieldError("otp", errorMessage);
+        showToastMessage(errorMessage, "error");
+        if (
+          error.response?.status === 400 &&
+          errorMessage === "Session expired. Please sign up again."
+        ) {
+          setTimeout(() => navigate("/signup"), 2000);
         }
       } else {
-        showToastMessage('An unexpected error occurred. Please try again.', 'error');
+        showToastMessage(
+          "An unexpected error occurred. Please try again.",
+          "error",
+        );
       }
     } finally {
       setIsLoading(false);
@@ -106,23 +118,29 @@ const VerifyEmailVendor = () => {
     setIsLoading(true);
     try {
       const data = await resendVendorOtpApi();
-      const otpData = JSON.parse(localStorage.getItem('otpData') || '{}');
-      localStorage.setItem('otpData', JSON.stringify({
-        ...otpData,
-        otpExpiry: data.otpExpiry,
-        resendAvailableAt: data.resendAvailableAt,
-      }));
-      showToastMessage(data.message, 'success');
+      const otpData = JSON.parse(localStorage.getItem("otpData") || "{}");
+      localStorage.setItem(
+        "otpData",
+        JSON.stringify({
+          ...otpData,
+          otpExpiry: data.otpExpiry,
+          resendAvailableAt: data.resendAvailableAt,
+        }),
+      );
+      showToastMessage(data.message, "success");
       setTimeLeft(Math.floor((data.otpExpiry - Date.now()) / 1000));
       setResendDisabled(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         showToastMessage(
-          error.response?.data?.message || error.message || 'An error occurred',
-          'error'
+          error.response?.data?.message || error.message || "An error occurred",
+          "error",
         );
       } else {
-        showToastMessage('An unexpected error occurred. Please try again.', 'error');
+        showToastMessage(
+          "An unexpected error occurred. Please try again.",
+          "error",
+        );
       }
     } finally {
       setIsLoading(false);
@@ -132,21 +150,23 @@ const VerifyEmailVendor = () => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const timerPercent = timeLeft && timeLeft > 0 ? Math.min((timeLeft / 120) * 100, 100) : 0;
+  const timerPercent =
+    timeLeft && timeLeft > 0 ? Math.min((timeLeft / 120) * 100, 100) : 0;
 
   return (
     <div className="w-full h-screen flex overflow-hidden">
-
       {/* ── LEFT: Image / Brand Panel ── */}
       <div
         className="hidden md:flex md:w-1/2 relative flex-col justify-between p-12 overflow-hidden"
         style={{
-          backgroundImage: images[imageIndex] ? `url(${images[imageIndex]})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundImage: images[imageIndex]
+            ? `url(${images[imageIndex]})`
+            : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
@@ -155,19 +175,31 @@ const VerifyEmailVendor = () => {
           <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <Sparkles size={18} className="text-white" />
           </div>
-          <span className="text-white font-semibold text-lg tracking-wide">bookmystills</span>
+          <span className="text-white font-semibold text-lg tracking-wide">
+            bookmystills
+          </span>
         </div>
 
         <div className="relative z-10 space-y-4">
           <h1 className="text-4xl font-bold text-white leading-tight">
-            One Step<br />Away From Access
+            One Step
+            <br />
+            Away From Access
           </h1>
           <p className="text-blue-100 text-base leading-relaxed max-w-xs">
-            Enter the verification code sent to your email to activate your vendor account.
+            Enter the verification code sent to your email to activate your
+            vendor account.
           </p>
           <div className="flex gap-3 pt-2">
-            {[['500+', 'Vendors'], ['10k+', 'Events'], ['98%', 'Satisfaction']].map(([num, label]) => (
-              <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 text-center">
+            {[
+              ["500+", "Vendors"],
+              ["10k+", "Events"],
+              ["98%", "Satisfaction"],
+            ].map(([num, label]) => (
+              <div
+                key={label}
+                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 text-center"
+              >
                 <p className="text-white font-bold text-sm">{num}</p>
                 <p className="text-blue-200 text-xs">{label}</p>
               </div>
@@ -179,14 +211,17 @@ const VerifyEmailVendor = () => {
       {/* ── RIGHT: OTP Panel ── */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6 py-10">
         <div className="w-full max-w-md space-y-7">
-
           <div className="flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
               <ShieldCheck size={32} className="text-blue-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">Verification</p>
-              <h2 className="text-3xl font-bold text-gray-900">Check your email</h2>
+              <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">
+                Verification
+              </p>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Check your email
+              </h2>
               <p className="text-sm text-gray-500 mt-1">
                 We've sent a 4-digit OTP to your registered email address
               </p>
@@ -194,15 +229,16 @@ const VerifyEmailVendor = () => {
           </div>
 
           <Formik
-            initialValues={{ otp: '' }}
+            initialValues={{ otp: "" }}
             validationSchema={validationSchema}
             onSubmit={handleVerify}
           >
             {({ isSubmitting }) => (
               <Form className="space-y-5">
-
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Enter OTP</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Enter OTP
+                  </label>
                   <Field
                     type="text"
                     name="otp"
@@ -227,18 +263,26 @@ const VerifyEmailVendor = () => {
                         <Clock size={14} />
                         Time remaining
                       </span>
-                      <span className={`font-semibold tabular-nums ${
-                        timeLeft > 30 ? 'text-blue-600' :
-                        timeLeft > 10 ? 'text-amber-500' : 'text-red-500'
-                      }`}>
-                        {timeLeft > 0 ? formatTime(timeLeft) : 'Expired'}
+                      <span
+                        className={`font-semibold tabular-nums ${
+                          timeLeft > 30
+                            ? "text-blue-600"
+                            : timeLeft > 10
+                              ? "text-amber-500"
+                              : "text-red-500"
+                        }`}
+                      >
+                        {timeLeft > 0 ? formatTime(timeLeft) : "Expired"}
                       </span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-1000 ${
-                          timerPercent > 50 ? 'bg-blue-500' :
-                          timerPercent > 20 ? 'bg-amber-400' : 'bg-red-400'
+                          timerPercent > 50
+                            ? "bg-blue-500"
+                            : timerPercent > 20
+                              ? "bg-amber-400"
+                              : "bg-red-400"
                         }`}
                         style={{ width: `${timerPercent}%` }}
                       />
@@ -260,12 +304,16 @@ const VerifyEmailVendor = () => {
                         <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
                         Sending…
                       </span>
-                    ) : 'Resend OTP'}
+                    ) : (
+                      "Resend OTP"
+                    )}
                   </button>
 
                   <button
                     type="submit"
-                    disabled={isLoading || isSubmitting || !timeLeft || timeLeft === 0}
+                    disabled={
+                      isLoading || isSubmitting || !timeLeft || timeLeft === 0
+                    }
                     className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold
                       shadow-md shadow-blue-200 transition
                       disabled:opacity-50 disabled:cursor-not-allowed"
@@ -275,7 +323,9 @@ const VerifyEmailVendor = () => {
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         Verifying…
                       </span>
-                    ) : 'Verify OTP'}
+                    ) : (
+                      "Verify OTP"
+                    )}
                   </button>
                 </div>
 
@@ -284,11 +334,9 @@ const VerifyEmailVendor = () => {
                     Your OTP has expired. Please request a new one.
                   </p>
                 )}
-
               </Form>
             )}
           </Formik>
-
         </div>
       </div>
     </div>

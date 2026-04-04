@@ -2,11 +2,7 @@ import nodemailer from 'nodemailer';
 
 export default async function generateOTP(email: string): Promise<string> {
   try {
-    console.log('SMTP_EMAIL:', process.env.USER_EMAIL);
-    console.log('SMPT_PASSWORD:', process.env.USER_PASSWORD ? 'Loaded' : 'Not loaded');
-
     const otpCode: string = Math.floor(1000 + Math.random() * 9000).toString();
-    console.log('Generated OTP:', otpCode);
 
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -20,12 +16,9 @@ export default async function generateOTP(email: string): Promise<string> {
       tls: {
         rejectUnauthorized: false,
       },
-      logger: true,
-      debug: true,
     });
 
     await transporter.verify();
-    console.log('SMTP connection successfull 📈');
 
     const mailOptions = {
       from: process.env.USER_EMAIL,
@@ -44,11 +37,9 @@ export default async function generateOTP(email: string): Promise<string> {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('OTP email sent :', info.messageId);
-
+    await transporter.sendMail(mailOptions);
     return otpCode;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Full SMTP Error:', error);
     throw new Error('Failed to generate and send OTP');
   }

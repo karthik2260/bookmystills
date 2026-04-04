@@ -1,5 +1,4 @@
 // File: interfaces/serviceInterfaces/vendorPassword.service.interface.ts
-import HTTP_statusCode from '../../../enums/httpStatusCode';
 export interface IVendorPasswordService {
   /**
    * Initiates forgot password process by generating a reset token and sending email
@@ -22,6 +21,6 @@ export interface IVendorPasswordService {
   passwordCheckVendor(
     currentPassword: string,
     newPassword: string,
-    vendorId: string | any,
+    vendorId: string,
   ): Promise<void>;
 }

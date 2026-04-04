@@ -1,6 +1,6 @@
 import { AcceptanceStatus } from '../enums/commonEnums';
 
-export interface VendorSignUpRequestDTO {
+export interface VendorSignUpRequestDTOO {
   email: string;
   name: string;
   password: string;

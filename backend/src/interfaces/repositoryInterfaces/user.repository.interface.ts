@@ -4,7 +4,10 @@ import mongoose from 'mongoose';
 export interface IUserRepository {
   findByEmail(email: string): Promise<UserDocument | null>;
   create(data: Partial<UserDocument>): Promise<UserDocument>;
-  UpdatePassword(userId: mongoose.Types.ObjectId, hashedPassword: string): Promise<boolean>;
+  UpdatePassword(
+    userId: string | mongoose.Types.ObjectId,
+    hashedPassword: string,
+  ): Promise<boolean>;
   UpdatePasswordAndClearToken(
     userId: mongoose.Types.ObjectId,
     hashedPassword: string,

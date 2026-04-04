@@ -1,12 +1,13 @@
-import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import UserRootState from '../redux/rootstate/UserState';
-import VendorRootState from '../redux/rootstate/VendorState';
-import AdminRootState from '../redux/rootstate/AdminState';
-import { USER, VENDOR, ADMIN } from '../config/constants/constants';
+import React from "react";
+import { useSelector } from "react-redux";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-type RouteType = 'user' | 'vendor' | 'admin';
+import { USER, VENDOR, ADMIN } from "../config/constants/constants";
+import type AdminRootState from "../redux/rootstate/AdminState";
+import type UserRootState from "../redux/rootstate/UserState";
+import type VendorRootState from "../redux/rootstate/VendorState";
+
+type RouteType = "user" | "vendor" | "admin";
 
 interface PublicRouteProps {
   routeType: RouteType;
@@ -14,19 +15,24 @@ interface PublicRouteProps {
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ routeType }) => {
   const location = useLocation();
-  const userSignedIn = useSelector((state: UserRootState) => state.user.isUserSignedIn);
-  const vendorSignedIn = useSelector((state: VendorRootState) => state.vendor.isVendorSignedIn);
-  const adminSignedIn = useSelector((state: AdminRootState) => state.admin.isAdminSignedIn);
+  const userSignedIn = useSelector(
+    (state: UserRootState) => state.user.isUserSignedIn,
+  );
+  const vendorSignedIn = useSelector(
+    (state: VendorRootState) => state.vendor.isVendorSignedIn,
+  );
+  const adminSignedIn = useSelector(
+    (state: AdminRootState) => state.admin.isAdminSignedIn,
+  );
 
   const isAuthenticated = (type: RouteType): boolean => {
     switch (type) {
-      case 'user':
+      case "user":
         return userSignedIn;
 
-
-      case 'vendor':
+      case "vendor":
         return vendorSignedIn;
-      case 'admin':
+      case "admin":
         return adminSignedIn;
       default:
         return false;
@@ -35,11 +41,11 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ routeType }) => {
 
   const getRedirectPath = (type: RouteType): string => {
     switch (type) {
-      case 'user':
+      case "user":
         return USER.HOME;
-      case 'vendor':
+      case "vendor":
         return VENDOR.DASHBOARD;
-      case 'admin':
+      case "admin":
         return `/admin${ADMIN.DASHBOARD}`;
       default:
         return USER.HOME;
@@ -47,7 +53,13 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ routeType }) => {
   };
 
   if (isAuthenticated(routeType)) {
-    return <Navigate to={getRedirectPath(routeType)} state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to={getRedirectPath(routeType)}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   // If not authenticated, render the public route

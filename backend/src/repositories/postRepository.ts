@@ -9,8 +9,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
   }
   getVendorPosts = async (
     vendorId: mongoose.Types.ObjectId,
-    page: number,
-    limit: number,
   ): Promise<{
     posts: PostDocument[];
     total: number;
@@ -18,8 +16,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     currentPage: number;
   }> => {
     try {
-      const skip = (page - 1) * limit;
-
       const total = await Post.find().countDocuments({ vendor_id: vendorId });
 
       if (total === 0) {
@@ -31,11 +27,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         };
       }
 
-      const totalPages = Math.ceil(total / limit);
-
       // Validate page number
-      const validPage = Math.min(Math.max(1, page), totalPages);
-      const validSkip = (validPage - 1) * limit;
 
       const posts = await Post.find({ vendor_id: vendorId })
         .sort({ createdAt: -1 })
@@ -55,18 +47,13 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     }
   };
 
-  getAllPosts = async (
-    page: number,
-    limit: number,
-  ): Promise<{
+  getAllPosts = async (): Promise<{
     posts: PostDocument[];
     total: number;
     totalPages: number;
     currentPage: number;
   }> => {
     try {
-      const skip = (page - 1) * limit;
-
       const total = await Post.find().countDocuments();
 
       if (total === 0) {
@@ -77,11 +64,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
           currentPage: 1,
         };
       }
-
-      const totalPages = Math.ceil(total / limit);
-
-      const validPage = Math.min(Math.max(1, page), totalPages);
-      const validSkip = (validPage - 1) * limit;
 
       const posts = await Post.find()
         .sort({ createdAt: -1 })
@@ -114,7 +96,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     currentPage: number;
   }> => {
     try {
-      const skip = (page - 1) * limit;
       const total = await Post.countDocuments({ vendor_id: vendorId });
       if (total === 0) {
         return {
@@ -151,13 +132,13 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     page: number,
     search?: string,
   ): Promise<{
-    posts: Array<PostDocument | Record<string, any>>;
+    posts: Partial<PostDocument>[]; // ✅ no any
     total: number;
     totalPages: number;
     currentPage: number;
   }> => {
     try {
-      const query: any = {};
+      const query: Record<string, unknown> = {}; // ✅ no any
 
       if (search && search.trim()) {
         const searchRegex = new RegExp(search.trim(), 'i');
@@ -167,7 +148,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
           { 'vendor_id.city': searchRegex },
         ];
       }
-      const skip = (page - 1) * limit;
 
       const posts = await Post.find(query)
         .sort({ createdAt: -1 })
@@ -180,7 +160,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
       }));
 
       return {
-        posts: mappedPosts,
+        posts: mappedPosts as Partial<PostDocument>[],
         total: posts.length,
         totalPages: 1,
         currentPage: 1,
@@ -190,7 +170,6 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
       throw error;
     }
   };
-
   findByIdAndUpdate = async (
     id: string,
     updateData: Partial<PostDocument>,

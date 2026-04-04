@@ -1,58 +1,94 @@
-import React, { useCallback, useEffect, useState } from "react";
 import { Card } from "@material-tailwind/react";
-import {
-  CalendarDays, Mail, Phone, Shield, Clock,
-  Pencil, KeyRound, Camera, Star, BookMarked,
-  MapPin, CheckCircle2, 
-} from "lucide-react";
-import { motion } from "framer-motion";
-import { showToastMessage } from "../../../validations/common/toast";
-import { useNavigate } from "react-router-dom";
-import { VENDOR } from "../../../config/constants/constants";
-import { VendorData } from "../../../types/vendorTypes";
-import Loader from "../../../components/common/Loader";
-import SidebarVendor from "../../../layout/vendor/SidebarProfileVendor";
-import EditProfileModalVendor from "./editProfileVendor";
-import ChangePasswordModal, { PasswordFormData } from "@/pages/common/changePassword";
-import { changeVendorPassword, getVendorProfile, updateVendorProfile } from "@/services/vendorAuthService";
-import { useDispatch } from "react-redux";
-import { setVendorInfo } from "@/redux/slices/VendorSlice";
 import { Avatar } from "@nextui-org/react";
+import { motion } from "framer-motion";
+import {
+  CalendarDays,
+  Mail,
+  Phone,
+  Shield,
+  Clock,
+  Pencil,
+  KeyRound,
+  Camera,
+  Star,
+  BookMarked,
+  MapPin,
+  CheckCircle2,
+} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import Loader from "../../../components/common/Loader";
+import { VENDOR } from "../../../config/constants/constants";
+import SidebarVendor from "../../../layout/vendor/SidebarProfileVendor";
+import type { vendorProfileData } from "../../../types/vendorTypes";
+import { VendorData } from "../../../types/vendorTypes";
+import { showToastMessage } from "../../../validations/common/toast";
+
+import EditProfileModalVendor from "./editProfileVendor";
+
+import type {
+  PasswordFormData,
+} from "@/pages/common/changePassword";
+import ChangePasswordModal from "@/pages/common/changePassword";
+import { setVendorInfo } from "@/redux/slices/VendorSlice";
+import {
+  changeVendorPassword,
+  getVendorProfile,
+  updateVendorProfile,
+} from "@/services/vendorAuthService";
+
 
 function VendorProfile() {
-  const [vendor, setVendor]                     = useState<VendorData | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen]   = useState(false);
+  const [vendor, setVendor] = useState<vendorProfileData | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const dispatch  = useDispatch();
-  const navigate  = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const fetchProfileData = useCallback(async () => {
     try {
       const token = localStorage.getItem("vendorToken");
-      if (!token) { showToastMessage("Authentication required", "error"); navigate(VENDOR.LOGIN); return; }
+      if (!token) {
+        showToastMessage("Authentication required", "error");
+        navigate(VENDOR.LOGIN);
+        return;
+      }
       const response = await getVendorProfile();
       setVendor(response.data);
     } catch (error) {
       console.error("Error fetching profile:", error);
-      showToastMessage(error instanceof Error ? error.message : "Error loading profile", "error");
+      showToastMessage(
+        error instanceof Error ? error.message : "Error loading profile",
+        "error",
+      );
       navigate(VENDOR.LOGIN);
     }
   }, [navigate]);
 
-  useEffect(() => { fetchProfileData(); }, [fetchProfileData]);
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
 
-  const handleSaveProfile = useCallback(async (updates: FormData) => {
-    try {
-      const token = localStorage.getItem("vendorToken");
-      if (!token) { showToastMessage("Authentication required", "error"); return; }
-      const response = await updateVendorProfile(updates);
-      setVendor(response.data);
-      dispatch(setVendorInfo(response.data));
-      showToastMessage("Profile updated successfully", "success");
-    } catch {
-      showToastMessage("Error updating profile", "error");
-    }
-  }, [dispatch]);
+  const handleSaveProfile = useCallback(
+    async (updates: FormData) => {
+      try {
+        const token = localStorage.getItem("vendorToken");
+        if (!token) {
+          showToastMessage("Authentication required", "error");
+          return;
+        }
+        const response = await updateVendorProfile(updates);
+        setVendor(response.data);
+        dispatch(setVendorInfo(response.data));
+        showToastMessage("Profile updated successfully", "success");
+      } catch {
+        showToastMessage("Error updating profile", "error");
+      }
+    },
+    [dispatch],
+  );
 
   const handlePasswordChange = async (passwordData: PasswordFormData) => {
     try {
@@ -64,11 +100,22 @@ function VendorProfile() {
     }
   };
 
-  const formatDate = useCallback((dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-  , []);
+  const formatDate = useCallback(
+    (dateString: string) =>
+      new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    [],
+  );
 
-  if (!vendor) return <div><Loader /></div>;
+  if (!vendor)
+    return (
+      <div>
+        <Loader />
+      </div>
+    );
 
   return (
     <>
@@ -203,15 +250,23 @@ function VendorProfile() {
       `}</style>
 
       <div className="flex vp-wrap">
-        <div><SidebarVendor /></div>
+        <div>
+          <SidebarVendor />
+        </div>
 
         <section className="container mx-auto">
           <Card
             className="w-full mb-6"
-            placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
-            style={{ borderRadius: "18px", overflow: "hidden", border: "1px solid #ebebeb", boxShadow: "0 2px 20px rgba(0,0,0,0.06)" }}
+            placeholder={undefined}
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
+            style={{
+              borderRadius: "18px",
+              overflow: "hidden",
+              border: "1px solid #ebebeb",
+              boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
+            }}
           >
-
             {/* ── Cover ── */}
             <motion.div
               initial={{ scale: 1.08 }}
@@ -219,7 +274,11 @@ function VendorProfile() {
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative h-64 w-full overflow-hidden"
             >
-              <img src="/images/cate1.jpg" alt="Cover" className="vp-cover-img" />
+              <img
+                src="/images/cate1.jpg"
+                alt="Cover"
+                className="vp-cover-img"
+              />
               <div className="vp-cover-overlay" />
               <div className="vp-cover-text">
                 <h1 className="vp-company">{vendor.companyName}</h1>
@@ -248,16 +307,35 @@ function VendorProfile() {
                       className="h-32 w-32 ring-4 ring-white -mt-20 relative"
                       src={vendor?.imageUrl || "/images/user.png"}
                     />
-                    <div className="vp-cam-btn" onClick={() => setIsEditModalOpen(true)}>
+                    <div
+                      className="vp-cam-btn"
+                      onClick={() => setIsEditModalOpen(true)}
+                    >
                       <Camera size={11} color="#fff" strokeWidth={2.5} />
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
                       <h2 className="vp-name">{vendor.name}</h2>
                       {vendor.isVerified && (
-                        <CheckCircle2 size={18} color="#16a34a" strokeWidth={2} />
+                        <CheckCircle2
+                          size={18}
+                          color="#16a34a"
+                          strokeWidth={2}
+                        />
                       )}
                     </div>
                     <div className="vp-contact">
@@ -273,8 +351,18 @@ function VendorProfile() {
 
                 {/* Chips */}
                 <div className="flex flex-col items-end gap-2">
-                  <span className={`vp-chip ${vendor.isActive ? "vp-chip-green" : "vp-chip-gray"}`}>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: vendor.isActive ? "#16a34a" : "#71717a", display: "inline-block" }} />
+                  <span
+                    className={`vp-chip ${vendor.isActive ? "vp-chip-green" : "vp-chip-gray"}`}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: vendor.isActive ? "#16a34a" : "#71717a",
+                        display: "inline-block",
+                      }}
+                    />
                     {vendor.isActive ? "Active" : "Inactive"}
                   </span>
                   {vendor.isVerified && (
@@ -294,7 +382,9 @@ function VendorProfile() {
                   transition={{ delay: 0.3, duration: 0.45 }}
                   className="mt-5"
                 >
-                  <p className="vp-section-title" style={{ marginBottom: 8 }}>About</p>
+                  <p className="vp-section-title" style={{ marginBottom: 8 }}>
+                    About
+                  </p>
                   <div className="vp-about-box">{vendor.about}</div>
                 </motion.div>
               )}
@@ -303,38 +393,51 @@ function VendorProfile() {
             {/* ── Bottom grid ── */}
             <div className="px-6 pb-6 rounded-none">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-
                 {/* Account Information */}
                 <div className="vp-section">
                   <p className="vp-section-title">Account Information</p>
 
                   <div className="vp-info-row">
-                    <div className="vp-icon-box"><Shield size={13} color="#6b7280" /></div>
+                    <div className="vp-icon-box">
+                      <Shield size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="vp-info-label">Vendor ID</p>
-                      <p className="vp-info-val">#{vendor._id?.slice(-6).toUpperCase()}</p>
+                      <p className="vp-info-val">
+                        #{vendor.id?.slice(-6).toUpperCase()}
+                      </p>
                     </div>
                   </div>
 
                   <div className="vp-info-row">
-                    <div className="vp-icon-box"><Clock size={13} color="#6b7280" /></div>
+                    <div className="vp-icon-box">
+                      <Clock size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="vp-info-label">Member Since</p>
-                      <p className="vp-info-val">{formatDate(vendor.createdAt)}</p>
+                      <p className="vp-info-val">
+                        {formatDate(vendor.createdAt)}
+                      </p>
                     </div>
                   </div>
 
                   <div className="vp-info-row">
-                    <div className="vp-icon-box"><CalendarDays size={13} color="#6b7280" /></div>
+                    <div className="vp-icon-box">
+                      <CalendarDays size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="vp-info-label">Last Updated</p>
-                      <p className="vp-info-val">{formatDate(vendor.updatedAt)}</p>
+                      <p className="vp-info-val">
+                        {formatDate(vendor.updatedAt)}
+                      </p>
                     </div>
                   </div>
 
                   {vendor.city && (
                     <div className="vp-info-row">
-                      <div className="vp-icon-box"><MapPin size={13} color="#6b7280" /></div>
+                      <div className="vp-icon-box">
+                        <MapPin size={13} color="#6b7280" />
+                      </div>
                       <div>
                         <p className="vp-info-label">City</p>
                         <p className="vp-info-val">{vendor.city}</p>
@@ -347,35 +450,46 @@ function VendorProfile() {
                 <div className="vp-section">
                   <p className="vp-section-title">Activity Summary</p>
                   <div className="grid grid-cols-2 gap-3">
-
                     <div className="vp-stat">
-                      <div className="vp-stat-icon" style={{ background: "#fefce8" }}>
+                      <div
+                        className="vp-stat-icon"
+                        style={{ background: "#fefce8" }}
+                      >
                         <Star size={15} color="#ca8a04" strokeWidth={2} />
                       </div>
-                      <div className="vp-stat-num">{vendor.totalRating ?? 0}</div>
+                      <div className="vp-stat-num">
+                        {vendor.totalRating ?? 0}
+                      </div>
                       <div className="vp-stat-lbl">Rating</div>
                     </div>
 
                     <div className="vp-stat">
-                      <div className="vp-stat-icon" style={{ background: "#f0f9ff" }}>
+                      <div
+                        className="vp-stat-icon"
+                        style={{ background: "#f0f9ff" }}
+                      >
                         <BookMarked size={15} color="#0ea5e9" strokeWidth={2} />
                       </div>
                       <div className="vp-stat-num">0</div>
                       <div className="vp-stat-lbl">Bookings</div>
                     </div>
-
                   </div>
                 </div>
-
               </div>
 
               {/* Action buttons */}
               <div className="flex gap-3 mt-6">
-                <button className="vp-btn-dark" onClick={() => setIsEditModalOpen(true)}>
+                <button
+                  className="vp-btn-dark"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
                   <Pencil size={12} strokeWidth={2.5} />
                   Edit Profile
                 </button>
-                <button className="vp-btn-light" onClick={() => setIsPasswordModalOpen(true)}>
+                <button
+                  className="vp-btn-light"
+                  onClick={() => setIsPasswordModalOpen(true)}
+                >
                   <KeyRound size={12} strokeWidth={2.5} />
                   Change Password
                 </button>

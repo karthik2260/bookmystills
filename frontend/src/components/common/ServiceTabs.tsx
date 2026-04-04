@@ -1,6 +1,6 @@
-import { useRef } from "react";
 import { Button } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 
 interface ServiceTabsProps {
   services: string[];
@@ -64,7 +64,7 @@ export const ServiceTabs = ({
                 : "bg-white text-gray-600 hover:bg-gray-100"
             }`}
           >
-            {service.split(' ')[0]}
+            {service.split(" ")[0]}
           </Button>
         ))}
       </div>

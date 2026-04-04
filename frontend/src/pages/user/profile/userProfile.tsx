@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useState } from "react";
 import {
   Avatar,
   Button,
@@ -6,37 +5,65 @@ import {
   Typography,
   Chip,
 } from "@material-tailwind/react";
-import { CalendarDays, Mail, Phone, Shield, Clock, Pencil, KeyRound, Camera, Heart, BookMarked, Star, Activity } from "lucide-react";
-import { motion } from "framer-motion";
-import { showToastMessage } from "../../../validations/common/toast";
-import { useSelector, useDispatch } from "react-redux";
-import UserRootState from "@/redux/rootstate/UserState";
-import { setProfileData, setUserInfo } from "@/redux/slices/UserSlice";
-import Sidebar from "../../../layout/user/Sidebar";
-import EditProfileModal from "./editProfile";
-import Loader from "../../../components/common/Loader";
 import { AxiosError } from "axios";
-import ChangePasswordModal, { PasswordFormData } from "@/pages/common/changePassword";
-import { formatDate } from "@/utils/userUtils";
-import { changePasswordService, updateProfileService } from "@/services/userAuthService";
+import { motion } from "framer-motion";
+import {
+  CalendarDays,
+  Mail,
+  Phone,
+  Shield,
+  Clock,
+  Pencil,
+  KeyRound,
+  Camera,
+  Heart,
+  BookMarked,
+  Star,
+  Activity,
+} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+
+import Loader from "../../../components/common/Loader";
+import Sidebar from "../../../layout/user/Sidebar";
+import { showToastMessage } from "../../../validations/common/toast";
+
+
+
+import EditProfileModal from "./editProfile";
+
+
+
+import type {
+  PasswordFormData,
+} from "@/pages/common/changePassword";
+import ChangePasswordModal from "@/pages/common/changePassword";
+import type UserRootState from "@/redux/rootstate/UserState";
+import { setProfileData, setUserInfo } from "@/redux/slices/UserSlice";
+import {
+  changePasswordService,
+  updateProfileService,
+} from "@/services/userAuthService";
 import { getUserProfileService } from "@/services/userProfileService";
+import { formatDate } from "@/utils/userUtils";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
-  const profileData = useSelector((state: UserRootState) => state.user.profileData);
+  const profileData = useSelector(
+    (state: UserRootState) => state.user.profileData,
+  );
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-
- const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("userToken") || "";
       const profile = await getUserProfileService(token);
-      dispatch(setProfileData(profile)); 
+      dispatch(setProfileData(profile));
     } catch (error) {
       console.error("Error fetching profile:", error);
       showToastMessage("Failed to load profile", "error");
@@ -49,9 +76,6 @@ const UserProfile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-
-
-
   const handlePasswordChange = async (passwordData: PasswordFormData) => {
     try {
       const token = localStorage.getItem("userToken") || "";
@@ -60,7 +84,8 @@ const UserProfile = () => {
     } catch (error) {
       console.error("Error changing password", error);
       if (error instanceof AxiosError) {
-        const errorMessage = error.response?.data?.message || "Error changing password";
+        const errorMessage =
+          error.response?.data?.message || "Error changing password";
         showToastMessage(errorMessage, "error");
       } else {
         showToastMessage("Unexpected error occurred", "error");
@@ -69,24 +94,31 @@ const UserProfile = () => {
     }
   };
 
- const handleSaveProfile = useCallback(async (updates: FormData) => {
-  try {
-    const token = localStorage.getItem("userToken");
-    if (!token) {
-      showToastMessage("Authentication required", "error");
-      return;
+  const handleSaveProfile = useCallback(
+  async (updates: FormData) => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        showToastMessage("Authentication required", "error");
+        return;
+      }
+      const updatedProfile = await updateProfileService(updates, token); // ✅ get response
+      dispatch(setProfileData(updatedProfile)); // ✅ use response directly, no re-fetch
+      showToastMessage("Profile updated successfully", "success");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      showToastMessage("Error updating profile", "error");
     }
-    await updateProfileService(updates, token); 
-    await fetchProfile();                        
-    showToastMessage("Profile updated successfully", "success");
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    showToastMessage("Error updating profile", "error");
-  }
-}, [fetchProfile]); 
+  },
+  [dispatch], 
+);
 
   if (!profileData) {
-    return <div><Loader /></div>;
+    return (
+      <div>
+        <Loader />
+      </div>
+    );
   }
 
   return (
@@ -225,20 +257,33 @@ const UserProfile = () => {
       `}</style>
 
       <div className="flex up2-wrap">
-        <div><Sidebar /></div>
+        <div>
+          <Sidebar />
+        </div>
 
         <section className="container mx-auto">
           {/* ── Main card (same structure as original) ── */}
-          <Card className="w-full mb-6" style={{ borderRadius: '18px', overflow: 'hidden', border: '1px solid #ebebeb', boxShadow: '0 2px 20px rgba(0,0,0,0.06)' }}>
-
+          <Card
+            className="w-full mb-6"
+            style={{
+              borderRadius: "18px",
+              overflow: "hidden",
+              border: "1px solid #ebebeb",
+              boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
+            }}
+          >
             {/* Cover photo */}
             <motion.div
               initial={{ scale: 1.08 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative h-64 w-full overflow-hidden"
             >
-              <img src="/images/cate2.jpg" alt="Cover" className="up2-cover-img" />
+              <img
+                src="/images/cate2.jpg"
+                alt="Cover"
+                className="up2-cover-img"
+              />
               <div className="up2-cover-overlay" />
             </motion.div>
 
@@ -255,16 +300,27 @@ const UserProfile = () => {
                   <div className="up2-avatar-shell">
                     <Avatar
                       size="xxl"
-                      placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                      placeholder={undefined}
+                      onPointerEnterCapture={undefined}
+                      onPointerLeaveCapture={undefined}
                       className="h-32 w-32 ring-4 ring-white -mt-20 relative"
                       src={profileData?.imageUrl || "/images/user.png"}
                     />
-                    <div className="up2-cam-btn" onClick={() => setIsEditModalOpen(true)}>
+                    <div
+                      className="up2-cam-btn"
+                      onClick={() => setIsEditModalOpen(true)}
+                    >
                       <Camera size={11} color="#fff" strokeWidth={2.5} />
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
                     <h2 className="up2-name">{profileData?.name}</h2>
                     <div className="up2-contact">
                       <Mail size={13} color="#9ca3af" />
@@ -272,15 +328,27 @@ const UserProfile = () => {
                     </div>
                     <div className="up2-contact">
                       <Phone size={13} color="#9ca3af" />
-                      <span>{profileData?.contactinfo || '—'}</span>
+                      <span>{profileData?.contactinfo || "—"}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Chips */}
                 <div className="flex flex-col items-end gap-2">
-                  <span className={`up2-chip ${profileData?.isActive ? 'up2-chip-green' : 'up2-chip-gray'}`}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: profileData?.isActive ? '#16a34a' : '#71717a', display: 'inline-block' }} />
+                  <span
+                    className={`up2-chip ${profileData?.isActive ? "up2-chip-green" : "up2-chip-gray"}`}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: profileData?.isActive
+                          ? "#16a34a"
+                          : "#71717a",
+                        display: "inline-block",
+                      }}
+                    />
                     {profileData?.isActive ? "Active" : "Inactive"}
                   </span>
                   {profileData?.isGoogleUser && (
@@ -296,32 +364,43 @@ const UserProfile = () => {
             {/* Bottom section (same grid as original) */}
             <div className="px-6 pb-6 rounded-none">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-
                 {/* Account Information */}
                 <div className="up2-section">
                   <p className="up2-section-title">Account Information</p>
 
                   <div className="up2-info-row">
-                    <div className="up2-icon-box"><Shield size={13} color="#6b7280" /></div>
+                    <div className="up2-icon-box">
+                      <Shield size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="up2-info-label">User ID</p>
-                      <p className="up2-info-val">#{profileData?.id?.slice(-6).toUpperCase()}</p>
+                      <p className="up2-info-val">
+                        #{profileData?.id?.slice(-6).toUpperCase()}
+                      </p>
                     </div>
                   </div>
 
                   <div className="up2-info-row">
-                    <div className="up2-icon-box"><Clock size={13} color="#6b7280" /></div>
+                    <div className="up2-icon-box">
+                      <Clock size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="up2-info-label">Member Since</p>
-                      <p className="up2-info-val">{formatDate(profileData?.createdAt)}</p>
+                      <p className="up2-info-val">
+                        {formatDate(profileData?.createdAt)}
+                      </p>
                     </div>
                   </div>
 
                   <div className="up2-info-row">
-                    <div className="up2-icon-box"><CalendarDays size={13} color="#6b7280" /></div>
+                    <div className="up2-icon-box">
+                      <CalendarDays size={13} color="#6b7280" />
+                    </div>
                     <div>
                       <p className="up2-info-label">Last Updated</p>
-                      <p className="up2-info-val">{formatDate(profileData?.updatedAt)}</p>
+                      <p className="up2-info-val">
+                        {formatDate(profileData?.updatedAt)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -330,9 +409,11 @@ const UserProfile = () => {
                 <div className="up2-section">
                   <p className="up2-section-title">Activity Summary</p>
                   <div className="grid grid-cols-2 gap-3">
-
                     <div className="up2-stat">
-                      <div className="up2-stat-icon" style={{ background: '#fff1f2' }}>
+                      <div
+                        className="up2-stat-icon"
+                        style={{ background: "#fff1f2" }}
+                      >
                         <Heart size={15} color="#f43f5e" strokeWidth={2} />
                       </div>
                       <div className="up2-stat-num">0</div>
@@ -340,26 +421,33 @@ const UserProfile = () => {
                     </div>
 
                     <div className="up2-stat">
-                      <div className="up2-stat-icon" style={{ background: '#f0f9ff' }}>
+                      <div
+                        className="up2-stat-icon"
+                        style={{ background: "#f0f9ff" }}
+                      >
                         <BookMarked size={15} color="#0ea5e9" strokeWidth={2} />
                       </div>
                       <div className="up2-stat-num">{count}</div>
                       <div className="up2-stat-lbl">Bookings</div>
                     </div>
-
                   </div>
                 </div>
-
               </div>
 
               {/* Action buttons */}
               <div className="flex gap-3 mt-6">
-                <button className="up2-btn-dark" onClick={() => setIsEditModalOpen(true)}>
+                <button
+                  className="up2-btn-dark"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
                   <Pencil size={12} strokeWidth={2.5} />
                   Edit Profile
                 </button>
                 {profileData && !profileData.isGoogleUser && (
-                  <button className="up2-btn-light" onClick={() => setIsPasswordModalOpen(true)}>
+                  <button
+                    className="up2-btn-light"
+                    onClick={() => setIsPasswordModalOpen(true)}
+                  >
                     <KeyRound size={12} strokeWidth={2.5} />
                     Change Password
                   </button>

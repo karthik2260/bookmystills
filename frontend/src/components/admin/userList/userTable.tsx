@@ -1,23 +1,31 @@
-import React from 'react';
-import Swal from 'sweetalert2';
-import { useDispatch } from 'react-redux';
-import { showToastMessage } from '../../../validations/common/toast';
-import { formatDate } from '@/utils/userUtils';
-import { UserData } from '../../../types/userTypes';
-import { blockUnblockUserService, getUsersService } from '@/services/userAuthService';
-import { GenericTable,ColumnDef,FetchParams,TabConfig } from '../dashboard/GenericTable';
+import Swal from "sweetalert2";
+
+import type { UserData } from "../../../types/userTypes";
+import { showToastMessage } from "../../../validations/common/toast";
+import type {
+  ColumnDef,
+  FetchParams,
+  TabConfig} from "../dashboard/GenericTable";
+import {
+  GenericTable
+} from "../dashboard/GenericTable";
+
+import {
+  blockUnblockUserService,
+  getUsersService,
+} from "@/services/userAuthService";
+import { formatDate } from "@/utils/userUtils";
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const USER_TABS: TabConfig[] = [
-  { label: 'All',      value: 'all'      },
-  { label: 'Active',   value: 'active'   },
-  { label: 'Inactive', value: 'inactive' },
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function UserTable() {
-  const dispatch = useDispatch();
 
   // ── Block / Unblock ────────────────────────────────────────────────────────
   // NOTE: Because GenericTable owns the rows state internally, block/unblock
@@ -26,11 +34,11 @@ export function UserTable() {
   // state update below.
 
   const buildColumns = (
-    onToggle: (userId: string, currentStatus: boolean) => void
+    onToggle: (userId: string, currentStatus: boolean) => void,
   ): ColumnDef<UserData>[] => [
     // ── User info ──────────────────────────────────────────────────────────
     {
-      header: 'User',
+      header: "User",
       render: (user) => (
         <div className="flex items-center gap-3">
           <div className="relative flex-shrink-0">
@@ -41,12 +49,14 @@ export function UserTable() {
             />
             <span
               className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                user.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+                user.isActive ? "bg-emerald-500" : "bg-gray-300"
               }`}
             />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</p>
+            <p className="text-sm font-semibold text-gray-900 leading-tight">
+              {user.name}
+            </p>
             <p className="text-xs text-gray-400 mt-0.5">{user.email}</p>
           </div>
         </div>
@@ -54,21 +64,23 @@ export function UserTable() {
     },
     // ── Mobile ─────────────────────────────────────────────────────────────
     {
-      header: 'Mobile',
+      header: "Mobile",
       render: (user) => (
-        <span className="text-sm text-gray-600">{user.contactinfo || '—'}</span>
+        <span className="text-sm text-gray-600">{user.contactinfo || "—"}</span>
       ),
     },
     // ── Joined ─────────────────────────────────────────────────────────────
     {
-      header: 'Joined',
+      header: "Joined",
       render: (user) => (
-        <span className="text-sm text-gray-600">{formatDate(user?.createdAt) || '—'}</span>
+        <span className="text-sm text-gray-600">
+          {formatDate(user?.createdAt) || "—"}
+        </span>
       ),
     },
     // ── Google ─────────────────────────────────────────────────────────────
     {
-      header: 'Google',
+      header: "Google",
       render: (user) =>
         user.isGoogleUser ? (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -85,37 +97,37 @@ export function UserTable() {
     },
     // ── Status ─────────────────────────────────────────────────────────────
     {
-      header: 'Status',
+      header: "Status",
       render: (user) => (
         <span
           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${
             user.isActive
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-red-50 text-red-700 border-red-200'
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-red-50 text-red-700 border-red-200"
           }`}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full ${
-              user.isActive ? 'bg-emerald-500' : 'bg-red-500'
+              user.isActive ? "bg-emerald-500" : "bg-red-500"
             }`}
           />
-          {user.isActive ? 'Active' : 'Inactive'}
+          {user.isActive ? "Active" : "Inactive"}
         </span>
       ),
     },
     // ── Block toggle ───────────────────────────────────────────────────────
     {
-      header: 'Block',
+      header: "Block",
       render: (user) => (
         <button
           onClick={() => onToggle(user.id, user.isActive)}
           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-            user.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+            user.isActive ? "bg-emerald-500" : "bg-gray-300"
           }`}
         >
           <span
             className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
-              user.isActive ? 'translate-x-4' : 'translate-x-0.5'
+              user.isActive ? "translate-x-4" : "translate-x-0.5"
             }`}
           />
         </button>
@@ -143,27 +155,27 @@ export function UserTable() {
   // can lift state further if you prefer optimistic updates.
 
   const handleBlockUnblock = async (userId: string, currentStatus: boolean) => {
-    const action = currentStatus ? 'block' : 'unblock';
+    const action = currentStatus ? "block" : "unblock";
     const result = await Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: `Do you want to ${action} this user?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: currentStatus ? '#d33' : '#1a1a2e',
-      cancelButtonColor: '#6c757d',
+      confirmButtonColor: currentStatus ? "#d33" : "#1a1a2e",
+      cancelButtonColor: "#6c757d",
       confirmButtonText: `Yes, ${action} user!`,
     });
 
     if (result.isConfirmed) {
       try {
         const response = await blockUnblockUserService(userId);
-        showToastMessage(response.message, 'success');
+        showToastMessage(response.message, "success");
         // GenericTable will re-fetch automatically on next interaction;
         // trigger a manual re-fetch by updating a key or lifting state if
         // you want instant UI feedback without a round-trip.
       } catch (error) {
-        console.error('Error blocking user:', error);
-        showToastMessage('Failed to update user status', 'error');
+        console.error("Error blocking user:", error);
+        showToastMessage("Failed to update user status", "error");
       }
     }
   };

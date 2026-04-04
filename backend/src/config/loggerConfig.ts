@@ -1,4 +1,3 @@
-// config/loggerConfig.ts
 import path from 'path';
 import * as rfs from 'rotating-file-stream';
 import fs from 'fs';

@@ -5,14 +5,12 @@ export interface UserDocument extends User, Document {
   _id: mongoose.Types.ObjectId;
 }
 
-export interface UserModel extends Model<UserDocument> {}
+export type UserModel = Model<UserDocument>;
 
 const UserSchema = new Schema<UserDocument, UserModel>(
   {
     email: { type: String, required: true, unique: true },
-    password: {
-      type: String,
-    },
+    password: { type: String },
     name: { type: String, required: true, set: (v: string) => v.trim().replace(/\s+/g, ' ') },
     contactinfo: { type: String },
     isActive: { type: Boolean, default: true },

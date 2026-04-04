@@ -1,5 +1,5 @@
 export interface UserFormValues {
-    email: string;
+  email: string;
   password: string;
   name: string;
   contactinfo: string;
@@ -9,9 +9,8 @@ export interface UserFormValues {
   updatedAt?: string;
 }
 
-
 export interface UserData {
-   id: string;
+  id: string;
   email: string;
   password?: string;
   name: string;
@@ -25,22 +24,14 @@ export interface UserData {
   updatedAt: string | undefined;
 }
 
-
 export interface ProfileUserDTO {
-  id:string;
-  email:string;
-  name:string;
+  id: string;
+  email: string;
+  name: string;
   contactinfo?: string;
   isActive: boolean;
   isGoogleUser: boolean;
   imageUrl?: string;
   createdAt: string | undefined;
   updatedAt: string | undefined;
-
-
-
-
-
-
-  
 }

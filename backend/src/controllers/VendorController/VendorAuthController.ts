@@ -7,18 +7,16 @@ import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { IVendorService } from '../../interfaces/serviceInterfaces/vendor.service.interface';
 import jwt from 'jsonwebtoken';
-
+import { verifyOtpRequestDTO } from '../../dto/vendorDTO';
+import { VendorLoginRequestDTO } from '../../dto/vendor/auth/request/vendor.logi.requestDTO';
 import {
-  VendorChangePasswordRequestDTO,
-  VendorChangePasswordResponseDTO,
-  VendorForgotPasswordRequestDTO,
-  VendorForgotPasswordResponse,
-  VendorLoginRequestDTO,
-  VendorLogoutResponseDTO,
-  VendorRefreshTokenResponseDTO,
+  VendorSignUpFiles,
   VendorSignUpRequestDTO,
-  verifyOtpRequestDTO,
-} from '../../dto/vendorDTO';
+} from '../../dto/vendor/auth/request/vendor.signup.request.dto';
+import {
+  VendorReapplyFiles,
+  VendorReapplyRequestDTO,
+} from '../../dto/vendor/reapply/vendor.reapply.request.dto';
 
 declare module 'express-session' {
   interface Session {
@@ -36,95 +34,78 @@ class VendorAuthController {
 
   VendorSignUp = async (req: Request, res: Response): Promise<void> => {
     try {
-      const vendorSignupDto: VendorSignUpRequestDTO = req.body;
-      const { email, name, password, city, contactinfo, companyName, about } = vendorSignupDto;
-      const files = req.files as {
-        portfolioImages?: Express.Multer.File[];
-        aadharFront?: Express.Multer.File[];
-        aadharBack?: Express.Multer.File[];
-      };
-
-      const vendorData = await this.vendorService.registerVendor({
-        email,
-        name,
-        password,
-        city,
-        contactinfo,
-        companyName,
-        about,
-        files,
+      const vendorSignupDto = new VendorSignUpRequestDTO({
+        email: req.body.email,
+        name: req.body.name,
+        password: req.body.password,
+        city: req.body.city,
+        contactinfo: req.body.contactinfo,
+        companyName: req.body.companyName,
+        about: req.body.about,
+        files: req.files as VendorSignUpFiles,
       });
+
+      const vendorData = await this.vendorService.registerVendor(vendorSignupDto);
 
       req.session.vendor = vendorData;
       req.session.save((err) => {
         if (err) {
-          console.error('Session save error:', err);
           throw new CustomError(Messages.SAVE_SESSION, HTTP_statusCode.InternalServerError);
         }
         res.status(HTTP_statusCode.OK).json({
           message: Messages.OTP_SENT,
-          email: email,
+          email: vendorData.email,
           otpExpiry: vendorData.otpExpiry,
           resendAvailableAt: vendorData.resendTimer,
         });
       });
     } catch (error) {
-      handleError(res, error, 'VendorSignUp');
+      if (error instanceof Error) {
+        handleError(res, error, 'VendorSignUp');
+      } else {
+        handleError(res, new Error('Unknown error'), 'VendorSignUp');
+      }
     }
   };
-
   verifyOTP = async (req: Request, res: Response): Promise<void> => {
     try {
       const verifyOtpDto: verifyOtpRequestDTO = {
         otp: req.body.otp,
       };
 
-      const {
-        name,
-        email,
-        city,
-        password,
-        contactinfo,
-        otpCode,
-        companyName,
-        about,
-        otpExpiry,
-        portfolioImages,
-        aadharImages,
-      } = req.session.vendor;
+      if (!req.session?.vendor) {
+        throw new CustomError('Session expired', HTTP_statusCode.BadRequest);
+      }
 
-      if (verifyOtpDto.otp !== otpCode) {
+      const sessionData = req.session.vendor;
+
+      if (verifyOtpDto.otp !== sessionData.otpCode) {
         throw new CustomError(Messages.INVALID_OTP, HTTP_statusCode.BadRequest);
       }
 
       const currentTime = Date.now();
-      if (currentTime > otpExpiry) {
+      if (currentTime > sessionData.otpExpiry) {
         throw new CustomError(Messages.OTP_EXPIRED, HTTP_statusCode.BadRequest);
       }
 
-      const signupData: VendorSignUpRequestDTO = {
-        email,
-        password,
-        name,
-        contactinfo,
-        city,
-        companyName,
-        about,
-        portfolioImages,
-        aadharImages,
-      };
+      await this.vendorService.signup(sessionData);
 
-      const { vendor } = await this.vendorService.signup(signupData);
-
-      res.status(201).json({ vendor, message: Messages.ACCOUNT_CREATED });
+      res.status(HTTP_statusCode.OK).json({ message: Messages.ACCOUNT_CREATED });
     } catch (error) {
-      handleError(res, error, 'VerifyOTP');
+      if (error instanceof Error) {
+        handleError(res, error, 'VerifyOTP');
+      } else {
+        handleError(res, new Error('Unknown error'), 'VerifyOTP');
+      }
     }
   };
 
   VendorLogin = async (req: Request, res: Response): Promise<void> => {
     try {
-      const loginDto: VendorLoginRequestDTO = req.body;
+      const loginDto = new VendorLoginRequestDTO({
+        email: req.body.email,
+        password: req.body.password,
+      });
 
       if (!loginDto.email || !loginDto.password) {
         res.status(HTTP_statusCode.BadRequest).json({
@@ -155,10 +136,9 @@ class VendorAuthController {
         sameSite: 'strict',
       });
 
-      const response: VendorLogoutResponseDTO = {
+      res.status(HTTP_statusCode.OK).json({
         message: 'Vendor Logged out Successfully',
-      };
-      res.status(HTTP_statusCode.OK).json(response);
+      });
     } catch (error) {
       handleError(res, error, 'VendorLogout');
     }
@@ -171,14 +151,13 @@ class VendorAuthController {
       if (!refreshToken) {
         throw new CustomError(Messages.NO_REFRESHTOKEN, 401);
       }
+
       try {
         const newAccessToken = await this.vendorService.create_RefreshToken(refreshToken);
 
-        const response: VendorRefreshTokenResponseDTO = {
+        res.status(HTTP_statusCode.OK).json({
           token: newAccessToken,
-        };
-
-        res.status(HTTP_statusCode.OK).json({ token: newAccessToken });
+        });
       } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {
           res.clearCookie('refreshToken');
@@ -193,18 +172,17 @@ class VendorAuthController {
 
   forgotPassword = async (req: Request, res: Response): Promise<void> => {
     try {
-      const forgotPasswordDto: VendorForgotPasswordRequestDTO = req.body;
-      const { email } = forgotPasswordDto;
+      const { email } = req.body;
+
       if (!email) {
         throw new CustomError(Messages.EMAIL_REQUIRED, HTTP_statusCode.BadRequest);
       }
 
       await this.vendorService.handleForgotPassword(email);
 
-      const response: VendorForgotPasswordResponse = {
+      res.status(HTTP_statusCode.OK).json({
         message: Messages.PASSWORD_RESET_LINK,
-      };
-      res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_LINK });
+      });
     } catch (error) {
       handleError(res, error, 'forgotPassword');
     }
@@ -212,7 +190,7 @@ class VendorAuthController {
 
   reapplyVendor = async (req: AuthenticatedRequestt, res: Response): Promise<void> => {
     try {
-      const vendorId = req.user?._id?.toString(); // ← add .toString()
+      const vendorId = req.user?._id?.toString();
 
       if (!vendorId) {
         res.status(HTTP_statusCode.Unauthorized).json({
@@ -221,26 +199,22 @@ class VendorAuthController {
         return;
       }
 
-      const files = req.files as {
-        portfolioImages?: Express.Multer.File[];
-        aadharFront?: Express.Multer.File[];
-        aadharBack?: Express.Multer.File[];
-      };
+      const reapplyDto = new VendorReapplyRequestDTO({
+        vendorId,
+        files: req.files as VendorReapplyFiles,
+      });
 
-      const result = await this.vendorService.reapplyVendor(vendorId, files);
+      const result = await this.vendorService.reapplyVendor(reapplyDto);
       res.status(HTTP_statusCode.OK).json(result);
     } catch (error) {
       handleError(res, error, 'reapplyVendor');
     }
   };
   changeForgotPassword = async (req: Request, res: Response): Promise<void> => {
-    const changePasswordDto: VendorChangePasswordRequestDTO = {
-      token: req.params.token,
-      password: req.body.password,
-    };
-    const { token } = req.params;
-    const { password } = req.body;
     try {
+      const { token } = req.params;
+      const { password } = req.body;
+
       if (!token) {
         throw new CustomError(Messages.SESSION_EXPIRED, HTTP_statusCode.BadRequest);
       } else if (!password) {
@@ -249,16 +223,13 @@ class VendorAuthController {
 
       await this.vendorService.newPasswordChange(token, password);
 
-      const response: VendorChangePasswordResponseDTO = {
-        message: Messages.PASSWORD_RESET_LINK,
-      };
-
-      res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_SUCCESS });
+      res.status(HTTP_statusCode.OK).json({
+        message: Messages.PASSWORD_RESET_SUCCESS,
+      });
     } catch (error) {
       handleError(res, error, 'changePassword');
     }
   };
-
   validateResetToken = async (req: Request, res: Response): Promise<void> => {
     const { token } = req.params;
 
@@ -277,11 +248,16 @@ class VendorAuthController {
     try {
       const { currentPassword, newPassword } = req.body;
 
-      const vendorId = req.user?._id;
+      const vendorId = req.user?._id?.toString();
+
       if (!vendorId) {
-        res.status(401).json({ success: false, message: Messages.VENDOR_ID_MISSING });
-        return;
+        throw new CustomError(Messages.VENDOR_ID_MISSING, HTTP_statusCode.Unauthorized);
       }
+
+      if (!currentPassword || !newPassword) {
+        throw new CustomError(Messages.PASSWORD_REQUIRED, HTTP_statusCode.BadRequest);
+      }
+
       await this.vendorService.passwordCheckVendor(currentPassword, newPassword, vendorId);
 
       res.status(HTTP_statusCode.OK).json({ message: Messages.PASSWORD_RESET_SUCCESS });

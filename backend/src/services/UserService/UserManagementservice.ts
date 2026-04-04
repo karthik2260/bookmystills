@@ -1,7 +1,6 @@
 import { IUserRepository } from '../../interfaces/repositoryInterfaces/user.repository.interface';
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
-import { UserDocument } from '../../models/userModel';
 import { BlockStatus } from '../../enums/commonEnums';
 import { IUserManagementService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserManagement.service.interface';
 import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';

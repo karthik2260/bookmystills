@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { debounce } from 'lodash';
-import Loader from '../../common/Loader';
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
+
+import Loader from "../../common/Loader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,15 +55,15 @@ export function GenericTable<T>({
   columns,
   fetchData,
   rowKey,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = "Search...",
   pageSize = 5,
 }: GenericTableProps<T>) {
   const [rows, setRows] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(tabs[0]?.value ?? 'all');
+  const [activeTab, setActiveTab] = useState(tabs[0]?.value ?? "all");
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -74,17 +75,17 @@ export function GenericTable<T>({
           page,
           limit: pageSize,
           search,
-          status: activeTab !== 'all' ? activeTab : undefined,
+          status: activeTab !== "all" ? activeTab : undefined,
         });
         setRows(result.data);
         setTotalPages(result.totalPages);
       } catch (error) {
-        console.error('GenericTable fetch error:', error);
+        console.error("GenericTable fetch error:", error);
       } finally {
         setIsLoading(false);
       }
     },
-    [activeTab, fetchData, pageSize]
+    [activeTab, fetchData, pageSize],
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,11 +93,11 @@ export function GenericTable<T>({
     debounce((page: number, search: string) => {
       loadData(page, search);
     }, 500),
-    [loadData]
+    [loadData],
   );
 
   useEffect(() => {
-    if (searchTerm.trim().length >= 3 || searchTerm.trim() === '') {
+    if (searchTerm.trim().length >= 3 || searchTerm.trim() === "") {
       debouncedLoad(currentPage, searchTerm);
     }
     return () => {
@@ -121,11 +122,12 @@ export function GenericTable<T>({
   return (
     <div className="min-h-screen bg-gray-50/50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {title}
+            </h1>
             <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
           </div>
           <div className="relative">
@@ -162,8 +164,8 @@ export function GenericTable<T>({
               onClick={() => handleTabChange(value)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeTab === value
-                  ? 'bg-gray-900 text-white shadow-sm'
-                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
               }`}
             >
               {label}
@@ -212,7 +214,9 @@ export function GenericTable<T>({
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
-                        <p className="text-sm text-gray-400 font-medium">No records found</p>
+                        <p className="text-sm text-gray-400 font-medium">
+                          No records found
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -237,8 +241,9 @@ export function GenericTable<T>({
           {/* Footer — Pagination */}
           <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
             <span className="text-sm text-gray-500">
-              Page{' '}
-              <span className="font-semibold text-gray-800">{currentPage}</span> of{' '}
+              Page{" "}
+              <span className="font-semibold text-gray-800">{currentPage}</span>{" "}
+              of{" "}
               <span className="font-semibold text-gray-800">{totalPages}</span>
             </span>
             <div className="flex gap-2">
@@ -252,7 +257,9 @@ export function GenericTable<T>({
                 ← Previous
               </button>
               <button
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200
                            rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed

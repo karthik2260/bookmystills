@@ -1,30 +1,61 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import { ENV } from '../config/env';
 import { AuthRole } from '../enums/commonEnums';
-dotenv.config();
+import logger from './logger';
+import { StringValue } from 'ms';
 
+// Token Creation
 
-const REFRESH_SECRET_KEY = process.env.JWT_REFRESH_SECRET_KEY as string;
-const REFRESH_TOKEN_TIME = '7d'; // Remove 'as string'
-
-const createAccessToken = (id: string, role: AuthRole) => {
-  return jwt.sign({ _id: id, role }, process.env.JWT_SECRET_KEY!, { expiresIn: '2h' });
+export const createAccessToken = (id: string, role: AuthRole): string => {
+  const options: SignOptions = { expiresIn: ENV.ACCESS_TOKEN_EXPIRES as StringValue };
+  return jwt.sign({ _id: id, role }, ENV.JWT_SECRET_KEY, options);
 };
 
-const createRefreshToken = (_id: string): string => {
-  return jwt.sign({ _id }, REFRESH_SECRET_KEY, { expiresIn: REFRESH_TOKEN_TIME });
+export const createRefreshToken = (id: string): string => {
+  const options: SignOptions = { expiresIn: ENV.REFRESH_TOKEN_EXPIRES as StringValue };
+  return jwt.sign({ _id: id }, ENV.JWT_REFRESH_SECRET_KEY, options);
 };
+// Token Verification
 
-const isTokenExpiringSoon = (token: string): boolean => {
+export const verifyAccessToken = (token: string): JwtPayload | null => {
   try {
-    const decoded = jwt.decode(token) as { exp: number };
-    const expirationTime = decoded.exp * 1000;
-    const currentTime = Date.now();
-    const timeUntilExpiration = expirationTime - currentTime;
-    return timeUntilExpiration < 7 * 24 * 60 * 60 * 1000;
+    return jwt.verify(token, ENV.JWT_SECRET_KEY) as JwtPayload;
+  } catch (err) {
+    logger.warn(`Access token verification failed: ${err}`);
+    return null;
+  }
+};
+
+export const verifyRefreshToken = (token: string): JwtPayload | null => {
+  try {
+    return jwt.verify(token, ENV.JWT_REFRESH_SECRET_KEY) as JwtPayload;
+  } catch (err) {
+    logger.warn(`Refresh token verification failed: ${err}`);
+    return null;
+  }
+};
+
+// Token Utilities
+
+export const isTokenExpiringSoon = (
+  token: string,
+  thresholdMs: number = ENV.TOKEN_EXPIRY_THRESHOLD,
+): boolean => {
+  try {
+    const decoded = jwt.decode(token) as { exp?: number } | null;
+    if (!decoded?.exp) return true;
+    const timeUntilExpiration = decoded.exp * 1000 - Date.now();
+    return timeUntilExpiration < thresholdMs;
   } catch (error) {
+    logger.error(`Token expiry check failed: ${error}`);
     return true;
   }
 };
 
-export { createAccessToken, createRefreshToken, isTokenExpiringSoon };
+export const decodeToken = (token: string): JwtPayload | null => {
+  try {
+    return jwt.decode(token) as JwtPayload | null;
+  } catch {
+    return null;
+  }
+};

@@ -1,7 +1,7 @@
-import   {VendorState} from "../slices/VendorSlice";
+import type { VendorState } from "../slices/VendorSlice";
 
-interface VendorRootState{
-    vendor :VendorState
+interface VendorRootState {
+  vendor: VendorState;
 }
 
-export default VendorRootState ;
+export default VendorRootState;

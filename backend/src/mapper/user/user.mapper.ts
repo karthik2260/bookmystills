@@ -28,14 +28,15 @@ export class UserMapper {
   }
 
   static toProfileDTO(user: UserDocument): ProfileUserDTO {
-  return new ProfileUserDTO({
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    imageUrl: user.imageUrl,
-    contactinfo: user.contactinfo,
-    createdAt: user.createdAt?.toISOString(),
-    updatedAt: user.updatedAt?.toISOString(),
-  });
-}
+    return new ProfileUserDTO({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      imageUrl: user.imageUrl,
+      contactinfo: user.contactinfo,
+      createdAt: user.createdAt?.toISOString(),
+      updatedAt: user.updatedAt?.toISOString(),
+      isActive: user.isActive,
+    });
+  }
 }

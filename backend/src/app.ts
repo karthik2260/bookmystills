@@ -1,5 +1,4 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { connectDB } from './config/connectDatabase';
 import session from 'express-session';
@@ -12,50 +11,54 @@ import userRoutes from './routes/userRoutes';
 import vendorRoutes from './routes/vendorRoutes';
 import adminRoutes from './routes/adminRoutes';
 import morgan from 'morgan';
-import { accessLogStream, errorLogStream } from './config/loggerConfig';
 import helmet from 'helmet';
-dotenv.config();
+import logger from './config/logger';
+import { accessLogStream, errorLogStream } from './config/loggerConfig';
+import { ENV } from './config/env';
 
 export const app = express();
 const server = createServer(app);
 
+app.use(morgan('dev', { stream: accessLogStream }));
+
 app.use(
-  morgan('dev', {
-    stream: accessLogStream,
+  morgan('combined', {
+    stream: errorLogStream,
+    skip: (_, res) => res.statusCode < 400,
   }),
 );
 
 app.use(
   morgan('combined', {
-    stream: errorLogStream,
-    skip: (req, res) => res.statusCode < 400,
+    stream: {
+      write: (message: string) => logger.http(message.trim()),
+    },
   }),
 );
 
+app.use(helmet());
 app.use(cors(corsOption));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '../../Frontend/dist')));
+app.use(express.static(path.join(__dirname, 'build')));
+
 app.use(session(sessionOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors(corsOption));
-app.use(helmet());
 
 app.use('/api/user', userRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/admin', adminRoutes);
 
-app.use(express.static(path.join(__dirname, 'build')));
-
-const PORT = process.env.PORT || 3000;
 connectDB()
   .then(() => {
-    server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    server.listen(ENV.PORT, () => {
+      logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
     });
   })
   .catch((err) => {
-    console.error('Database connection failed', err);
+    logger.error(`Database connection failed: ${err}`);
     process.exit(1);
   });

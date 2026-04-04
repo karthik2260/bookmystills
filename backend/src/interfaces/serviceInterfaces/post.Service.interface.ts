@@ -48,7 +48,7 @@ export interface IPostService {
     page: number,
     search: string,
   ): Promise<{
-    posts: Array<PostDocument | Record<string, unknown>>;
+    posts: Partial<PostDocument>[];
     total: number;
     totalPages: number;
     currentPage: number;

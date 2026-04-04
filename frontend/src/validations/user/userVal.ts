@@ -16,99 +16,98 @@ interface ValidationValues {
 
 export const validate = (values: ValidationValues): ValidationErrors => {
   const errors: ValidationErrors = {
-    name: '',
-    email: '',
-    contactinfo: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    contactinfo: "",
+    password: "",
+    confirmPassword: "",
   };
 
   // Regular expressions
-const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const passwordRegex =
-/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const mobileRegex = /^(91)?0?[6-9]\d{9}$/;
 
   // Name validation
   if (!values.name?.trim()) {
-    errors.name = 'Name is required';
+    errors.name = "Name is required";
   } else if (!/^[A-Za-z\s]+$/i.test(values.name)) {
-    errors.name = 'Should not contain numbers or special characters!';
+    errors.name = "Should not contain numbers or special characters!";
   }
 
   // Email validation
- if (!values.email?.trim()) {
-  errors.email = 'Email is required';
-} else if (!emailRegex.test(values.email)) {
-  errors.email = 'wrong email : Email should contain atleast 4 letters';
-}
+  if (!values.email?.trim()) {
+    errors.email = "Email is required";
+  } else if (!emailRegex.test(values.email)) {
+    errors.email = "wrong email : Email should contain atleast 4 letters";
+  }
 
   // Phone validation
   if (!values.contactinfo?.trim()) {
-    errors.contactinfo = 'Phone is required';
+    errors.contactinfo = "Phone is required";
   } else if (!mobileRegex.test(values.contactinfo)) {
-    errors.contactinfo = 'Invalid mobile number';
+    errors.contactinfo = "Invalid mobile number";
   }
 
   // Password validation
   if (!values.password?.trim()) {
-    errors.password = 'Password is required';
+    errors.password = "Password is required";
   } else if (!passwordRegex.test(values.password)) {
     errors.password =
-      'Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.';
+      "Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.";
   }
 
   // Confirm Password validation
   if (!values.confirmPassword?.trim()) {
-    errors.confirmPassword = 'Confirm Password is required';
+    errors.confirmPassword = "Confirm Password is required";
   } else if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = 'Passwords do not match!';
+    errors.confirmPassword = "Passwords do not match!";
   }
 
   return errors;
 };
 
 export const validateEmail = (
-  values: Pick<ValidationValues, 'email'>
-): Pick<ValidationErrors, 'email'> => {
-  const errors: Pick<ValidationErrors, 'email'> = {
-    email: '',
+  values: Pick<ValidationValues, "email">,
+): Pick<ValidationErrors, "email"> => {
+  const errors: Pick<ValidationErrors, "email"> = {
+    email: "",
   };
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   if (!values.email?.trim()) {
-    errors.email = 'Email is required';
+    errors.email = "Email is required";
   } else if (!emailRegex.test(values.email)) {
-    errors.email = 'Invalid email address';
+    errors.email = "Invalid email address";
   }
 
   return errors;
 };
 
 export const validatePassword = (
-  values: Pick<ValidationValues, 'password' | 'confirmPassword'>
-): Pick<ValidationErrors, 'password' | 'confirmPassword'> => {
-
+  values: Pick<ValidationValues, "password" | "confirmPassword">,
+): Pick<ValidationErrors, "password" | "confirmPassword"> => {
   const errors = {
-    password: '',
-    confirmPassword: '',
+    password: "",
+    confirmPassword: "",
   };
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   if (!values.password?.trim()) {
-    errors.password = 'Password is required';
+    errors.password = "Password is required";
   } else if (!passwordRegex.test(values.password)) {
     errors.password =
-      'Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.';
+      "Password must contain at least 8 characters, including one uppercase, one lowercase, one number, and one special character.";
   }
 
   if (!values.confirmPassword?.trim()) {
-    errors.confirmPassword = 'Confirm Password is required';
+    errors.confirmPassword = "Confirm Password is required";
   } else if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = 'Passwords do not match!';
+    errors.confirmPassword = "Passwords do not match!";
   }
 
   return errors;

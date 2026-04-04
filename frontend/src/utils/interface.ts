@@ -1,9 +1,9 @@
-import { VendorData } from "@/types/vendorTypes";
-import  { UserData } from "@/types/userTypes";
-import { Role } from "./enums";
-import { AxiosInstance } from "axios";
+import type { AxiosInstance } from "axios";
 
+import type { Role } from "./enums";
 
+import type { UserData } from "@/types/userTypes";
+import type { VendorData } from "@/types/vendorTypes";
 
 
 export interface ResetFormValues {
@@ -14,7 +14,7 @@ export interface ResetFormValues {
 export interface IFormValues {
   email: string;
   password: string;
-};
+}
 export interface CarouselNavigationProps {
   setActiveIndex: (index: number) => void;
   activeIndex: number;
@@ -24,30 +24,29 @@ export interface CarouselNavigationProps {
 export interface CarouselArrowProps {
   handlePrev?: () => void;
   handleNext?: () => void;
-};
+}
 
 export interface VendorProps {
-  isVendor?: boolean,
+  isVendor?: boolean;
   vendorDetails: VendorData | null;
-};
+}
 
 export interface ValidationErrors {
   name: string;
   contactinfo: string;
   companyName: string;
-  city: string,
-  about: string,
-  password:string,
-  confirmPassword:string,
-  portfolioImages:string
+  city: string;
+  about: string;
+  password: string;
+  confirmPassword: string;
+  portfolioImages: string;
 }
 
 export interface IUserDetails {
   isOpen: boolean;
   onClose: () => void;
   user: UserData | null;
-  onSave: (data: FormData) => Promise<void>
-
+  onSave: (data: FormData) => Promise<void>;
 }
 
 export interface ProfileFormData {
@@ -66,22 +65,20 @@ export interface ProfileFormData {
   updatedAt?: string;
 }
 
-
 export interface UnifiedCalendarProps {
   isVendor?: boolean;
   vendorDetails?: VendorData | null;
- 
+
   axiosInstance: AxiosInstance;
 }
 
 export interface IValidationErrors {
   name: string;
   contactinfo: string;
-};
-
+}
 
 export interface RevenueChartProps {
-  role:Role
+  role: Role;
 }
 export interface BookingFormData {
   name: string;
@@ -96,8 +93,6 @@ export interface BookingFormData {
   noOfDays: number;
   message: string;
   selectedDate: string;
-  
-
 }
 export interface ValidationError {
   inner?: Array<{ path: string; message: string }>;
@@ -110,17 +105,16 @@ export interface BookingModalProps {
   setBookingForm: React.Dispatch<React.SetStateAction<BookingFormData>>;
   onSubmit: (e: React.FormEvent, formData?: BookingFormData) => Promise<void>;
   selectedDate: string;
- 
+
   unavailableDates: string[];
   onDateSelect: (date: Date) => void;
-};
+}
 
 export interface VendorDetails {
   isOpen: boolean;
   onClose: () => void;
   vendor: VendorData | null;
-  onSave: (data: FormData) => Promise<void>
-
+  onSave: (data: FormData) => Promise<void>;
 }
 
 export interface IProfileFormData {

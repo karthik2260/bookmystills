@@ -1,5 +1,6 @@
-import * as yup from 'yup';
-import { ServiceProvided } from '@/types/postTypes';
+import * as yup from "yup";
+
+import { ServiceProvided } from "@/types/postTypes";
 
 // Types
 export interface ValidationResult {
@@ -7,21 +8,20 @@ export interface ValidationResult {
   errors: Record<string, string>;
 }
 
-export type PaymentStatus = 'pending' | 'completed' | 'overdue';
+export type PaymentStatus = "pending" | "completed" | "overdue";
 
 export enum BookingAcceptanceStatus {
-  Requested = 'requested',
-  Accepted = 'accepted',
-  Rejected = 'rejected',
-  Revoked = 'revoked',
-  PaymentOverdue = 'overdue'
-
+  Requested = "requested",
+  Accepted = "accepted",
+  Rejected = "rejected",
+  Revoked = "revoked",
+  PaymentOverdue = "overdue",
 }
 
 export type PaymentDetails = {
   amount: number;
   status: PaymentStatus;
-  paidAt?: string;  // Using string for dates in frontend
+  paidAt?: string; // Using string for dates in frontend
 };
 
 export type Booking = {
@@ -57,25 +57,22 @@ export type Booking = {
     features: string[];
     photographerCount: number;
     price: number;
-    
-
   };
   createdAt: string;
   updatedAt: string;
   venue: string;
   bookingReqId?: string;
   customizations: string[];
-  advancePaymentDueDate?: string;  // Using string for dates in frontend
+  advancePaymentDueDate?: string; // Using string for dates in frontend
   advancePayment?: PaymentDetails;
 };
-
 
 export interface BookingFormData {
   name: string;
   phone: string;
   email: string;
   venue: string;
-  serviceType: ServiceProvided | '';
+  serviceType: ServiceProvided | "";
   noOfDays: number;
   packageId: string;
   totalPrice: number;
@@ -88,19 +85,19 @@ export interface BookingFormData {
 const hasUnavailableDates = (
   startDate: Date,
   numberOfDays: number,
-  unavailableDates: string[]
+  unavailableDates: string[],
 ): boolean => {
   const dates: string[] = [];
   for (let i = 0; i < numberOfDays; i++) {
     const currentDate = new Date(startDate);
     currentDate.setDate(startDate.getDate() + i);
-    dates.push(currentDate.toLocaleDateString('en-GB'));
+    dates.push(currentDate.toLocaleDateString("en-GB"));
   }
-  return dates.some(date => unavailableDates.includes(date));
+  return dates.some((date) => unavailableDates.includes(date));
 };
 
 const parseDate = (dateString: string): Date => {
-  const [day, month, year] = dateString.split('/').map(Number);
+  const [day, month, year] = dateString.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
 
@@ -109,87 +106,76 @@ export const createBookingValidationSchema = (unavailableDates: string[]) => {
   return yup.object().shape({
     name: yup
       .string()
-      .required('Name is required')
-      .min(2, 'Name must be at least 2 characters')
-      .max(50, 'Name must not exceed 50 characters')
-      .matches(/^[a-zA-Z\s]*$/, 'Name can only contain letters and spaces'),
+      .required("Name is required")
+      .min(2, "Name must be at least 2 characters")
+      .max(50, "Name must not exceed 50 characters")
+      .matches(/^[a-zA-Z\s]*$/, "Name can only contain letters and spaces"),
 
     email: yup
       .string()
-      .required('Email is required')
-      .email('Please enter a valid email address'),
+      .required("Email is required")
+      .email("Please enter a valid email address"),
 
     phone: yup
       .string()
-      .required('Phone number is required')
-      .matches(/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number'),
+      .required("Phone number is required")
+      .matches(/^[0-9]{10}$/, "Please enter a valid 10-digit phone number"),
 
     venue: yup
       .string()
-      .required('Venue is required')
-      .min(3, 'Venue must be at least 3 characters')
-      .max(100, 'Venue must not exceed 100 characters'),
+      .required("Venue is required")
+      .min(3, "Venue must be at least 3 characters")
+      .max(100, "Venue must not exceed 100 characters"),
 
     message: yup
       .string()
-      .required('Message is required')
-      .min(10, 'Message must be at least 10 characters')
-      .max(500, 'Message must not exceed 500 characters'),
+      .required("Message is required")
+      .min(10, "Message must be at least 10 characters")
+      .max(500, "Message must not exceed 500 characters"),
 
     serviceType: yup
       .string()
-      .required('Please select an event type')
+      .required("Please select an event type")
       .oneOf(
         Object.values(ServiceProvided),
-        'Please select a valid event type'
+        "Please select a valid event type",
       ),
 
-    packageId: yup
-      .string()
-      .required('Please select a package'),
+    packageId: yup.string().required("Please select a package"),
 
     totalPrice: yup
       .number()
-      .required('Total price is required')
-      .positive('Total price must be a positive number'),
-
+      .required("Total price is required")
+      .positive("Total price must be a positive number"),
 
     selectedDate: yup
       .string()
-      .required('Please select a date')
-      .test(
-        'is-valid-date',
-        'Please select a valid date',
-        (value) => {
-          if (!value) return false;
-          const date = parseDate(value);
-          return date >= new Date(new Date().setHours(0, 0, 0, 0));
-        }
-      )
-      .test(
-        'is-available-date',
-        'Selected date is not available',
-        (value) => {
-          if (!value) return false;
-          return !unavailableDates.includes(value);
-        }
-      ),
+      .required("Please select a date")
+      .test("is-valid-date", "Please select a valid date", (value) => {
+        if (!value) return false;
+        const date = parseDate(value);
+        return date >= new Date(new Date().setHours(0, 0, 0, 0));
+      })
+      .test("is-available-date", "Selected date is not available", (value) => {
+        if (!value) return false;
+        return !unavailableDates.includes(value);
+      }),
 
     noOfDays: yup
       .number()
-      .required('Number of days is required')
-      .min(1, 'Minimum booking duration is 1 day')
-      .max(2, 'Maximum booking duration is 2 days')
+      .required("Number of days is required")
+      .min(1, "Minimum booking duration is 1 day")
+      .max(2, "Maximum booking duration is 2 days")
       .test(
-        'consecutive-days-available',
-        'Selected duration includes unavailable dates',
+        "consecutive-days-available",
+        "Selected duration includes unavailable dates",
         function (value) {
           const selectedDate = this.parent.selectedDate;
           if (!selectedDate || !value) return false;
 
           const startDate = parseDate(selectedDate);
           return !hasUnavailableDates(startDate, value, unavailableDates);
-        }
+        },
       ),
   });
 };
@@ -198,21 +184,26 @@ export const createBookingValidationSchema = (unavailableDates: string[]) => {
 export const useBookingValidation = (unavailableDates: string[]) => {
   const validationSchema = createBookingValidationSchema(unavailableDates);
 
-  const validateForm = async (formData: BookingFormData): Promise<ValidationResult> => {
+  const validateForm = async (
+    formData: BookingFormData,
+  ): Promise<ValidationResult> => {
     try {
       await validationSchema.validate(formData, { abortEarly: false });
       return { isValid: true, errors: {} };
     } catch (err) {
       if (err instanceof yup.ValidationError) {
-        const errors = err.inner.reduce((acc, error) => {
-          if (error.path) {
-            acc[error.path] = error.message;
-          }
-          return acc;
-        }, {} as Record<string, string>);
+        const errors = err.inner.reduce(
+          (acc, error) => {
+            if (error.path) {
+              acc[error.path] = error.message;
+            }
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
         return { isValid: false, errors };
       }
-      return { isValid: false, errors: { form: 'Validation failed' } };
+      return { isValid: false, errors: { form: "Validation failed" } };
     }
   };
 

@@ -1,86 +1,36 @@
-import {
-  VendorProfileResponseDTO,
-  VendorResponseDTO,
-  VendorSignupResponseDTO,
-  VendorUpdateProfileResponseDTO,
-} from '../dto/vendorDTO';
 import { VendorDocument } from '../models/vendorModel';
-
+import { VendorLoginResponseDTO } from '../dto/vendor/auth/response/vendor.login.response.dto';
+import { VendorProfileResponseDTO } from '../dto/vendor/profile/vendor.profile.response.dto';
 export const VendorMapper = {
-  toSignupResponseDTO(vendor: VendorDocument): VendorSignupResponseDTO {
-    return {
+  toLoginResponseDTO(vendor: VendorDocument): VendorLoginResponseDTO {
+    return new VendorLoginResponseDTO({
       id: vendor._id.toString(),
-      email: vendor.email,
       name: vendor.name,
-      contactinfo: vendor.contactinfo,
-      city: vendor.city,
-      companyName: vendor.companyName,
-      about: vendor.about,
+      email: vendor.email,
+      imageUrl: vendor.imageUrl,
       isActive: vendor.isActive,
-      isVerified: vendor.isVerified,
       isAccepted: vendor.isAccepted,
-    };
-  },
-
-  toLoginResponseDTO(vendor: VendorDocument | any): VendorResponseDTO {
-    return {
-      _id: vendor._id?.toString() ?? vendor.id, // ← handle both
-      email: vendor.email,
-      name: vendor.name,
-      companyName: vendor.companyName,
-      city: vendor.city,
-      about: vendor.about,
-      contactinfo: vendor.contactinfo,
-      isActive: vendor.isActive,
       isVerified: vendor.isVerified,
-      isAccepted: vendor.isAccepted, // ← critical
-      logo: vendor.logo || '',
-      imageUrl: vendor.imageUrl || '',
-      totalBooking: vendor.totalBooking ?? 0,
-      postCount: vendor.postCount ?? 0,
-      totalRating: vendor.totalRating ?? 0,
-      walletBalance: vendor.walletBalance ?? 0,
-      rejectionReason: vendor.rejectionReason ?? null,
-      reapplyCount: vendor.reapplyCount ?? 0,
-    };
+    });
   },
 
   toVendorProfileResponse(vendor: VendorDocument): VendorProfileResponseDTO {
-    // Convert to plain object to access all properties including timestamps
-    const vendorObj = vendor.toObject();
-
-    return {
-      _id: vendor._id.toString(),
-      email: vendor.email,
+    return new VendorProfileResponseDTO({
+      id: vendor._id.toString(),
       name: vendor.name,
-      companyName: vendor.companyName,
-      city: vendor.city,
-      about: vendor.about,
-      contactinfo: vendor.contactinfo,
+      email: vendor.email,
       imageUrl: vendor.imageUrl,
-      isVerified: vendor.isVerified,
-
-      createdAt: vendor.createdAt,
-      updatedAt: vendor.updatedAt,
-    };
-  },
-
-  toUpdateProfileResponse(
-    vendor: VendorDocument,
-    signedImageUrl?: string,
-  ): VendorUpdateProfileResponseDTO {
-    return {
-      _id: vendor._id.toString(),
-      name: vendor.name,
-      email: vendor.email,
       companyName: vendor.companyName,
       city: vendor.city,
       about: vendor.about,
       contactinfo: vendor.contactinfo,
-      imageUrl: signedImageUrl ?? vendor.imageUrl, // ✅ IMPORTANT
+      isActive: vendor.isActive,
       isVerified: vendor.isVerified,
-      createdAt: vendor.createdAt,
-      updatedAt: vendor.updatedAt,
-    };
+      isAccepted: vendor.isAccepted,
+      totalRating: vendor.totalRating,
+      totalBooking: vendor.totalBooking,
+      createdAt: vendor.createdAt.toISOString(),
+      updatedAt: vendor.updatedAt.toISOString(),
+    });
   },
 };

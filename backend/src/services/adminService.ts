@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { CustomError } from '../error/customError';
-import { AdminLoginResponse } from '../interfaces/commonInterfaces';
 import { IAdminService } from '../interfaces/serviceInterfaces/admin.Service.interface';
 import { IAdminRepository } from '../interfaces/repositoryInterfaces/admin.Repository.interface';
 import { createAccessToken, isTokenExpiringSoon } from '../config/jwt.config';
 import HTTP_statusCode from '../enums/httpStatusCode';
 import { AuthRole } from '../enums/commonEnums';
+import { AdminMapper } from '../mapper/admin/admin.mapper';
+import { AdminLoginResponseDTO } from '../dto/admin/auth/response/admin.response.dto';
 
 class AdminService implements IAdminService {
   private adminRepository: IAdminRepository;
@@ -14,13 +15,14 @@ class AdminService implements IAdminService {
     this.adminRepository = adminRepository;
   }
 
-  login = async (email: string, password: string): Promise<AdminLoginResponse> => {
+  login = async (email: string, password: string): Promise<AdminLoginResponseDTO> => {
     try {
       const existingAdmin = await this.adminRepository.findByEmail(email);
 
       if (!existingAdmin) {
         throw new CustomError('Admin not exist!..', HTTP_statusCode.NotFound);
       }
+
       if (password !== existingAdmin.password) {
         throw new CustomError('Incorrect Password', HTTP_statusCode.Unauthorized);
       }
@@ -28,28 +30,29 @@ class AdminService implements IAdminService {
       const token = createAccessToken(existingAdmin._id.toString(), AuthRole.ADMIN);
 
       let { refreshToken } = existingAdmin;
+
       if (!refreshToken || isTokenExpiringSoon(refreshToken)) {
         refreshToken = jwt.sign({ _id: existingAdmin._id }, process.env.JWT_REFRESH_SECRET_KEY!, {
           expiresIn: '7d',
         });
+
         existingAdmin.refreshToken = refreshToken;
         await existingAdmin.save();
       }
 
+      const adminDTO = AdminMapper.toLoginDTO(existingAdmin);
+
       return {
         token,
         refreshToken,
-        adminData: existingAdmin,
-        message: 'Succesfully logged in',
+        admin: adminDTO,
+        message: 'Successfully logged in',
       };
     } catch (error) {
-      if (error instanceof CustomError) {
-        throw error;
-      }
+      if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to login', HTTP_statusCode.InternalServerError);
     }
   };
-
   createRefreshToken = async (jwtTokenAdmin: string): Promise<string> => {
     try {
       const decodedToken = jwt.verify(jwtTokenAdmin, process.env.JWT_REFRESH_SECRET_KEY!) as {

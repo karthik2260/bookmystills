@@ -1,7 +1,6 @@
-import {Typography} from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
 
 const HeroBannerVendor = () => {
-  
   return (
     <>
       <div className="relative flex h-screen content-center items-center justify-center pt-16 pb-32 m-0">
@@ -28,14 +27,16 @@ const HeroBannerVendor = () => {
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}
               >
-                Each event is an opportunity for you to shine. Let’s build something extraordinary together, turning every occasion into a masterpiece.
+                Each event is an opportunity for you to shine. Let’s build
+                something extraordinary together, turning every occasion into a
+                masterpiece.
               </Typography>
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default HeroBannerVendor
+export default HeroBannerVendor;

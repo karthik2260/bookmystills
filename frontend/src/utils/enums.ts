@@ -1,22 +1,29 @@
 export const TABS = [
-    {
-        label: "All",
-        value: "all",
-    },
-    {
-        label: "Active",
-        value: "active",
-    },
-    {
-        label: "Inactive",
-        value: "inactive",
-    },
+  {
+    label: "All",
+    value: "all",
+  },
+  {
+    label: "Active",
+    value: "active",
+  },
+  {
+    label: "Inactive",
+    value: "inactive",
+  },
 ];
 
-export const USER_TABLE_HEAD = ["UserName", "Mobile",  "Joined-At",'Google', "Status", "Actions"];
+export const USER_TABLE_HEAD = [
+  "UserName",
+  "Mobile",
+  "Joined-At",
+  "Google",
+  "Status",
+  "Actions",
+];
 
 export enum Role {
-    Admin = 'admin',
-    Vendor = 'vendor',
-    User = 'user'
+  Admin = "admin",
+  Vendor = "vendor",
+  User = "user",
 }

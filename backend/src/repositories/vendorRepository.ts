@@ -4,10 +4,10 @@ import mongoose, { Document } from 'mongoose';
 import { CustomError } from '../error/customError';
 import { IVendorRepository } from '../interfaces/repositoryInterfaces/vendor.Repository.interface';
 import HTTP_statusCode from '../enums/httpStatusCode';
-import { FindAllVendorsResult, VendorDetailsWithAll } from '../interfaces/commonInterfaces';
+import { VendorDetailsWithAll } from '../interfaces/commonInterfaces';
 import Post, { PostDocument } from '../models/postModel';
 
-type VendorDocumentWithId = Document<unknown, {}, VendorDocument> &
+type VendorDocumentWithId = Document<unknown, VendorDocument> &
   VendorDocument &
   Required<{ _id: mongoose.Types.ObjectId }> & { __v?: number };
 
@@ -35,45 +35,41 @@ class VendorRepository extends BaseRepository<VendorDocument> implements IVendor
     }
   };
   findAllVendors = async (page: number, limit: number, search: string, status?: string) => {
-    try {
-      const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-      const query: { [key: string]: any } = {};
+    const query: Record<string, unknown> = {};
 
-      if (search) {
-        query.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { companyName: { $regex: search, $options: 'i' } },
-        ];
-      }
-
-      if (status === 'accepted') {
-        query.isAccepted = 'accepted';
-      } else if (status === 'requested') {
-        query.isAccepted = 'requested';
-      } else if (status === 'rejected') {
-        query.isAccepted = 'rejected';
-      } else if (status === 'reapplied') {
-        query.isAccepted = 'reapplied';
-      }
-
-      const total = await Vendor.countDocuments(query);
-
-      const vendors = await Vendor.find(query)
-        .skip(skip)
-        .limit(limit)
-        .select('-password')
-        .sort({ createdAt: -1 });
-
-      return {
-        vendors,
-        total,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (error) {
-      throw error;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { companyName: { $regex: search, $options: 'i' } },
+      ];
     }
+
+    if (status === 'accepted') {
+      query.isAccepted = 'accepted';
+    } else if (status === 'requested') {
+      query.isAccepted = 'requested';
+    } else if (status === 'rejected') {
+      query.isAccepted = 'rejected';
+    } else if (status === 'reapplied') {
+      query.isAccepted = 'reapplied';
+    }
+
+    const total = await Vendor.countDocuments(query);
+
+    const vendors = await Vendor.find(query)
+      .skip(skip)
+      .limit(limit)
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    return {
+      vendors,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   };
 
   getAllPopulate = async (vendorId: string): Promise<VendorDetailsWithAll> => {

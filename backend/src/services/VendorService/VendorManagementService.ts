@@ -8,6 +8,7 @@ import HTTP_statusCode from '../../enums/httpStatusCode';
 import { s3Service } from '../s3Service';
 import { PostDocument } from '../../models/postModel';
 import { IVendorManagementService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorManagement.interface';
+import { VendorDocument } from '../../models/vendorModel';
 
 export class VendorManagementService implements IVendorManagementService {
   private vendorRepository: IVendorRepository;
@@ -30,46 +31,46 @@ export class VendorManagementService implements IVendorManagementService {
           if (!vendor) return undefined;
 
           try {
-            const vendorObj = (vendor as any).toObject ? (vendor as any).toObject() : { ...vendor };
+            const vendorDoc = vendor as VendorDocument;
 
-            if (vendorObj.imageUrl && vendorObj.imageUrl !== '') {
+            if (vendorDoc.imageUrl && vendorDoc.imageUrl !== '') {
               try {
-                vendorObj.imageUrl = await s3Service.getFile(
+                vendorDoc.imageUrl = await s3Service.getFile(
                   'bookmystills-karthik-gopakumar/vendor/photo/',
-                  vendorObj.imageUrl,
+                  vendorDoc.imageUrl,
                 );
               } catch (error) {
-                console.error(`Error signing profile image:`, error);
+                console.error('Error signing profile image:', error);
               }
             }
 
-            if (vendorObj.portfolioImages && vendorObj.portfolioImages.length > 0) {
+            if (vendorDoc.portfolioImages && vendorDoc.portfolioImages.length > 0) {
               try {
-                vendorObj.portfolioImages = await Promise.all(
-                  vendorObj.portfolioImages.map((key: string) =>
+                vendorDoc.portfolioImages = await Promise.all(
+                  vendorDoc.portfolioImages.map((key: string) =>
                     s3Service.getFile('bookmystills-karthik-gopakumar/vendor/portfolio/', key),
                   ),
                 );
               } catch (error) {
-                console.error(`Error signing portfolio images:`, error);
+                console.error('Error signing portfolio images:', error);
               }
             }
 
-            if (vendorObj.aadharImages && vendorObj.aadharImages.length > 0) {
+            if (vendorDoc.aadharImages && vendorDoc.aadharImages.length > 0) {
               try {
-                vendorObj.aadharImages = await Promise.all(
-                  vendorObj.aadharImages.map((key: string) =>
+                vendorDoc.aadharImages = await Promise.all(
+                  vendorDoc.aadharImages.map((key: string) =>
                     s3Service.getFile('bookmystills-karthik-gopakumar/vendor/aadhar/', key),
                   ),
                 );
               } catch (error) {
-                console.error(`Error signing aadhar images:`, error);
+                console.error('Error signing aadhar images:', error);
               }
             }
 
-            return vendorObj;
+            return vendorDoc;
           } catch (error) {
-            console.error(`Error processing vendor:`, error);
+            console.error('Error processing vendor:', error);
             return vendor;
           }
         }),

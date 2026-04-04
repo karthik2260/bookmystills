@@ -1,24 +1,30 @@
-import UserNavbar from '../../layout/user/navbar';
-import VendorDetails from '../../components/common/vendorDetails';
-import Footer from '../../layout/user/footer';
-import { useCallback, useEffect, useState } from 'react';
-import { PostData, ServiceProvided } from '../../types/postTypes';
-import { useParams } from 'react-router-dom';
-import { Pagination } from '@nextui-org/react';
-import { PostCard } from '../../components/user/PostCard';
-import { PostModal } from '../../components/user/PostModal';
-import { VendorData } from '../../types/vendorTypes';
-import { AxiosError } from 'axios';
-import { showToastMessage } from '@/validations/common/toast';
-import { ServiceTabs } from '@/components/common/ServiceTabs';
-import { fetchVendorPortfolioApi } from '@/services/Vendorportfolioapi';
+import { Pagination } from "@nextui-org/react";
+import { AxiosError } from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import VendorDetails from "../../components/common/vendorDetails";
+import { PostCard } from "../../components/user/PostCard";
+import { PostModal } from "../../components/user/PostModal";
+import Footer from "../../layout/user/footer";
+import UserNavbar from "../../layout/user/navbar";
+import type { PostData} from "../../types/postTypes";
+import { ServiceProvided } from "../../types/postTypes";
+import type { VendorData } from "../../types/vendorTypes";
+
+
+import { ServiceTabs } from "@/components/common/ServiceTabs";
+import { fetchVendorPortfolioApi } from "@/services/Vendorportfolioapi";
+import { showToastMessage } from "@/validations/common/toast";
 const VendorPorfolio = () => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
-  const [selectedService, setSelectedService] = useState<ServiceProvided>(ServiceProvided.Engagement);
+  const [selectedService, setSelectedService] = useState<ServiceProvided>(
+    ServiceProvided.Engagement,
+  );
   const [vendor, setVendor] = useState<VendorData | null>(null);
   const POSTS_PER_PAGE = 3;
   const { vendorId } = useParams();
@@ -35,20 +41,25 @@ const VendorPorfolio = () => {
       setPosts(result.posts);
       if (result.vendor) setVendor(result.vendor);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error("Error fetching posts:", error);
       if (error instanceof AxiosError) {
-        showToastMessage(error.response?.data.message, 'error');
+        showToastMessage(error.response?.data.message, "error");
       } else {
-        showToastMessage('Failed to load post', 'error');
+        showToastMessage("Failed to load post", "error");
       }
     } finally {
       setIsLoading(false);
     }
   }, [vendorId]);
 
-  const filteredPosts = posts.filter(post => post.serviceType === selectedService);
+  const filteredPosts = posts.filter(
+    (post) => post.serviceType === selectedService,
+  );
   const totalFilteredPosts = filteredPosts.length;
-  const totalPages = Math.max(1, Math.ceil(totalFilteredPosts / POSTS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalFilteredPosts / POSTS_PER_PAGE),
+  );
   const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
   const endIndex = startIndex + POSTS_PER_PAGE;
   const currentPosts = filteredPosts.slice(startIndex, endIndex);
@@ -75,7 +86,9 @@ const VendorPorfolio = () => {
         <ServiceTabs
           services={Object.values(ServiceProvided)}
           selectedService={selectedService}
-          onServiceChange={(service) => handleServiceChange(service as ServiceProvided)}
+          onServiceChange={(service) =>
+            handleServiceChange(service as ServiceProvided)
+          }
         />
 
         {isLoading ? (
@@ -84,7 +97,9 @@ const VendorPorfolio = () => {
           </div>
         ) : currentPosts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No posts found for {selectedService}</p>
+            <p className="text-xl text-gray-600">
+              No posts found for {selectedService}
+            </p>
             <p className="text-gray-500 mt-2">Check back later for updates</p>
           </div>
         ) : (

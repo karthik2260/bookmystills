@@ -1,7 +1,6 @@
 import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.Repository.interface';
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
-import { VendorDocument } from '../../models/vendorModel';
 import { IVendorAvailabilityService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorAvailability.interface';
 
 export class VendorAvailabilityService implements IVendorAvailabilityService {
@@ -70,11 +69,16 @@ export class VendorAvailabilityService implements IVendorAvailabilityService {
     }
   };
 
-  showDates = async (vendorId: string): Promise<VendorDocument | null> => {
+  showDates = async (vendorId: string): Promise<string[]> => {
     try {
-      return await this.vendorRepository.getById(vendorId);
+      const vendor = await this.vendorRepository.getById(vendorId);
+      if (!vendor) {
+        throw new CustomError('Vendor not found', HTTP_statusCode.NotFound);
+      }
+      return vendor.bookedDates || [];
     } catch (error) {
       console.error('Error in showUnavailable dates:', error);
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
         'Failed to get dates from database',
         HTTP_statusCode.InternalServerError,

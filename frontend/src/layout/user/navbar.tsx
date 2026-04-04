@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Navbar,
   NavbarBrand,
@@ -13,21 +12,30 @@ import {
   DropdownItem,
   Avatar,
 } from "@nextui-org/react";
-import { LogOut, User, ChevronDown, Aperture, ArrowUpRight } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../redux/slices/UserSlice';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { USER } from '../../config/constants/constants';
-import { showToastMessage } from '../../validations/common/toast';
-import UserRootState from '@/redux/rootstate/UserState';
-import { logoutUser } from '@/services/userAuthService';
+import {
+  LogOut,
+  User,
+  ChevronDown,
+  Aperture,
+  ArrowUpRight,
+} from "lucide-react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { USER } from "../../config/constants/constants";
+import { logout } from "../../redux/slices/UserSlice";
+import { showToastMessage } from "../../validations/common/toast";
+
+import type UserRootState from "@/redux/rootstate/UserState";
+import { logoutUser } from "@/services/userAuthService";
 
 const NAV_LINKS = [
-  { label: 'Home',     to: USER.HOME },
-  { label: 'Post',     to: USER.POST },
-  { label: 'Vendors',  to: USER.VENDORLIST },
-  { label: 'Bookings', to: USER.BOOKING },
-  { label: 'About Us', to: USER.ABOUT_US },
+  { label: "Home", to: USER.HOME },
+  { label: "Post", to: USER.POST },
+  { label: "Vendors", to: USER.VENDORLIST },
+  { label: "Bookings", to: USER.BOOKING },
+  { label: "About Us", to: USER.ABOUT_US },
 ];
 
 export default function UserNavbar() {
@@ -41,20 +49,20 @@ export default function UserNavbar() {
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = async () => {
     setIsLoading(true);
     try {
       await logoutUser();
-      localStorage.removeItem('userToken');
+      localStorage.removeItem("userToken");
       dispatch(logout());
       navigate(USER.LOGIN);
-      showToastMessage('Logged out successfully', 'success');
+      showToastMessage("Logged out successfully", "success");
     } catch {
-      showToastMessage('Error during logout', 'error');
+      showToastMessage("Error during logout", "error");
     } finally {
       setIsLoading(false);
     }
@@ -245,14 +253,14 @@ export default function UserNavbar() {
       <Navbar
         onMenuOpenChange={setIsMenuOpen}
         isMenuOpen={isMenuOpen}
-        className={`lw-nav ${scrolled ? 'scrolled' : ''}`}
+        className={`lw-nav ${scrolled ? "scrolled" : ""}`}
         maxWidth="xl"
         height="64px"
       >
         {/* Mobile toggle */}
         <NavbarContent className="sm:hidden" justify="start">
           <NavbarMenuToggle
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             className="text-black/40 hover:text-black/70 transition-colors"
           />
         </NavbarContent>
@@ -263,7 +271,8 @@ export default function UserNavbar() {
             <Aperture className="w-4 h-4 text-white" strokeWidth={1.75} />
           </div>
           <span className="lw-brand">
-            BookMystills<span className="lw-brand-dot" />
+            BookMystills
+            <span className="lw-brand-dot" />
           </span>
         </NavbarBrand>
 
@@ -271,7 +280,10 @@ export default function UserNavbar() {
         <NavbarContent className="hidden sm:flex gap-8" justify="center">
           {NAV_LINKS.map(({ label, to }) => (
             <NavbarItem key={label}>
-              <Link to={to} className={`lw-link ${isActive(to) ? 'active' : ''}`}>
+              <Link
+                to={to}
+                className={`lw-link ${isActive(to) ? "active" : ""}`}
+              >
                 {isActive(to) && <span className="lw-active-badge" />}
                 {label}
               </Link>
@@ -286,37 +298,47 @@ export default function UserNavbar() {
               <button className="lw-pill">
                 <Avatar
                   size="sm"
-                  src={user?.imageUrl || '/images/user.png'}
+                  src={user?.imageUrl || "/images/user.png"}
                   classNames={{
-                    base: 'w-[27px] h-[27px] border-[1.5px] border-black/10',
+                    base: "w-[27px] h-[27px] border-[1.5px] border-black/10",
                   }}
                 />
                 <span className="lw-pill-name hidden sm:block">
-                  {user?.name?.split(' ')[0] || 'Account'}
+                  {user?.name?.split(" ")[0] || "Account"}
                 </span>
-                <ChevronDown size={12} strokeWidth={2.5} className="text-black/25 hidden sm:block" />
+                <ChevronDown
+                  size={12}
+                  strokeWidth={2.5}
+                  className="text-black/25 hidden sm:block"
+                />
               </button>
             </DropdownTrigger>
 
-            <DropdownMenu aria-label="User menu" classNames={{ base: 'lw-panel' }}>
-
+            <DropdownMenu
+              aria-label="User menu"
+              classNames={{ base: "lw-panel" }}
+            >
               {/* User tile */}
               <DropdownItem
-                key="info" isReadOnly textValue="user"
+                key="info"
+                isReadOnly
+                textValue="user"
                 className="p-0 mb-1 opacity-100 cursor-default data-[hover=true]:bg-transparent"
               >
                 <div className="lw-user-tile flex items-center gap-3">
                   <Avatar
                     size="sm"
-                    src={user?.imageUrl || '/images/user.png'}
-                    classNames={{ base: 'w-9 h-9 shrink-0 border border-black/10' }}
+                    src={user?.imageUrl || "/images/user.png"}
+                    classNames={{
+                      base: "w-9 h-9 shrink-0 border border-black/10",
+                    }}
                   />
                   <div className="min-w-0">
                     <p className="text-[#0f0f0f] text-[0.82rem] font-semibold leading-snug truncate">
-                      {user?.name || 'My Account'}
+                      {user?.name || "My Account"}
                     </p>
                     <p className="text-[#b0b0b0] text-[0.69rem] mt-0.5 truncate">
-                      {user?.email || ''}
+                      {user?.email || ""}
                     </p>
                   </div>
                 </div>
@@ -325,7 +347,9 @@ export default function UserNavbar() {
               <DropdownItem
                 key="profile"
                 className="lw-dd"
-                startContent={<User size={13} strokeWidth={2} className="text-black/35" />}
+                startContent={
+                  <User size={13} strokeWidth={2} className="text-black/35" />
+                }
                 onPress={() => navigate(USER.PROFILE)}
                 textValue="Profile"
               >
@@ -333,7 +357,9 @@ export default function UserNavbar() {
               </DropdownItem>
 
               <DropdownItem
-                key="sep" isReadOnly textValue="-"
+                key="sep"
+                isReadOnly
+                textValue="-"
                 className="h-px bg-black/[0.06] p-0 min-h-0 my-1 rounded-none"
               />
 
@@ -344,7 +370,7 @@ export default function UserNavbar() {
                 onPress={handleLogout}
                 textValue="Sign Out"
               >
-                {isLoading ? 'Signing out…' : 'Sign Out'}
+                {isLoading ? "Signing out…" : "Sign Out"}
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -356,13 +382,13 @@ export default function UserNavbar() {
             <NavbarMenuItem key={label}>
               <Link
                 to={to}
-                className={`lw-mlink ${isActive(to) ? 'active' : ''}`}
+                className={`lw-mlink ${isActive(to) ? "active" : ""}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span>{label}</span>
                 <ArrowUpRight
                   size={18}
-                  className={isActive(to) ? 'text-[#e8441a]' : 'text-black/15'}
+                  className={isActive(to) ? "text-[#e8441a]" : "text-black/15"}
                 />
               </Link>
             </NavbarMenuItem>
@@ -374,19 +400,23 @@ export default function UserNavbar() {
               <div className="flex items-center gap-3">
                 <Avatar
                   size="sm"
-                  src={user?.imageUrl || '/images/user.png'}
-                  classNames={{ base: 'border border-black/10' }}
+                  src={user?.imageUrl || "/images/user.png"}
+                  classNames={{ base: "border border-black/10" }}
                 />
                 <div>
-                  <p className="text-[#0f0f0f] text-[0.82rem] font-medium">{user?.name || 'My Account'}</p>
-                  <p className="text-[#b0b0b0] text-[0.68rem]">{user?.email || ''}</p>
+                  <p className="text-[#0f0f0f] text-[0.82rem] font-medium">
+                    {user?.name || "My Account"}
+                  </p>
+                  <p className="text-[#b0b0b0] text-[0.68rem]">
+                    {user?.email || ""}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={handleLogout}
                 className="text-[#e8441a] text-[0.68rem] uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity font-semibold"
               >
-                {isLoading ? '…' : 'Sign out'}
+                {isLoading ? "…" : "Sign out"}
               </button>
             </div>
           </NavbarMenuItem>

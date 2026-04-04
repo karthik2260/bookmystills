@@ -15,8 +15,8 @@ import { AuthRole } from '../../enums/commonEnums';
 import { IUserAuthService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserAuth.service.interface';
 import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto';
 import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
-import { LoginResponseDTO } from '../../dto/user/auth/response/login.response.dto';
-import { UserDocument } from '../../models/userModel';
+import { LoginServiceResult } from '../../dto/user/auth/response/login.service.result';
+import logger from '../../config/logger';
 
 export class UserAuthService implements IUserAuthService {
   private userRepository: IUserRepository;
@@ -54,7 +54,7 @@ export class UserAuthService implements IUserAuthService {
       const newOtp = await generateOTP(email);
       return newOtp as string;
     } catch (error) {
-      console.error('Error in resendNewOtp:', error);
+      logger.error('Error in resendNewOtp:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -65,9 +65,7 @@ export class UserAuthService implements IUserAuthService {
     }
   };
 
-  login = async (
-    loginDto: LoginRequestDTO,
-  ): Promise<LoginResponseDTO & { refreshToken: string }> => {
+  login = async (loginDto: LoginRequestDTO): Promise<LoginServiceResult> => {
     try {
       const { email, password } = loginDto;
 
@@ -80,22 +78,21 @@ export class UserAuthService implements IUserAuthService {
       if (!passwordMatch) {
         throw new CustomError('Incorrect Password', HTTP_statusCode.Unauthorized);
       }
+
       if (!existingUser.isActive) {
         throw new CustomError('Blocked by Admin', HTTP_statusCode.NoAccess);
       }
 
-      // S3 signed URL
-      let userWithSignedUrl = existingUser.toObject();
-      if (existingUser?.imageUrl) {
+      if (existingUser.imageUrl) {
         try {
-          const signedImageUrl = await s3Service.getFile('photo/', existingUser.imageUrl);
-          userWithSignedUrl = { ...userWithSignedUrl, imageUrl: signedImageUrl };
+          existingUser.imageUrl = await s3Service.getFile('photo/', existingUser.imageUrl);
         } catch (error) {
-          console.error('Error generating signed URL during login:', error);
+          logger.error('Error generating signed URL during login:', error);
         }
       }
 
       const token = createAccessToken(existingUser._id.toString(), AuthRole.USER);
+
       let { refreshToken } = existingUser;
       if (!refreshToken || isTokenExpiringSoon(refreshToken)) {
         refreshToken = createRefreshToken(existingUser._id.toString());
@@ -103,12 +100,10 @@ export class UserAuthService implements IUserAuthService {
         await existingUser.save();
       }
 
-      const userDTO = UserMapper.toLoginDTO(userWithSignedUrl as UserDocument);
-
       return {
         token,
         refreshToken,
-        user: userDTO,
+        user: UserMapper.toLoginDTO(existingUser), // ✅ mapper in service
         message: 'Successfully Logged in',
       };
     } catch (error) {
@@ -116,7 +111,6 @@ export class UserAuthService implements IUserAuthService {
       throw new CustomError('Failed to login', HTTP_statusCode.InternalServerError);
     }
   };
-
   create_RefreshToken = async (refreshToken: string): Promise<string> => {
     try {
       const secret = process.env.JWT_REFRESH_SECRET_KEY;

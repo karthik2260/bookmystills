@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { X, Upload, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useDispatch } from 'react-redux';
-import { updateVendorStatus } from '@/redux/slices/VendorSlice';
-import { showToastMessage } from '@/validations/common/toast';
-import { AcceptanceStatus } from '@/types/vendorTypes';
-import { submitReapplicationApi,isAxiosErrorWithMessage } from './Reapplyapi';
+import { X, Upload, AlertTriangle, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+
+import { submitReapplicationApi, isAxiosErrorWithMessage } from "./Reapplyapi";
+
+import { updateVendorStatus } from "@/redux/slices/VendorSlice";
+import { AcceptanceStatus } from "@/types/vendorTypes";
+import { showToastMessage } from "@/validations/common/toast";
 interface ReapplyModalProps {
   rejectionReason?: string | null;
   onClose: () => void;
@@ -29,20 +31,24 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
     try {
       await submitReapplicationApi({ portfolioFiles, aadharFront, aadharBack });
 
-      dispatch(updateVendorStatus({
-        isAccepted: AcceptanceStatus.Reapplied,
-        rejectionReason: undefined,
-      }));
+      dispatch(
+        updateVendorStatus({
+          isAccepted: AcceptanceStatus.Reapplied,
+          rejectionReason: undefined,
+        }),
+      );
 
       setSubmitted(true);
-      showToastMessage('Reapplication submitted successfully!', 'success');
+      showToastMessage("Reapplication submitted successfully!", "success");
       setTimeout(() => onClose(), 2000);
-
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
-        showToastMessage(error.response?.data?.message || 'Failed to submit reapplication', 'error');
+        showToastMessage(
+          error.response?.data?.message || "Failed to submit reapplication",
+          "error",
+        );
       } else {
-        showToastMessage('Unexpected error occurred', 'error');
+        showToastMessage("Unexpected error occurred", "error");
       }
     } finally {
       setIsLoading(false);
@@ -52,14 +58,18 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <AlertTriangle size={18} className="text-red-500" />
-            <h2 className="text-base font-bold text-gray-900">Reapply for Verification</h2>
+            <h2 className="text-base font-bold text-gray-900">
+              Reapply for Verification
+            </h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
             <X size={20} />
           </button>
         </div>
@@ -70,14 +80,15 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={32} className="text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Reapplication Submitted!</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Reapplication Submitted!
+            </h3>
             <p className="text-sm text-gray-500">
               Admin will review your updated documents and notify you via email.
             </p>
           </div>
         ) : (
           <div className="px-6 py-5 space-y-5">
-
             {/* Rejection Reason */}
             {rejectionReason && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -97,17 +108,22 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">
                 📸 Portfolio Images
-                <span className="text-xs font-normal text-gray-400 ml-1">(optional, max 5)</span>
+                <span className="text-xs font-normal text-gray-400 ml-1">
+                  (optional, max 5)
+                </span>
               </label>
               <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                 <Upload size={20} className="text-gray-400 mb-1" />
                 <span className="text-xs text-gray-500">
                   {portfolioFiles.length > 0
                     ? `${portfolioFiles.length} file(s) selected`
-                    : 'Click to upload portfolio images'}
+                    : "Click to upload portfolio images"}
                 </span>
                 <input
-                  type="file" multiple accept="image/*" className="hidden"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
                   onChange={handlePortfolioChange}
                 />
               </label>
@@ -117,28 +133,36 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">
                 🪪 Aadhaar Card
-                <span className="text-xs font-normal text-gray-400 ml-1">(optional)</span>
+                <span className="text-xs font-normal text-gray-400 ml-1">
+                  (optional)
+                </span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 {/* Front */}
                 <label className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                   <Upload size={16} className="text-gray-400 mb-1" />
                   <span className="text-xs text-gray-500 text-center px-2">
-                    {aadharFront ? aadharFront.name : 'Front Side'}
+                    {aadharFront ? aadharFront.name : "Front Side"}
                   </span>
                   <input
-                    type="file" accept="image/*" className="hidden"
-                    onChange={(e) => setAadharFront(e.target.files?.[0] || null)}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      setAadharFront(e.target.files?.[0] || null)
+                    }
                   />
                 </label>
                 {/* Back */}
                 <label className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                   <Upload size={16} className="text-gray-400 mb-1" />
                   <span className="text-xs text-gray-500 text-center px-2">
-                    {aadharBack ? aadharBack.name : 'Back Side'}
+                    {aadharBack ? aadharBack.name : "Back Side"}
                   </span>
                   <input
-                    type="file" accept="image/*" className="hidden"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
                     onChange={(e) => setAadharBack(e.target.files?.[0] || null)}
                   />
                 </label>
@@ -163,7 +187,9 @@ const ReapplyModal = ({ rejectionReason, onClose }: ReapplyModalProps) => {
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Submitting…
                   </span>
-                ) : 'Submit Reapplication'}
+                ) : (
+                  "Submit Reapplication"
+                )}
               </button>
             </div>
           </div>

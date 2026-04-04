@@ -6,6 +6,7 @@ export class ProfileUserDTO {
   contactinfo?: string;
   createdAt?: string;
   updatedAt?: string;
+  isActive: boolean;
 
   constructor(data: {
     id: string;
@@ -15,6 +16,7 @@ export class ProfileUserDTO {
     contactinfo?: string;
     createdAt?: string;
     updatedAt?: string;
+    isActive: boolean;
   }) {
     this.id = data.id;
     this.name = data.name;
@@ -23,5 +25,6 @@ export class ProfileUserDTO {
     this.contactinfo = data.contactinfo;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.isActive = data.isActive;
   }
 }
