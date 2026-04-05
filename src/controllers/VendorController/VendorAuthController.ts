@@ -17,6 +17,7 @@ import {
   VendorReapplyFiles,
   VendorReapplyRequestDTO,
 } from '../../dto/vendor/reapply/vendor.reapply.request.dto';
+import { ENV } from '../../config/env';
 
 declare module 'express-session' {
   interface Session {
@@ -118,9 +119,9 @@ class VendorAuthController {
 
       res.cookie('jwtToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+        maxAge: ENV.COOKIE_MAX_AGE,
       });
       res.status(HTTP_statusCode.OK).json({ token, vendor, message });
     } catch (error) {
