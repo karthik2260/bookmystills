@@ -7,6 +7,8 @@ import HTTP_statusCode from '../enums/httpStatusCode';
 import { AuthRole } from '../enums/commonEnums';
 import { AdminMapper } from '../mapper/admin/admin.mapper';
 import { AdminLoginResponseDTO } from '../dto/admin/auth/response/admin.response.dto';
+import { ENV } from '../config/env';
+import logger from '../config/logger';
 
 class AdminService implements IAdminService {
   private adminRepository: IAdminRepository;
@@ -32,7 +34,7 @@ class AdminService implements IAdminService {
       let { refreshToken } = existingAdmin;
 
       if (!refreshToken || isTokenExpiringSoon(refreshToken)) {
-        refreshToken = jwt.sign({ _id: existingAdmin._id }, process.env.JWT_REFRESH_SECRET_KEY!, {
+        refreshToken = jwt.sign({ _id: existingAdmin._id }, ENV.JWT_REFRESH_SECRET_KEY!, {
           expiresIn: '7d',
         });
 
@@ -55,7 +57,7 @@ class AdminService implements IAdminService {
   };
   createRefreshToken = async (jwtTokenAdmin: string): Promise<string> => {
     try {
-      const decodedToken = jwt.verify(jwtTokenAdmin, process.env.JWT_REFRESH_SECRET_KEY!) as {
+      const decodedToken = jwt.verify(jwtTokenAdmin, ENV.JWT_REFRESH_SECRET_KEY!) as {
         _id: string;
       };
 
@@ -101,7 +103,7 @@ class AdminService implements IAdminService {
         },
       };
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logger.error('Error fetching dashboard stats:', error);
       throw new Error('Unable to fetch dashboard statistics');
     }
   };

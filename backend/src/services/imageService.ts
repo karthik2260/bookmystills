@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import { CustomError } from '../error/customError';
 import HTTP_statusCode from '../enums/httpStatusCode';
+import logger from '../config/logger';
 
 export class ImageService {
   private readonly COMPRESSION_QUALITY = 80;
@@ -47,7 +48,7 @@ export class ImageService {
         .rotate()
         .toBuffer();
     } catch (error) {
-      console.error('Error compressing image:', error);
+      logger.error('Error compressing image:', error);
       throw new CustomError('Failed to compress image', HTTP_statusCode.InternalServerError);
     }
   }
@@ -62,7 +63,7 @@ export class ImageService {
         .jpeg({ quality: this.COMPRESSION_QUALITY })
         .toBuffer();
     } catch (error) {
-      console.error('Error creating thumbnail:', error);
+      logger.error('Error creating thumbnail:', error);
       throw new CustomError('Failed to create thumbnail', HTTP_statusCode.InternalServerError);
     }
   }
@@ -80,7 +81,7 @@ export class ImageService {
     try {
       return await sharp(buffer).metadata();
     } catch (error) {
-      console.error('Error getting image metadata:', error);
+      logger.error('Error getting image metadata:', error);
       throw new CustomError('Failed to get image metadata', HTTP_statusCode.InternalServerError);
     }
   }

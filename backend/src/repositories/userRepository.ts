@@ -1,3 +1,4 @@
+import logger from '../config/logger';
 import HTTP_statusCode from '../enums/httpStatusCode';
 import { CustomError } from '../error/customError';
 import { IUserRepository } from '../interfaces/repositoryInterfaces/user.repository.interface';
@@ -57,7 +58,7 @@ class UserRepository extends BaseRepository<UserDocument> implements IUserReposi
       );
       return result.modifiedCount > 0;
     } catch (error) {
-      console.error('Error in updatePassword:', error);
+      logger.error('Error in updatePassword:', error);
       throw new CustomError(
         'Failed to update password in database',
         HTTP_statusCode.InternalServerError,
@@ -84,7 +85,7 @@ class UserRepository extends BaseRepository<UserDocument> implements IUserReposi
       );
       return result.modifiedCount > 0;
     } catch (error) {
-      console.error('Error in updatePassword:', error);
+      logger.error('Error in updatePassword:', error);
       throw new CustomError(
         'Failed to update password in database',
         HTTP_statusCode.InternalServerError,
@@ -104,7 +105,7 @@ class UserRepository extends BaseRepository<UserDocument> implements IUserReposi
         },
       );
     } catch (error) {
-      console.error('Error clearing reset token:', error);
+      logger.error('Error clearing reset token:', error);
       throw new CustomError('Failed to clear reset token', HTTP_statusCode.InternalServerError);
     }
   };

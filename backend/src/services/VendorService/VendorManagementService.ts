@@ -9,6 +9,7 @@ import { s3Service } from '../s3Service';
 import { PostDocument } from '../../models/postModel';
 import { IVendorManagementService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorManagement.interface';
 import { VendorDocument } from '../../models/vendorModel';
+import logger from '../../config/logger';
 
 export class VendorManagementService implements IVendorManagementService {
   private vendorRepository: IVendorRepository;
@@ -40,7 +41,7 @@ export class VendorManagementService implements IVendorManagementService {
                   vendorDoc.imageUrl,
                 );
               } catch (error) {
-                console.error('Error signing profile image:', error);
+                logger.error('Error signing profile image:', error);
               }
             }
 
@@ -52,7 +53,7 @@ export class VendorManagementService implements IVendorManagementService {
                   ),
                 );
               } catch (error) {
-                console.error('Error signing portfolio images:', error);
+                logger.error('Error signing portfolio images:', error);
               }
             }
 
@@ -64,13 +65,13 @@ export class VendorManagementService implements IVendorManagementService {
                   ),
                 );
               } catch (error) {
-                console.error('Error signing aadhar images:', error);
+                logger.error('Error signing aadhar images:', error);
               }
             }
 
             return vendorDoc;
           } catch (error) {
-            console.error('Error processing vendor:', error);
+            logger.error('Error processing vendor:', error);
             return vendor;
           }
         }),
@@ -81,7 +82,7 @@ export class VendorManagementService implements IVendorManagementService {
         vendors: updateVendors,
       };
     } catch (error) {
-      console.error('Error in finding vendors', error);
+      logger.error('Error in finding vendors', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to get Vendors', HTTP_statusCode.InternalServerError);
     }
@@ -138,7 +139,7 @@ export class VendorManagementService implements IVendorManagementService {
             : 'Vendor has been rejected and notified via email',
       };
     } catch (error) {
-      console.error('Error in verifying vendor', error);
+      logger.error('Error in verifying vendor', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to Verify vendor', HTTP_statusCode.InternalServerError);
     }
@@ -146,7 +147,7 @@ export class VendorManagementService implements IVendorManagementService {
   getAllDetails = async (vendorId: string): Promise<VendorDetailsWithAll> => {
     try {
       const vendorDetails = await this.vendorRepository.getAllPopulate(vendorId);
-      console.log('vendorDetails isAccepted:', vendorDetails?.vendor?.isAccepted); // ← add
+      logger.log('vendorDetails isAccepted:', vendorDetails?.vendor?.isAccepted); // ← add
 
       const updatedVendorDetails = { ...vendorDetails };
 
@@ -158,7 +159,7 @@ export class VendorManagementService implements IVendorManagementService {
           );
           updatedVendorDetails.imageUrl = profileImageUrl;
         } catch (error) {
-          console.error('Error generating signed URL for profile image:', error);
+          logger.error('Error generating signed URL for profile image:', error);
         }
       }
 
@@ -170,7 +171,7 @@ export class VendorManagementService implements IVendorManagementService {
             ),
           );
         } catch (error) {
-          console.error('Error generating signed URL for aadhar images:', error);
+          logger.error('Error generating signed URL for aadhar images:', error);
         }
       }
 
@@ -188,7 +189,7 @@ export class VendorManagementService implements IVendorManagementService {
                         imageFileName,
                       );
                     } catch (error) {
-                      console.error(`Error getting signed URL for image ${imageFileName}:`, error);
+                      logger.error(`Error getting signed URL for image ${imageFileName}:`, error);
                       return null;
                     }
                   }),
@@ -200,7 +201,7 @@ export class VendorManagementService implements IVendorManagementService {
               }
               return postObject;
             } catch (error) {
-              console.error('Error processing post:', error);
+              logger.error('Error processing post:', error);
               return post;
             }
           }),
@@ -213,7 +214,7 @@ export class VendorManagementService implements IVendorManagementService {
         ...updatedVendorDetails,
       };
     } catch (error) {
-      console.error('Error in getAllDetails:', error);
+      logger.error('Error in getAllDetails:', error);
       throw new CustomError(
         'Failed to getAllDetails from database',
         HTTP_statusCode.InternalServerError,
@@ -231,7 +232,7 @@ export class VendorManagementService implements IVendorManagementService {
       await vendor.save();
       return vendor.isActive ? BlockStatus.UNBLOCK : BlockStatus.BLOCK;
     } catch (error) {
-      console.error('Error in SVendorBlockUnblock', error);
+      logger.error('Error in SVendorBlockUnblock', error);
       if (error instanceof CustomError) {
         throw error;
       }

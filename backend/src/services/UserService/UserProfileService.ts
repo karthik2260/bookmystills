@@ -6,6 +6,7 @@ import { s3Service } from '../s3Service';
 import { IUserProfileService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserProfile.service.interface';
 import { ProfileUserDTO } from '../../dto/user/profile/profile.user.dto';
 import { UserMapper } from '../../mapper/user/user.mapper';
+import logger from '../../config/logger';
 export class UserProfileService implements IUserProfileService {
   private userRepository: IUserRepository;
 
@@ -25,13 +26,13 @@ export class UserProfileService implements IUserProfileService {
           const signedUrl = await s3Service.getFile('photo/', user.imageUrl);
           user.imageUrl = signedUrl;
         } catch (error) {
-          console.error('Error generating signed URL:', error);
+          logger.error('Error generating signed URL:', error);
         }
       }
 
       return UserMapper.toProfileDTO(user);
     } catch (error) {
-      console.error('Error in getUserProfileService:', error);
+      logger.error('Error in getUserProfileService:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         (error as Error).message || 'Failed to get profile details',
@@ -42,11 +43,11 @@ export class UserProfileService implements IUserProfileService {
   updateProfileService = async (
     name?: string,
     contactinfo?: string,
-    userId?: string, // ✅ string not any
+    userId?: string,
     files?: Express.Multer.File | null,
   ): Promise<ProfileUserDTO> => {
     try {
-      const user = await this.userRepository.getById(userId!); // ✅ no .toString() needed
+      const user = await this.userRepository.getById(userId!);
       if (!user) {
         throw new CustomError(Messages.USER_NOT_FOUND, HTTP_statusCode.NotFound);
       }
@@ -65,7 +66,7 @@ export class UserProfileService implements IUserProfileService {
           try {
             await s3Service.deleteFromS3(`photo/${user.imageUrl}`);
           } catch (error) {
-            console.error('Error deleting old image from S3:', error);
+            logger.error('Error deleting old image from S3:', error);
           }
         }
         const fileKey = await s3Service.uploadToS3('photo/', files);
@@ -85,7 +86,7 @@ export class UserProfileService implements IUserProfileService {
 
       return await this.getUserProfileService(userId!); // ✅ already string
     } catch (error) {
-      console.error('Error in updateProfileService:', error);
+      logger.error('Error in updateProfileService:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to update profile.', HTTP_statusCode.InternalServerError);
     }

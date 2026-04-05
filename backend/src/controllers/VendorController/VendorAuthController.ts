@@ -133,7 +133,7 @@ class VendorAuthController {
     try {
       res.clearCookie('jwtToken', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
       });
 

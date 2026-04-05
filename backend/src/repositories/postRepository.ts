@@ -2,6 +2,7 @@ import Post, { PostDocument } from '../models/postModel';
 import { BaseRepository } from './baseRepository';
 import mongoose from 'mongoose';
 import { IPostRepository } from '../interfaces/repositoryInterfaces/post.repository.interface';
+import logger from '../config/logger';
 
 class PostRepository extends BaseRepository<PostDocument> implements IPostRepository {
   constructor() {
@@ -27,12 +28,9 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         };
       }
 
-      // Validate page number
-
       const posts = await Post.find({ vendor_id: vendorId })
         .sort({ createdAt: -1 })
-        // .skip(validSkip)
-        // .limit(limit)
+
         .lean<PostDocument[]>();
 
       return {
@@ -42,7 +40,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         currentPage: 1,
       };
     } catch (error) {
-      console.error('Error in getVendorPosts repository:', error);
+      logger.error('Error in getVendorPosts repository:', error);
       throw error;
     }
   };
@@ -80,7 +78,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         currentPage: 1,
       };
     } catch (error) {
-      console.error('Error in getVendorPosts repository:', error);
+      logger.error('Error in getVendorPosts repository:', error);
       throw error;
     }
   };
@@ -108,8 +106,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
 
       const vendorPosts = await Post.find({ vendor_id: vendorId })
         .sort({ createdAt: -1 })
-        // .skip(skip)
-        // .limit(limit)
+
         .populate('vendor_id', 'name companyName city about contactinfo imageUrl totalRating')
         .lean<PostDocument[]>();
 
@@ -122,7 +119,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         currentPage: page,
       };
     } catch (error) {
-      console.error('Error in getSingleVendorPosts repository', error);
+      logger.error('Error in getSingleVendorPosts repository', error);
       throw error;
     }
   };
@@ -132,13 +129,13 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     page: number,
     search?: string,
   ): Promise<{
-    posts: Partial<PostDocument>[]; // ✅ no any
+    posts: Partial<PostDocument>[];
     total: number;
     totalPages: number;
     currentPage: number;
   }> => {
     try {
-      const query: Record<string, unknown> = {}; // ✅ no any
+      const query: Record<string, unknown> = {};
 
       if (search && search.trim()) {
         const searchRegex = new RegExp(search.trim(), 'i');
@@ -166,7 +163,7 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
         currentPage: 1,
       };
     } catch (error) {
-      console.error('Error in getVendorPosts repository:', error);
+      logger.error('Error in getVendorPosts repository:', error);
       throw error;
     }
   };
@@ -178,14 +175,10 @@ class PostRepository extends BaseRepository<PostDocument> implements IPostReposi
     try {
       return await Post.findByIdAndUpdate(id, updateData, options).exec();
     } catch (error) {
-      console.error('Error in findByIdAndUpdate:', error);
+      logger.error('Error in findByIdAndUpdate:', error);
       throw error;
     }
   };
-
-  // findPostsByVendorId(vendor_id: string) {
-  //     return Post.find({ vendor_id });
-  // }
 }
 
 export default PostRepository;

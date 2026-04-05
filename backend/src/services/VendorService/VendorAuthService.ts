@@ -19,6 +19,8 @@ import { VendorMapper } from '../../mapper/vendor/vendor.mapper';
 import { VendorSignUpRequestDTO } from '../../dto/vendor/auth/request/vendor.signup.request.dto';
 import { VendorReapplyRequestDTO } from '../../dto/vendor/reapply/vendor.reapply.request.dto';
 import { VendorLoginRequestDTO } from '../../dto/vendor/auth/request/vendor.logi.requestDTO';
+import logger from '../../config/logger';
+import { ENV } from '../../config/env';
 export class VendorAuthService implements IVendorAuthService {
   private vendorRepository: IVendorRepository;
 
@@ -115,7 +117,7 @@ export class VendorAuthService implements IVendorAuthService {
         isAccepted: AcceptanceStatus.Requested,
       });
     } catch (error) {
-      console.error('Error in Signup', error);
+      logger.error('Error in Signup', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to create a New Vendor', HTTP_statusCode.InternalServerError);
     }
@@ -159,7 +161,7 @@ export class VendorAuthService implements IVendorAuthService {
             existingVendor.imageUrl,
           );
         } catch (error) {
-          console.error('Error generating signed URL during login:', error);
+          logger.error('Error generating signed URL during login:', error);
         }
       }
 
@@ -171,7 +173,7 @@ export class VendorAuthService implements IVendorAuthService {
         message: 'Successfully logged in...',
       };
     } catch (error) {
-      console.error('Error in login', error);
+      logger.error('Error in login', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to login', HTTP_statusCode.InternalServerError);
     }
@@ -179,7 +181,7 @@ export class VendorAuthService implements IVendorAuthService {
 
   create_RefreshToken = async (refreshToken: string): Promise<string> => {
     try {
-      const decodedToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET_KEY!) as {
+      const decodedToken = jwt.verify(refreshToken, ENV.JWT_REFRESH_SECRET_KEY!) as {
         _id: string;
       };
 
@@ -192,7 +194,7 @@ export class VendorAuthService implements IVendorAuthService {
       const accessToken = createAccessToken(vendor._id.toString(), AuthRole.VENDOR);
       return accessToken;
     } catch (error) {
-      console.error('Error while creatin refreshToken', error);
+      logger.error('Error while creatin refreshToken', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -275,7 +277,7 @@ export class VendorAuthService implements IVendorAuthService {
         message: 'Reapplication submitted. Admin will review your documents shortly.',
       };
     } catch (error) {
-      console.error('Error in reapplyVendor:', error);
+      logger.error('Error in reapplyVendor:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to submit reapplication', HTTP_statusCode.InternalServerError);
     }
@@ -291,7 +293,7 @@ function isTokenExpiringSoon(token: string): boolean {
 
     return timeUntilExpiration < 7 * 24 * 60 * 60 * 1000;
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return true;
   }
 }

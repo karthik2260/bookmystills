@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { emailTemplates } from '../../util/emailTemplates';
 import Messages from '../../enums/errorMessages';
 import { IUserPasswordService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserPassword.service.interface';
+import logger from '../../config/logger';
 export class UserPasswordService implements IUserPasswordService {
   private userRepository: IUserRepository;
 
@@ -37,7 +38,7 @@ export class UserPasswordService implements IUserPasswordService {
       );
       this.scheduleTokenCleanup(user._id, resetTokenExpiry);
     } catch (error) {
-      console.error('Error in handleForgotPassword:', error);
+      logger.error('Error in handleForgotPassword:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -52,7 +53,7 @@ export class UserPasswordService implements IUserPasswordService {
     try {
       const user = await this.userRepository.findByToken(token);
 
-      console.log('👤 User found:', user ? 'YES' : 'NO');
+      logger.log('👤 User found:', user ? 'YES' : 'NO');
 
       if (!user) {
         throw new CustomError('Invalid token', HTTP_statusCode.BadRequest); // Change to 400
@@ -110,7 +111,7 @@ export class UserPasswordService implements IUserPasswordService {
       }
       return true;
     } catch (error) {
-      console.error('Error in validateResetToken:', error);
+      logger.error('Error in validateResetToken:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -159,7 +160,7 @@ export class UserPasswordService implements IUserPasswordService {
         emailTemplates.ResetPasswordSuccess(user.name),
       );
     } catch (error) {
-      console.error('Error in updating password:', error);
+      logger.error('Error in updating password:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to changing password.', HTTP_statusCode.InternalServerError);
     }
@@ -173,7 +174,7 @@ export class UserPasswordService implements IUserPasswordService {
       try {
         await this.userRepository.clearResetToken(userId);
       } catch (error) {
-        console.error('Error cleaning up expired token:', error);
+        logger.error('Error cleaning up expired token:', error);
       }
     }, timeUntilExpiry);
   }

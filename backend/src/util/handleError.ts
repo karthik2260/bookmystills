@@ -1,9 +1,9 @@
 import { Response } from 'express';
 import { CustomError } from '../error/customError';
 import { normalizeError } from './errors'; // 👈 import
+import logger from '../config/logger';
 
 export function handleError(res: Response, error: unknown, contextMessage: string): void {
-  // 👈 unknown
   const err = normalizeError(error); // 👈 normalize once here
 
   if (err instanceof CustomError) {
@@ -11,7 +11,7 @@ export function handleError(res: Response, error: unknown, contextMessage: strin
       message: err.message,
     });
   } else {
-    console.error(`Unexpected error in ${contextMessage}: ${err}`);
+    logger.error(`Unexpected error in ${contextMessage}: ${err}`);
     res.status(500).json({
       message: 'Internal Server Error, Please Try Again',
     });

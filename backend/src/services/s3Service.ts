@@ -7,8 +7,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dotenv from 'dotenv';
+import logger from '../config/logger';
 dotenv.config();
 
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
@@ -48,7 +50,7 @@ export class S3Service {
       const url = await getSignedUrl(this.s3Client, getCommand, { expiresIn: 604800 });
       return url;
     } catch (error) {
-      console.log(error);
+      logger.error(error);
 
       throw new Error('Failed to generate signedUrl');
     }
@@ -74,7 +76,7 @@ export class S3Service {
 
       return uniqueFileName;
     } catch (error) {
-      console.error('Error uploading to S3:', error);
+      logger.error('Error uploading to S3:', error);
       throw new Error('Failed to upload file to S3');
     }
   }
@@ -88,7 +90,7 @@ export class S3Service {
         }),
       );
     } catch (error) {
-      console.error('Error deleting from S3:', error);
+      logger.error('Error deleting from S3:', error);
       throw new Error('Failed to delete file from S3');
     }
   }

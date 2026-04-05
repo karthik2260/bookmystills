@@ -7,6 +7,7 @@ import { validatePostInput } from '../../validations/postValidation';
 import { IPostRepository } from '../../interfaces/repositoryInterfaces/post.repository.interface';
 import { PostStatus, ServiceProvided } from '../../enums/commonEnums';
 import HTTP_statusCode from '../../enums/httpStatusCode';
+import logger from '../../config/logger';
 
 export class PostCreationService {
   private imageService: ImageService;
@@ -51,7 +52,7 @@ export class PostCreationService {
               compressedBuffer,
             };
           } catch (error) {
-            console.error(`Error processing image: ${file.originalname}`, error);
+            logger.error(`Error processing image: ${file.originalname}`, error);
             throw new CustomError(
               `Failed to process image: ${file.originalname}`,
               HTTP_statusCode.InternalServerError,
@@ -88,7 +89,7 @@ export class PostCreationService {
 
       return { post: createdPost };
     } catch (error) {
-      console.error('Error while creating new post', error);
+      logger.error('Error while creating new post', error);
       if (error instanceof CustomError) {
         throw error;
       }
