@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { OTP_EXPIRY_TIME, RESEND_COOLDOWN } from '../../enums/commonEnums';
+import { RESEND_COOLDOWN } from '../../enums/commonEnums';
 import Messages from '../../enums/errorMessages';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { CustomError } from '../../error/customError';
@@ -173,13 +173,13 @@ class UserAuthController {
         ...userData,
         otpCode: newOtp,
         otpSetTimestamp: currentTime,
-        otpExpiry: currentTime + OTP_EXPIRY_TIME,
-        resendTimer: currentTime + RESEND_COOLDOWN,
+        otpExpiry: currentTime + ENV.OTP_EXPIRY_TIME,
+        resendTimer: currentTime + ENV.RESEND_COOLDOWN,
       };
 
       const response = new ResendOtpResponseDTO({
         message: 'New OTP sent to email',
-        otpExpiry: currentTime + OTP_EXPIRY_TIME,
+        otpExpiry: currentTime + ENV.OTP_EXPIRY_TIME,
         resendAvailableAt: currentTime + RESEND_COOLDOWN,
       });
       res.status(HTTP_statusCode.OK).json(response);
@@ -302,15 +302,13 @@ class UserAuthController {
 
       const serviceResponse = await this.userService.authenticateGoogleLogin(googleUserData);
 
-      // refreshToken → cookie only
       res.cookie('refreshToken', serviceResponse.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: ENV.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: parseInt(process.env.COOKIE_MAX_AGE || '604800000'),
+        maxAge: ENV.COOKIE_MAX_AGE,
       });
 
-      // ✅ no isActive check needed — service throws if user is blocked
       res.status(HTTP_statusCode.OK).json({
         token: serviceResponse.token,
         user: serviceResponse.user,

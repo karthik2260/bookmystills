@@ -12,6 +12,7 @@ import { CustomError } from '../../error/customError';
 import { UserListResponseDTO } from '../../dto/user/auth/response/user.list.response.dto';
 import { UserBlockStatusDTO } from '../../dto/user/auth/response/user.block.response.dto';
 import { BlockStatus } from '../../enums/commonEnums';
+import logger from '../../config/logger';
 dotenv.config();
 
 class AdminController {
@@ -112,8 +113,8 @@ class AdminController {
   UserBlockUnblock = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId: string | undefined = req.query.userId as string | undefined;
-      console.log('query:', req.query);
-      console.log('userId:', userId);
+      logger.log('query:', req.query);
+      logger.log('userId:', userId);
 
       if (!userId) {
         res.status(HTTP_statusCode.BadRequest).json({ message: Messages.USER_ID_MISSING });
@@ -144,7 +145,7 @@ class AdminController {
         data: dashboardStats,
       });
     } catch (error) {
-      console.error('Dashboard stats error:', error);
+      logger.error('Dashboard stats error:', error);
       res.status(HTTP_statusCode.InternalServerError).json({
         success: false,
         message: 'Failed to retrieve dashboard statistics',
