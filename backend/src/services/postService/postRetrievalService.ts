@@ -6,6 +6,7 @@ import { IPostRepository } from '../../interfaces/repositoryInterfaces/post.repo
 import { Vendor } from '../../interfaces/commonInterfaces';
 import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.Repository.interface';
 import HTTP_statusCode from '../../enums/httpStatusCode';
+import logger from '../../config/logger';
 
 export class PostRetrievalService {
   private postRepository: IPostRepository;
@@ -32,7 +33,7 @@ export class PostRetrievalService {
                     imageFileName,
                   );
                 } catch (error) {
-                  console.error(`Error getting signed URL for image ${imageFileName}:`, error);
+                  logger.error(`Error getting signed URL for image ${imageFileName}:`, error);
                   return null;
                 }
               }),
@@ -52,7 +53,7 @@ export class PostRetrievalService {
             vendor: post.vendor_id,
           };
         } catch (error) {
-          console.error('Error processing post:', error);
+          logger.error('Error processing post:', error);
           return post;
         }
       }),
@@ -85,7 +86,7 @@ export class PostRetrievalService {
                       imageFileName,
                     );
                   } catch (error) {
-                    console.error(`Error getting signed URL for image ${imageFileName}:`, error);
+                    logger.error(`Error getting signed URL for image ${imageFileName}:`, error);
                     return null;
                   }
                 }),
@@ -101,7 +102,7 @@ export class PostRetrievalService {
 
             return postObject;
           } catch (error) {
-            console.error('Error processing post:', error);
+            logger.error('Error processing post:', error);
             return post;
           }
         }),
@@ -114,7 +115,7 @@ export class PostRetrievalService {
         currentPage: result.currentPage,
       };
     } catch (error) {
-      console.error('Error in getVendorPosts:', error);
+      logger.error('Error in getVendorPosts:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -143,7 +144,7 @@ export class PostRetrievalService {
         currentPage: result.currentPage,
       };
     } catch (error) {
-      console.error('Error in displayPosts:', error);
+      logger.error('Error in displayPosts:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -172,10 +173,8 @@ export class PostRetrievalService {
         throw new CustomError('Wrong VendorId', HTTP_statusCode.NotFound);
       }
 
-      // ✅ process post images
       const postWithSignedUrls = await this.processPostImages(result.vendorPosts);
 
-      // ✅ mutate vendor imageUrl directly
       if (vendorDetails?.imageUrl) {
         try {
           vendorDetails.imageUrl = await s3Service.getFile(
@@ -183,7 +182,7 @@ export class PostRetrievalService {
             vendorDetails.imageUrl,
           );
         } catch (error) {
-          console.error('Error generating signed URL:', error);
+          logger.error('Error generating signed URL:', error);
         }
       }
 
@@ -195,7 +194,7 @@ export class PostRetrievalService {
         currentPage: result.currentPage,
       };
     } catch (error) {
-      console.error('Error in getting single VendorId posts:', error);
+      logger.error('Error in getting single VendorId posts:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to fetch VendorId Posts', HTTP_statusCode.InternalServerError);
     }
@@ -223,7 +222,7 @@ export class PostRetrievalService {
         currentPage: result.currentPage,
       };
     } catch (error) {
-      console.error('Error in displayPostsAdmin:', error);
+      logger.error('Error in displayPostsAdmin:', error);
       if (error instanceof CustomError) {
         throw error;
       }

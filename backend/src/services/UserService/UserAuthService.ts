@@ -17,6 +17,7 @@ import { SignupRequestDTO } from '../../dto/user/auth/request/signup.request.dto
 import { LoginRequestDTO } from '../../dto/user/auth/request/login.request.dto';
 import { LoginServiceResult } from '../../dto/user/auth/response/login.service.result';
 import logger from '../../config/logger';
+import { ENV } from '../../config/env';
 
 export class UserAuthService implements IUserAuthService {
   private userRepository: IUserRepository;
@@ -103,7 +104,7 @@ export class UserAuthService implements IUserAuthService {
       return {
         token,
         refreshToken,
-        user: UserMapper.toLoginDTO(existingUser), // ✅ mapper in service
+        user: UserMapper.toLoginDTO(existingUser),
         message: 'Successfully Logged in',
       };
     } catch (error) {
@@ -113,7 +114,7 @@ export class UserAuthService implements IUserAuthService {
   };
   create_RefreshToken = async (refreshToken: string): Promise<string> => {
     try {
-      const secret = process.env.JWT_REFRESH_SECRET_KEY;
+      const secret = ENV.JWT_REFRESH_SECRET_KEY;
       if (!secret) {
         throw new CustomError('Server configuration error', HTTP_statusCode.InternalServerError);
       }

@@ -7,6 +7,8 @@ import { sendEmail } from '../../util/sendEmail';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import Messages from '../../enums/errorMessages';
 import { IVendorPasswordService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorPassword.interface';
+import { ENV } from '../../config/env';
+import logger from '../../config/logger';
 export class VendorPasswordService implements IVendorPasswordService {
   private vendorRepository: IVendorRepository;
 
@@ -27,14 +29,14 @@ export class VendorPasswordService implements IVendorPasswordService {
       vendor.resetPasswordExpires = resetTokenExpiry;
       await vendor.save();
 
-      const resetUrl = `${process.env.FRONTEND_URL}/vendor/forgot-password/${resetToken}`;
+      const resetUrl = `${ENV.FRONTEND_URL}/vendor/forgot-password/${resetToken}`;
       await sendEmail(
         email,
         'Password Reset Request',
         emailTemplates.forgotPassword(vendor.name, resetUrl),
       );
     } catch (error) {
-      console.error('Error in handleForgotPassword:', error);
+      logger.error('Error in handleForgotPassword:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -76,7 +78,7 @@ export class VendorPasswordService implements IVendorPasswordService {
         );
       }
     } catch (error) {
-      console.error('Error in newPasswordChange:', error);
+      logger.error('Error in newPasswordChange:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -109,7 +111,7 @@ export class VendorPasswordService implements IVendorPasswordService {
       }
       return true;
     } catch (error) {
-      console.error('Error in validateResetToken:', error);
+      logger.error('Error in validateResetToken:', error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -158,7 +160,7 @@ export class VendorPasswordService implements IVendorPasswordService {
         emailTemplates.ResetPasswordSuccess(vendor.name),
       );
     } catch (error) {
-      console.error('Error in updating password:', error);
+      logger.error('Error in updating password:', error);
       if (error instanceof CustomError) {
         throw error;
       }

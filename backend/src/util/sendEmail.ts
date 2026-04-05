@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import logger from '../config/logger';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -25,7 +26,7 @@ export async function sendEmail(to: string | string[], subject: string, htmlBody
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error('Error sending email:', error);
     return false;
   }
 }

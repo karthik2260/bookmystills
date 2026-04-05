@@ -5,6 +5,7 @@ import { BlockStatus } from '../../enums/commonEnums';
 import { IUserManagementService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/UserManagement.service.interface';
 import { UserListServiceResult } from '../../dto/user/auth/response/user.list.service.result';
 import { UserMapper } from '../../mapper/user/user.mapper';
+import logger from '../../config/logger';
 
 export class UserManagementService implements IUserManagementService {
   private userRepository: IUserRepository;
@@ -23,7 +24,6 @@ export class UserManagementService implements IUserManagementService {
       const result = await this.userRepository.findAllUsers(page, limit, search, status);
 
       return {
-        // ✅ each UserDocument → UserListItemDTO via mapper
         users: result.users.map((user) => UserMapper.toUserListItemDTO(user)),
         total: result.total,
         totalPages: result.totalPages,
@@ -42,11 +42,11 @@ export class UserManagementService implements IUserManagementService {
       }
       user.isActive = !user.isActive;
       await user.save();
-      console.log('User returned from repository:', user);
-      console.log('Does user have .save() method?', typeof user.save);
+      logger.log('User returned from repository:', user);
+      logger.log('Does user have .save() method?', typeof user.save);
       return user.isActive ? BlockStatus.UNBLOCK : BlockStatus.BLOCK;
     } catch (error) {
-      console.error('Error in SUserBlockUnblock', error);
+      logger.error('Error in SUserBlockUnblock', error);
       if (error instanceof CustomError) {
         throw error;
       }

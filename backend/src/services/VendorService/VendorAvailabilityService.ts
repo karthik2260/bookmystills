@@ -2,6 +2,7 @@ import { IVendorRepository } from '../../interfaces/repositoryInterfaces/vendor.
 import { CustomError } from '../../error/customError';
 import HTTP_statusCode from '../../enums/httpStatusCode';
 import { IVendorAvailabilityService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorAvailability.interface';
+import logger from '../../config/logger';
 
 export class VendorAvailabilityService implements IVendorAvailabilityService {
   private vendorRepository: IVendorRepository;
@@ -64,7 +65,7 @@ export class VendorAvailabilityService implements IVendorAvailabilityService {
         alreadyBookedDates: alreadyBooked,
       };
     } catch (error) {
-      console.error('Error in addDates:', error);
+      logger.error('Error in addDates:', error);
       throw new CustomError('Failed to addDates', HTTP_statusCode.InternalServerError);
     }
   };
@@ -77,7 +78,7 @@ export class VendorAvailabilityService implements IVendorAvailabilityService {
       }
       return vendor.bookedDates || [];
     } catch (error) {
-      console.error('Error in showUnavailable dates:', error);
+      logger.error('Error in showUnavailable dates:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         'Failed to get dates from database',
@@ -124,7 +125,7 @@ export class VendorAvailabilityService implements IVendorAvailabilityService {
 
       return { success: true, removedDates: result.removedDates };
     } catch (error) {
-      console.error('Error in removeDates:', error);
+      logger.error('Error in removeDates:', error);
       throw error;
     }
   };

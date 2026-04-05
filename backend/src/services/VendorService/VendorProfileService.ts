@@ -6,6 +6,7 @@ import { s3Service } from '../s3Service';
 import { IVendorProfileService } from '../../interfaces/serviceInterfaces/vendorServiceInterfaces/vendorProfile.interface';
 import { VendorMapper } from '../../mapper/vendor/vendor.mapper';
 import { VendorProfileResponseDTO } from '../../dto/vendor/profile/vendor.profile.response.dto';
+import logger from '../../config/logger';
 export class VendorProfileService implements IVendorProfileService {
   private vendorRepository: IVendorRepository;
 
@@ -27,13 +28,13 @@ export class VendorProfileService implements IVendorProfileService {
             vendor.imageUrl,
           );
         } catch (error) {
-          console.error('Error generating signed URL:', error);
+          logger.error('Error generating signed URL:', error);
         }
       }
 
       return VendorMapper.toVendorProfileResponse(vendor);
     } catch (error) {
-      console.error('Error in getVendorProfileService:', error);
+      logger.error('Error in getVendorProfileService:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         (error as Error).message || 'Failed to get profile details',
@@ -79,7 +80,7 @@ export class VendorProfileService implements IVendorProfileService {
               `bookmystills-karthik-gopakumar/vendor/photo/${vendor.imageUrl}`,
             );
           } catch (error) {
-            console.error('Error deleting old image:', error);
+            logger.error('Error deleting old image:', error);
           }
         }
         updateData.imageUrl = await s3Service.uploadToS3(
@@ -96,7 +97,7 @@ export class VendorProfileService implements IVendorProfileService {
 
       return await this.getVendorProfileService(vendorId);
     } catch (error) {
-      console.error('Error in updateProfileService:', error);
+      logger.error('Error in updateProfileService:', error);
       if (error instanceof CustomError) throw error;
       throw new CustomError('Failed to update profile', HTTP_statusCode.InternalServerError);
     }

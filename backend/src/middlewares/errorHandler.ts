@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomError } from '../error/customError';
+import logger from '../config/logger';
 
 export function errorHandler(
   err: Error | CustomError, // ✅ proper type instead of any
@@ -12,7 +13,7 @@ export function errorHandler(
       message: err.message,
     });
   } else {
-    console.error(`Unexpected error: ${err}`);
+    logger.error(`Unexpected error: ${err}`);
     res.status(500).json({
       message: 'Internal Server Error.Please try again later',
     });

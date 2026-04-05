@@ -7,7 +7,7 @@ import {
   VendorDetailsWithAll,
   VendorSession,
 } from '../../interfaces/commonInterfaces';
-import { VendorLoginRequestDTO, VendorSignupResponseDTO } from '../../dto/vendorDTO';
+import { VendorLoginRequestDTO } from '../../dto/vendorDTO';
 import { VendorAuthService } from './VendorAuthService';
 import { VendorPasswordService } from './VendorPasswordService';
 import { VendorProfileService } from './VendorProfileService';

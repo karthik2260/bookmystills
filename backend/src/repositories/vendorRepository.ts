@@ -6,6 +6,7 @@ import { IVendorRepository } from '../interfaces/repositoryInterfaces/vendor.Rep
 import HTTP_statusCode from '../enums/httpStatusCode';
 import { VendorDetailsWithAll } from '../interfaces/commonInterfaces';
 import Post, { PostDocument } from '../models/postModel';
+import logger from '../config/logger';
 
 type VendorDocumentWithId = Document<unknown, VendorDocument> &
   VendorDocument &
@@ -27,7 +28,7 @@ class VendorRepository extends BaseRepository<VendorDocument> implements IVendor
       );
       return result.modifiedCount > 0;
     } catch (error) {
-      console.error('Error in updatePassword:', error);
+      logger.error('Error in updatePassword:', error);
       throw new CustomError(
         'Failed to update password in database',
         HTTP_statusCode.InternalServerError,
@@ -90,7 +91,7 @@ class VendorRepository extends BaseRepository<VendorDocument> implements IVendor
         posts,
       };
     } catch (error) {
-      console.error('Error in getAllPopulate:', error);
+      logger.error('Error in getAllPopulate:', error);
       throw new CustomError(
         'Failed to getAll populated data from database',
         HTTP_statusCode.InternalServerError,
@@ -140,7 +141,7 @@ class VendorRepository extends BaseRepository<VendorDocument> implements IVendor
         updatedVendor,
       };
     } catch (error) {
-      console.error('Error in adding dates', error);
+      logger.error('Error in adding dates', error);
       throw new CustomError('Failed to add new Dates', HTTP_statusCode.InternalServerError);
     }
   };
@@ -175,7 +176,7 @@ class VendorRepository extends BaseRepository<VendorDocument> implements IVendor
         updatedVendor,
       };
     } catch (error) {
-      console.error('Error in removing dates:', error);
+      logger.error('Error in removing dates:', error);
       throw error;
     }
   };

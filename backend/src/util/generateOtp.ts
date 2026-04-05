@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import logger from '../config/logger';
 
 export default async function generateOTP(email: string): Promise<string> {
   try {
@@ -40,7 +41,7 @@ export default async function generateOTP(email: string): Promise<string> {
     await transporter.sendMail(mailOptions);
     return otpCode;
   } catch (error: unknown) {
-    console.error('Full SMTP Error:', error);
+    logger.error('Full SMTP Error:', error);
     throw new Error('Failed to generate and send OTP');
   }
 }

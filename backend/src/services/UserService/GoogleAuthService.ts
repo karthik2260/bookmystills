@@ -9,6 +9,7 @@ import { AuthRole } from '../../enums/commonEnums';
 import { UserMapper } from '../../mapper/user/user.mapper';
 import { IGoogleAuthService } from '../../interfaces/serviceInterfaces/userServiceInterfaces/GoogleAuth.service.interface';
 import { GoogleAuthServiceResult } from '../../dto/user/auth/response/google.auth.service.result';
+import logger from '../../config/logger';
 export class GoogleAuthService implements IGoogleAuthService {
   private userRepository: IUserRepository;
 
@@ -65,7 +66,7 @@ export class GoogleAuthService implements IGoogleAuthService {
             };
           }
         } catch (error) {
-          console.error('Error processing image URL during Google login:', error);
+          logger.error('Error processing image URL during Google login:', error);
         }
       }
 
@@ -84,7 +85,7 @@ export class GoogleAuthService implements IGoogleAuthService {
         message: 'Google authenticate successful',
       };
     } catch (error) {
-      console.error('Error in Google authentication:', error);
+      logger.error('Error in Google authentication:', error);
       if (error instanceof CustomError) {
         throw error;
       }
